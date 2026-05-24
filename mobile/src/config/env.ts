@@ -32,7 +32,7 @@ const extra = Constants.expoConfig?.extra ?? {};
 
 export const env = {
   /** Base URL for the FastAPI backend (no trailing slash) */
-  API_BASE_URL: (extra.apiBaseUrl as string) || getDefaultApiUrl(),
+  API_BASE_URL: (extra.apiBaseUrl as string) || (__DEV__ ? getDefaultApiUrl() : 'https://knovault-api.onrender.com'),
 
   /** Current environment */
   APP_ENV: (extra.appEnv as string) || 'development',

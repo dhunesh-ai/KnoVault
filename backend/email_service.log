@@ -583,3 +583,20 @@
 2026-05-24 11:08:36,404 - utils.encryption - INFO - [Encryption] Secure note encrypted successfully
 2026-05-24 11:08:37,418 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully
 2026-05-24 11:08:38,425 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-24 11:10:20,590 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 11:10:22,848 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 11:10:27,830 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-24 11:12:31,013 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-24 11:12:51,866 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-24 11:13:07,321 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-24 11:13:29,725 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-24 11:13:29,733 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-24 11:14:56,376 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-24 11:14:56,510 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-24 11:15:32,466 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-24 11:15:39,643 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-24 11:16:04,861 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-24 11:16:08,969 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-24 11:18:02,685 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-24 11:19:00,519 - services.email - INFO - Attempting to send signup email to thinkgood24hr@gmail.com...
+2026-05-24 11:19:05,222 - services.email - INFO - Successfully sent signup email to thinkgood24hr@gmail.com
