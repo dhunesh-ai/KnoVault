@@ -1,0 +1,81 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+
+# React Native / Expo
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+.expo/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Android
+mobile/android/app/build/
+mobile/android/app/google-services.json
+mobile/android/.gradle/
+mobile/android/local.properties
+*.apk
+*.aab
+
+# iOS
+mobile/ios/Pods/
+mobile/ios/build/
+mobile/ios/*.xcworkspace
+
+# Node.js
+package-lock.json
+yarn.lock
+
+# Firebase
+mobile/google-services.json
+backend/secrets/
+firebase-debug.log
+*.firebase
+.firebaserc
+
+# Environment Files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+mobile/.env
+
+# Database
+*.sqlite3
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

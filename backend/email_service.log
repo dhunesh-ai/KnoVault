@@ -1,0 +1,585 @@
+2026-05-12 13:17:32,828 - services.email - INFO - Attempting to send verification email to dhuneshwaran4@gmail.com...
+2026-05-12 13:17:39,076 - services.email - INFO - Successfully sent verification email to dhuneshwaran4@gmail.com
+2026-05-12 14:08:11,789 - services.email - INFO - Attempting to send signup email to dhuneshwaran4@gmail.com...
+2026-05-12 14:08:17,494 - services.email - INFO - Successfully sent signup email to dhuneshwaran4@gmail.com
+2026-05-12 14:10:48,047 - services.email - INFO - Attempting to send reset email to dhuneshwaran4@gmail.com...
+2026-05-12 14:10:53,325 - services.email - INFO - Successfully sent reset email to dhuneshwaran4@gmail.com
+2026-05-12 14:16:34,067 - services.email - INFO - Attempting to send signup email to sweetyroselin2005@gmail.com...
+2026-05-12 14:16:40,518 - services.email - INFO - Successfully sent signup email to sweetyroselin2005@gmail.com
+2026-05-13 13:14:54,326 - groq._base_client - INFO - Retrying request to /openai/v1/chat/completions in 0.497264 seconds
+2026-05-13 13:14:55,401 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+2026-05-13 13:19:42,659 - services.email - INFO - Attempting to send signup email to trasrose00@gmail.com...
+2026-05-13 13:19:47,832 - services.email - INFO - Successfully sent signup email to trasrose00@gmail.com
+2026-05-13 13:22:00,982 - services.email - INFO - Attempting to send signup email to trasrose00@gmail.com...
+2026-05-13 13:22:06,262 - services.email - INFO - Successfully sent signup email to trasrose00@gmail.com
+2026-05-13 13:28:43,792 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+2026-05-13 17:01:19,321 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+2026-05-13 17:30:09,496 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 17:30:09,501 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 17:31:24,723 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 17:31:24,784 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 17:33:49,769 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 17:34:29,228 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 17:35:35,042 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-13 17:35:44,645 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-13 17:39:53,242 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 17:42:27,166 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 17:42:35,063 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 17:42:43,735 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 17:45:43,966 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 17:50:00,962 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 17:50:47,393 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-13 17:51:35,001 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-13 18:45:33,680 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 18:46:11,549 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 18:47:21,374 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 18:49:28,648 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 18:50:23,363 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 18:51:32,748 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-13 18:51:32,806 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 644 chars
+2026-05-13 18:51:32,820 - KnoVaultAI - INFO - [AI REQUEST START] Message: Hi...
+2026-05-13 18:51:32,822 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-13 18:51:34,045 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-13 18:51:34,102 - KnoVaultAI - INFO - [GROQ CALL] Response received (163 chars)
+2026-05-13 18:51:34,105 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-13 18:52:02,824 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-13 18:52:02,841 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 644 chars
+2026-05-13 18:52:02,847 - KnoVaultAI - INFO - [AI REQUEST START] Message: Summarize my recent notes...
+2026-05-13 18:52:02,849 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-13 18:52:03,737 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-13 18:52:03,739 - KnoVaultAI - INFO - [GROQ CALL] Response received (341 chars)
+2026-05-13 18:52:03,740 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-13 18:52:31,506 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-13 18:52:31,521 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 707 chars
+2026-05-13 18:52:31,525 - KnoVaultAI - INFO - [AI REQUEST START] Message: What tasks are pending?...
+2026-05-13 18:52:31,526 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-13 18:52:33,536 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-13 18:52:33,538 - KnoVaultAI - INFO - [GROQ CALL] Response received (195 chars)
+2026-05-13 18:52:33,540 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-13 18:53:03,855 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-13 18:53:03,863 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 707 chars
+2026-05-13 18:53:03,866 - KnoVaultAI - INFO - [AI REQUEST START] Message: Give productivity advice...
+2026-05-13 18:53:03,867 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-13 18:53:05,894 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-13 18:53:05,896 - KnoVaultAI - INFO - [GROQ CALL] Response received (842 chars)
+2026-05-13 18:53:05,898 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-13 18:54:21,683 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-13 18:54:21,703 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 707 chars
+2026-05-13 18:54:21,711 - KnoVaultAI - INFO - [AI REQUEST START] Message: What should I focus on today?...
+2026-05-13 18:54:21,713 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-13 18:54:22,695 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-13 18:54:22,702 - KnoVaultAI - INFO - [GROQ CALL] Response received (742 chars)
+2026-05-13 18:54:22,704 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-13 18:54:59,314 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-13 18:54:59,325 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 707 chars
+2026-05-13 18:54:59,328 - KnoVaultAI - INFO - [AI REQUEST START] Message: Find notes about internships...
+2026-05-13 18:54:59,329 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-13 18:55:00,069 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-13 18:55:00,073 - KnoVaultAI - INFO - [GROQ CALL] Response received (342 chars)
+2026-05-13 18:55:00,074 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-13 18:55:34,808 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-13 18:55:34,832 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 707 chars
+2026-05-13 18:55:34,839 - KnoVaultAI - INFO - [AI REQUEST START] Message: Find my note...
+2026-05-13 18:55:34,841 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-13 18:55:35,710 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-13 18:55:35,712 - KnoVaultAI - INFO - [GROQ CALL] Response received (111 chars)
+2026-05-13 18:55:35,714 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-13 18:56:14,314 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-13 18:56:14,331 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 707 chars
+2026-05-13 18:56:14,334 - KnoVaultAI - INFO - [AI REQUEST START] Message: Find password  named note...
+2026-05-13 18:56:14,334 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-13 18:56:14,950 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-13 18:56:14,954 - KnoVaultAI - INFO - [GROQ CALL] Response received (418 chars)
+2026-05-13 18:56:14,956 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-13 18:57:17,193 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-13 18:57:17,208 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 707 chars
+2026-05-13 18:57:17,211 - KnoVaultAI - INFO - [AI REQUEST START] Message: Give productivity advice...
+2026-05-13 18:57:17,212 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-13 18:57:18,207 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-13 18:57:18,209 - KnoVaultAI - INFO - [GROQ CALL] Response received (1064 chars)
+2026-05-13 18:57:18,210 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-13 18:58:29,009 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-13 18:58:29,030 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 707 chars
+2026-05-13 18:58:29,040 - KnoVaultAI - INFO - [AI REQUEST START] Message: Give me a list of notes there...
+2026-05-13 18:58:29,042 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-13 18:58:30,999 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-13 18:58:31,001 - KnoVaultAI - INFO - [GROQ CALL] Response received (151 chars)
+2026-05-13 18:58:31,001 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-13 19:16:09,208 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 19:20:40,475 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 19:21:14,203 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 19:22:23,886 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 19:30:15,815 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-13 19:31:21,284 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-13 19:31:21,332 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 707 chars
+2026-05-13 19:31:21,342 - KnoVaultAI - INFO - [AI REQUEST START] Message: Give productivity advice...
+2026-05-13 19:31:21,343 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-13 19:31:22,676 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-13 19:31:23,862 - KnoVaultAI - INFO - [GROQ CALL] Response received (1315 chars)
+2026-05-13 19:31:23,863 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-14 10:14:19,140 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-14 10:15:33,704 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-14 10:15:33,723 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 707 chars
+2026-05-14 10:15:33,727 - KnoVaultAI - INFO - [AI REQUEST START] Message: Hi...
+2026-05-14 10:15:33,728 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-14 10:15:34,528 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-14 10:15:34,550 - KnoVaultAI - INFO - [GROQ CALL] Response received (159 chars)
+2026-05-14 10:15:34,550 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-14 10:20:42,439 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-14 10:20:42,454 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 707 chars
+2026-05-14 10:20:42,458 - KnoVaultAI - INFO - [AI REQUEST START] Message: Give productive  advice...
+2026-05-14 10:20:42,459 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-14 10:20:43,476 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-14 10:20:43,480 - KnoVaultAI - INFO - [GROQ CALL] Response received (889 chars)
+2026-05-14 10:20:43,481 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-14 12:14:48,158 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-14 12:51:05,277 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-14 12:53:19,800 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-14 12:53:19,808 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 644 chars
+2026-05-14 12:53:19,810 - KnoVaultAI - INFO - [AI REQUEST START] Message: Give productive advice...
+2026-05-14 12:53:19,811 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-14 12:53:21,099 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-14 12:53:21,109 - KnoVaultAI - INFO - [GROQ CALL] Response received (881 chars)
+2026-05-14 12:53:21,109 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-14 12:54:17,282 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-14 12:54:17,288 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 644 chars
+2026-05-14 12:54:17,289 - KnoVaultAI - INFO - [AI REQUEST START] Message: Give short...
+2026-05-14 12:54:17,289 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-14 12:54:18,370 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-14 12:54:18,372 - KnoVaultAI - INFO - [GROQ CALL] Response received (168 chars)
+2026-05-14 12:54:18,372 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-14 12:55:14,805 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-14 12:55:14,809 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 644 chars
+2026-05-14 12:55:14,810 - KnoVaultAI - INFO - [AI REQUEST START] Message: But May 12th is completed today is 14th May...
+2026-05-14 12:55:14,810 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-14 12:55:15,659 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-14 12:55:15,660 - KnoVaultAI - INFO - [GROQ CALL] Response received (253 chars)
+2026-05-14 12:55:15,661 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-14 13:01:00,357 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-14 13:01:00,364 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 644 chars
+2026-05-14 13:01:00,366 - KnoVaultAI - INFO - [AI REQUEST START] Message: Who is the chief minister of  Tamil Nadu...
+2026-05-14 13:01:00,367 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-14 13:01:01,487 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-14 13:01:01,489 - KnoVaultAI - INFO - [GROQ CALL] Response received (625 chars)
+2026-05-14 13:01:01,490 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-14 13:01:51,118 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-14 13:01:51,124 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 644 chars
+2026-05-14 13:01:51,126 - KnoVaultAI - INFO - [AI REQUEST START] Message: Say about yourself...
+2026-05-14 13:01:51,126 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-14 13:01:51,890 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-14 13:01:51,892 - KnoVaultAI - INFO - [GROQ CALL] Response received (549 chars)
+2026-05-14 13:01:51,892 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-14 13:05:54,932 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-14 13:07:20,549 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-14 13:07:20,558 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 644 chars
+2026-05-14 13:07:20,560 - KnoVaultAI - INFO - [AI REQUEST START] Message: Help me plan my day...
+2026-05-14 13:07:20,561 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-14 13:07:21,770 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-14 13:07:22,432 - KnoVaultAI - INFO - [GROQ CALL] Response received (909 chars)
+2026-05-14 13:07:22,432 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS]
+2026-05-14 13:17:33,075 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-14 13:18:35,155 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-14 13:18:35,163 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 644 chars
+2026-05-14 13:18:35,166 - KnoVaultAI - INFO - [INTRO PROMPT DETECTED] Pattern matched for: 'Who are you'
+2026-05-14 13:18:35,166 - KnoVaultAI - INFO - [CONCISE MODE ENABLED] Intro/greeting question
+2026-05-14 13:18:35,167 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Who are you...' | max_tokens=200
+2026-05-14 13:18:35,167 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-14 13:18:35,867 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-14 13:18:35,875 - KnoVaultAI - INFO - [GROQ CALL] Response received (136 chars)
+2026-05-14 13:18:35,875 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 136 chars
+2026-05-14 13:19:29,498 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 17
+2026-05-14 13:19:29,501 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 644 chars
+2026-05-14 13:19:29,502 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Help me plan my day...' | max_tokens=400
+2026-05-14 13:19:29,503 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-14 13:19:30,382 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-14 13:19:30,994 - KnoVaultAI - INFO - [GROQ CALL] Response received (411 chars)
+2026-05-14 13:19:30,994 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 411 chars
+2026-05-14 13:26:36,499 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-14 13:26:48,738 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-14 13:32:34,626 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-14 13:45:17,820 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-14 13:49:59,283 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-14 13:52:00,196 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-14 13:54:52,460 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-14 14:05:28,661 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-14 14:07:52,583 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-14 18:25:58,318 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-14 18:27:39,025 - services.email - INFO - Attempting to send signup email to tvijay1098@gmail.com...
+2026-05-14 18:27:44,100 - services.email - INFO - Successfully sent signup email to tvijay1098@gmail.com
+2026-05-14 18:34:35,595 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 20
+2026-05-14 18:34:35,635 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 153 chars
+2026-05-14 18:34:35,658 - KnoVaultAI - INFO - [INTRO PROMPT DETECTED] Pattern matched for: 'Hi'
+2026-05-14 18:34:35,683 - KnoVaultAI - INFO - [CONCISE MODE ENABLED] Intro/greeting question
+2026-05-14 18:34:35,690 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Hi...' | max_tokens=200
+2026-05-14 18:34:35,690 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-14 18:34:36,585 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-14 18:34:36,605 - KnoVaultAI - INFO - [GROQ CALL] Response received (76 chars)
+2026-05-14 18:34:36,606 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 76 chars
+2026-05-14 18:35:00,137 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 20
+2026-05-14 18:35:00,146 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 153 chars
+2026-05-14 18:35:00,150 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Give productivity advice...' | max_tokens=400
+2026-05-14 18:35:00,155 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-14 18:35:00,707 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-14 18:35:00,709 - KnoVaultAI - INFO - [GROQ CALL] Response received (189 chars)
+2026-05-14 18:35:00,710 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 189 chars
+2026-05-14 19:20:55,715 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-16 18:17:36,990 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 10:28:44,173 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 10:32:00,579 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 11:37:57,837 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 11:48:34,803 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 11:55:30,587 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 11:57:03,524 - services.email - INFO - Attempting to send signup email to dhuneshwaranv4169.sse@saveetha.com...
+2026-05-19 11:57:08,846 - services.email - INFO - Successfully sent signup email to dhuneshwaranv4169.sse@saveetha.com
+2026-05-19 11:58:47,901 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 21
+2026-05-19 11:58:47,926 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 27 chars
+2026-05-19 11:58:47,931 - KnoVaultAI - INFO - [INTRO PROMPT DETECTED] Pattern matched for: 'Hi'
+2026-05-19 11:58:47,932 - KnoVaultAI - INFO - [CONCISE MODE ENABLED] Intro/greeting question
+2026-05-19 11:58:47,932 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Hi...' | max_tokens=200
+2026-05-19 11:58:47,933 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-19 11:58:49,176 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-19 11:58:49,219 - KnoVaultAI - INFO - [GROQ CALL] Response received (87 chars)
+2026-05-19 11:58:49,220 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 87 chars
+2026-05-19 12:00:00,077 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 21
+2026-05-19 12:00:00,103 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 27 chars
+2026-05-19 12:00:00,110 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Help me plan my day...' | max_tokens=400
+2026-05-19 12:00:00,111 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-19 12:00:00,650 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-19 12:00:00,652 - KnoVaultAI - INFO - [GROQ CALL] Response received (157 chars)
+2026-05-19 12:00:00,654 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 157 chars
+2026-05-19 12:26:10,635 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 21
+2026-05-19 12:26:10,643 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 27 chars
+2026-05-19 12:26:10,645 - KnoVaultAI - INFO - [INTRO PROMPT DETECTED] Pattern matched for: 'Hi'
+2026-05-19 12:26:10,645 - KnoVaultAI - INFO - [CONCISE MODE ENABLED] Intro/greeting question
+2026-05-19 12:26:10,647 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Hi...' | max_tokens=200
+2026-05-19 12:26:10,647 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-19 12:26:11,227 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-19 12:26:11,229 - KnoVaultAI - INFO - [GROQ CALL] Response received (79 chars)
+2026-05-19 12:26:11,230 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 79 chars
+2026-05-19 12:27:13,200 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 21
+2026-05-19 12:27:13,208 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 27 chars
+2026-05-19 12:27:13,210 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Summarize my recent notes...' | max_tokens=400
+2026-05-19 12:27:13,211 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-19 12:27:14,014 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-19 12:27:14,015 - KnoVaultAI - INFO - [GROQ CALL] Response received (104 chars)
+2026-05-19 12:27:14,016 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 104 chars
+2026-05-19 12:27:28,041 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 21
+2026-05-19 12:27:28,053 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 27 chars
+2026-05-19 12:27:28,056 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Summarize my recent notes...' | max_tokens=400
+2026-05-19 12:27:28,058 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-19 12:27:29,656 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-19 12:27:29,657 - KnoVaultAI - INFO - [GROQ CALL] Response received (148 chars)
+2026-05-19 12:27:29,658 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 148 chars
+2026-05-19 13:03:42,168 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 13:03:50,659 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 13:10:19,951 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 13:18:02,394 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 13:26:55,075 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 13:41:24,350 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 13:54:06,145 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 21
+2026-05-19 13:54:06,154 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 105 chars
+2026-05-19 13:54:06,159 - KnoVaultAI - INFO - [INTRO PROMPT DETECTED] Pattern matched for: 'Hi'
+2026-05-19 13:54:06,159 - KnoVaultAI - INFO - [CONCISE MODE ENABLED] Intro/greeting question
+2026-05-19 13:54:06,160 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Hi...' | max_tokens=200
+2026-05-19 13:54:06,160 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-19 13:54:06,826 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-19 13:54:06,896 - KnoVaultAI - INFO - [GROQ CALL] Response received (102 chars)
+2026-05-19 13:54:06,896 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 102 chars
+2026-05-19 13:54:19,372 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 21
+2026-05-19 13:54:19,378 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 105 chars
+2026-05-19 13:54:19,381 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Summarize my recent notes...' | max_tokens=400
+2026-05-19 13:54:19,382 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-19 13:54:19,947 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-19 13:54:19,950 - KnoVaultAI - INFO - [GROQ CALL] Response received (108 chars)
+2026-05-19 13:54:19,951 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 108 chars
+2026-05-19 14:03:56,251 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 15:05:33,576 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 15:10:34,758 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 15:16:38,577 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 15:25:42,827 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 15:37:13,443 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 15:43:00,515 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 16:01:17,684 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 16:06:45,032 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 16:08:46,360 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 21
+2026-05-19 16:08:46,372 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 344 chars
+2026-05-19 16:08:46,377 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Who am I ?...' | max_tokens=600
+2026-05-19 16:08:46,377 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-19 16:08:47,054 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-19 16:08:47,074 - KnoVaultAI - INFO - [GROQ CALL] Response received (77 chars)
+2026-05-19 16:08:47,075 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 77 chars
+2026-05-19 16:17:43,590 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 16:31:12,934 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 16:31:18,452 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 16:31:29,040 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 16:31:41,710 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 16:41:32,939 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 16:42:00,794 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 16:44:19,459 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 17:21:02,850 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 19:57:21,616 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-19 21:09:28,696 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-20 07:59:04,048 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-20 08:09:50,828 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-20 08:09:59,280 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-20 08:16:01,709 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-20 08:20:41,299 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-20 08:40:21,238 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-20 08:58:57,378 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-20 09:02:37,050 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-20 16:48:00,117 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-20 17:19:34,405 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 08:58:08,548 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 09:15:24,857 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 10:14:50,015 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 10:23:22,904 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 10:30:12,350 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 10:52:53,856 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 11:01:46,031 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 11:13:40,165 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 11:23:51,786 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 12:31:37,735 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 12:52:47,955 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 12:58:38,106 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 13:03:04,560 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 13:13:13,372 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 13:13:20,596 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 13:13:29,370 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 13:13:53,930 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 13:14:07,675 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 13:16:18,442 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 13:30:44,873 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 13:36:02,593 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-21 13:59:11,211 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-22 18:57:56,019 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-22 19:08:55,583 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-22 19:10:24,771 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 21
+2026-05-22 19:10:24,790 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 866 chars
+2026-05-22 19:10:24,797 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'What should I focus on today?...' | max_tokens=600
+2026-05-22 19:10:24,797 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-22 19:10:25,552 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-22 19:10:25,578 - KnoVaultAI - INFO - [GROQ CALL] Response received (99 chars)
+2026-05-22 19:10:25,579 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 99 chars
+2026-05-22 19:25:38,216 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-22 20:10:54,727 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:24:31,143 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:50:11,588 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:50:15,260 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:50:19,599 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:50:24,304 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:50:28,936 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:50:34,192 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:50:38,644 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:50:43,033 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:50:50,542 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:50:56,725 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:51:02,801 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:51:10,082 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:51:16,988 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:51:21,263 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:51:27,093 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:51:53,355 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:52:16,318 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 08:59:50,266 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 09:00:00,460 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 09:01:58,298 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 09:05:14,455 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 09:12:13,480 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 09:29:40,147 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 09:30:08,347 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 09:30:14,862 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 09:30:28,438 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 09:41:01,270 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 09:46:32,733 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 21
+2026-05-23 09:46:32,785 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 824 chars
+2026-05-23 09:46:32,798 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Whatis in my favourite...' | max_tokens=400
+2026-05-23 09:46:32,799 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-23 09:46:34,365 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-23 09:46:34,392 - KnoVaultAI - INFO - [GROQ CALL] Response received (42 chars)
+2026-05-23 09:46:34,394 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 42 chars
+2026-05-23 09:47:07,492 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 21
+2026-05-23 09:47:07,538 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 824 chars
+2026-05-23 09:47:07,545 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'What is my favourite note I marked...' | max_tokens=600
+2026-05-23 09:47:07,547 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-23 09:47:08,059 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-23 09:47:08,063 - KnoVaultAI - INFO - [GROQ CALL] Response received (39 chars)
+2026-05-23 09:47:08,066 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 39 chars
+2026-05-23 11:40:12,595 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 11:59:31,154 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 11:59:48,098 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 11:59:58,289 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 12:00:14,660 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 12:00:35,986 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 12:00:49,063 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 12:00:58,373 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 12:01:12,924 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 12:01:23,830 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 12:01:28,136 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 12:01:38,406 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 12:01:48,057 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 12:02:15,109 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 12:02:21,713 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 12:11:08,068 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 12:11:31,576 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 12:13:17,021 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 12:22:26,401 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 12:41:41,933 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 12:59:13,805 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 13:05:42,064 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 13:15:48,958 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 13:16:09,797 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 13:16:31,351 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 13:25:31,685 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 13:28:17,411 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Add gym to today's goals...' | max_tokens=400
+2026-05-23 13:28:17,412 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-23 13:28:19,349 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-23 13:28:19,377 - KnoVaultAI - INFO - [GROQ CALL] Response received (134 chars)
+2026-05-23 13:28:19,379 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 134 chars
+2026-05-23 13:29:06,701 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Add gym to today's goals...' | max_tokens=400
+2026-05-23 13:29:06,701 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-23 13:29:12,392 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-23 13:29:12,802 - KnoVaultAI - INFO - [GROQ CALL] Response received (49 chars)
+2026-05-23 13:29:12,803 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 49 chars
+2026-05-23 13:30:17,018 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Create a birthday reminder for mom on June 8...' | max_tokens=600
+2026-05-23 13:30:17,020 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-23 13:30:18,235 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-23 13:30:18,237 - KnoVaultAI - INFO - [GROQ CALL] Response received (549 chars)
+2026-05-23 13:30:18,238 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 549 chars
+2026-05-23 13:32:08,225 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'What are my favourite notes...' | max_tokens=400
+2026-05-23 13:32:08,226 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-23 13:32:09,746 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-23 13:32:09,748 - KnoVaultAI - INFO - [GROQ CALL] Response received (46 chars)
+2026-05-23 13:32:09,749 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 46 chars
+2026-05-23 13:32:55,604 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Summarize about me note...' | max_tokens=400
+2026-05-23 13:32:55,605 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-23 13:32:56,033 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-23 13:32:56,037 - KnoVaultAI - INFO - [GROQ CALL] Response received (125 chars)
+2026-05-23 13:32:56,039 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 125 chars
+2026-05-23 13:33:50,584 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'What is in testt note...' | max_tokens=400
+2026-05-23 13:33:50,584 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-23 13:33:51,117 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-23 13:33:51,120 - KnoVaultAI - INFO - [GROQ CALL] Response received (232 chars)
+2026-05-23 13:33:51,122 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 232 chars
+2026-05-23 13:34:57,793 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Yes I no it is not in my favourite note tesst it i...' | max_tokens=600
+2026-05-23 13:34:57,794 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-23 13:34:58,313 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-23 13:34:58,315 - KnoVaultAI - INFO - [GROQ CALL] Response received (287 chars)
+2026-05-23 13:34:58,316 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 287 chars
+2026-05-23 15:06:48,731 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 15:32:18,413 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 15:38:22,313 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 15:57:57,641 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 16:12:53,550 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 16:24:54,500 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 17:02:40,927 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 17:10:28,584 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 17:54:15,101 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 17:58:19,792 - services.email - INFO - Attempting to send signup email to lovelymahe123@gmail.com...
+2026-05-23 17:58:24,235 - services.email - INFO - Successfully sent signup email to lovelymahe123@gmail.com
+2026-05-23 18:04:02,039 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Upcoming deadlines...' | max_tokens=400
+2026-05-23 18:04:02,040 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-23 18:04:03,331 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-23 18:04:03,354 - KnoVaultAI - INFO - [GROQ CALL] Response received (466 chars)
+2026-05-23 18:04:03,355 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 466 chars
+2026-05-23 18:04:50,117 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Say I tamil...' | max_tokens=400
+2026-05-23 18:04:50,118 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-23 18:04:50,497 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-23 18:04:50,499 - KnoVaultAI - INFO - [GROQ CALL] Response received (143 chars)
+2026-05-23 18:04:50,500 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 143 chars
+2026-05-23 19:42:27,454 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 19:42:53,061 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 20:15:05,798 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 20:27:59,878 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-23 21:16:26,882 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 07:24:35,777 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 07:24:37,536 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 07:24:42,618 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-24 07:24:42,618 - utils.firebase - ERROR - [Firebase] Initialization failed: 'charmap' codec can't encode character '\u2705' in position 11: character maps to <undefined>
+2026-05-24 07:24:42,750 - watchfiles.main - INFO - 1 change detected
+2026-05-24 07:25:29,159 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 07:25:30,808 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 07:25:56,002 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-24 07:36:22,139 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 07:36:23,691 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 07:36:29,327 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-24 07:49:00,261 - watchfiles.main - INFO - 1 change detected
+2026-05-24 07:49:18,874 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 07:49:20,271 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 07:49:25,415 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-24 07:54:55,166 - watchfiles.main - INFO - 1 change detected
+2026-05-24 07:54:55,193 - watchfiles.main - INFO - 1 change detected
+2026-05-24 07:54:56,878 - watchfiles.main - INFO - 1 change detected
+2026-05-24 07:54:56,902 - watchfiles.main - INFO - 1 change detected
+2026-05-24 07:54:58,296 - watchfiles.main - INFO - 1 change detected
+2026-05-24 07:54:58,298 - watchfiles.main - INFO - 1 change detected
+2026-05-24 08:31:21,935 - watchfiles.main - INFO - 1 change detected
+2026-05-24 08:31:22,315 - watchfiles.main - INFO - 1 change detected
+2026-05-24 08:32:05,233 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 08:32:08,755 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 08:32:14,731 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-24 08:38:31,343 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 08:38:33,033 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 08:38:38,151 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-24 08:48:07,503 - watchfiles.main - INFO - 1 change detected
+2026-05-24 08:48:07,721 - watchfiles.main - INFO - 1 change detected
+2026-05-24 08:48:08,828 - watchfiles.main - INFO - 1 change detected
+2026-05-24 08:48:21,665 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 08:48:23,480 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 08:48:29,792 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-24 08:51:50,351 - services.email - INFO - Attempting to send signup email to thinkgood24hrs@gmail.com...
+2026-05-24 08:51:55,515 - services.email - INFO - Successfully sent signup email to thinkgood24hrs@gmail.com
+2026-05-24 08:53:14,047 - KnoVaultAI - INFO - [INTRO PROMPT DETECTED] Pattern matched for: 'Hi'
+2026-05-24 08:53:14,047 - KnoVaultAI - INFO - [CONCISE MODE ENABLED] Intro/greeting question
+2026-05-24 08:53:14,048 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Hi...' | max_tokens=200
+2026-05-24 08:53:14,048 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-24 08:53:14,857 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-24 08:53:14,893 - KnoVaultAI - INFO - [GROQ CALL] Response received (197 chars)
+2026-05-24 08:53:14,895 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 197 chars
+2026-05-24 08:54:45,542 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Who I am...' | max_tokens=400
+2026-05-24 08:54:45,543 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-24 08:54:47,136 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-24 08:54:47,141 - KnoVaultAI - INFO - [GROQ CALL] Response received (175 chars)
+2026-05-24 08:54:47,142 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 175 chars
+2026-05-24 09:12:26,841 - watchfiles.main - INFO - 1 change detected
+2026-05-24 09:12:26,852 - watchfiles.main - INFO - 1 change detected
+2026-05-24 09:13:07,984 - watchfiles.main - INFO - 1 change detected
+2026-05-24 09:13:07,987 - watchfiles.main - INFO - 1 change detected
+2026-05-24 09:13:17,257 - watchfiles.main - INFO - 1 change detected
+2026-05-24 09:13:17,277 - watchfiles.main - INFO - 1 change detected
+2026-05-24 09:13:19,375 - watchfiles.main - INFO - 1 change detected
+2026-05-24 09:13:20,656 - watchfiles.main - INFO - 5 changes detected
+2026-05-24 09:13:21,742 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 09:13:28,377 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-24 09:13:29,664 - watchfiles.main - INFO - 2 changes detected
+2026-05-24 09:13:31,411 - watchfiles.main - INFO - 1 change detected
+2026-05-24 09:13:33,533 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 09:13:40,021 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-24 09:13:57,040 - watchfiles.main - INFO - 1 change detected
+2026-05-24 09:13:58,836 - watchfiles.main - INFO - 1 change detected
+2026-05-24 09:14:00,766 - watchfiles.main - INFO - 9 changes detected
+2026-05-24 09:14:01,051 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 09:14:06,399 - watchfiles.main - INFO - 1 change detected
+2026-05-24 09:14:06,774 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-24 09:14:08,483 - watchfiles.main - INFO - 1 change detected
+2026-05-24 09:14:10,265 - watchfiles.main - INFO - 5 changes detected
+2026-05-24 09:14:10,544 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 09:14:16,291 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-24 09:14:22,175 - watchfiles.main - INFO - 1 change detected
+2026-05-24 09:14:23,392 - watchfiles.main - INFO - 20 changes detected
+2026-05-24 09:14:25,167 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 09:14:26,987 - watchfiles.main - INFO - 1 change detected
+2026-05-24 11:07:49,046 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 11:07:55,137 - utils.encryption - INFO - [Encryption] Secure note encrypted successfully
+2026-05-24 11:07:55,138 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully
+2026-05-24 11:08:25,766 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-24 11:08:30,142 - utils.encryption - INFO - [Encryption] Secure note encrypted successfully
+2026-05-24 11:08:30,142 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully
+2026-05-24 11:08:32,597 - utils.encryption - INFO - [Encryption] Secure note encrypted successfully
+2026-05-24 11:08:33,550 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully
+2026-05-24 11:08:34,094 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully
+2026-05-24 11:08:34,453 - utils.encryption - INFO - [Encryption] Secure note encrypted successfully
+2026-05-24 11:08:34,986 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully
+2026-05-24 11:08:35,446 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully
+2026-05-24 11:08:36,404 - utils.encryption - INFO - [Encryption] Secure note encrypted successfully
+2026-05-24 11:08:37,418 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully
+2026-05-24 11:08:38,425 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
