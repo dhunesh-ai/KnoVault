@@ -112,7 +112,7 @@ export function buildDynamicSuggestions(ctx: AppContextCounts): AISuggestion[] {
     });
   }
 
-  console.log(`[DYNAMIC AI SUGGESTIONS GENERATED] ${dynamic.length} dynamic chips from context:`, ctx);
+  // console.log(`[DYNAMIC AI SUGGESTIONS GENERATED] ${dynamic.length} dynamic chips from context:`, ctx);
   return dynamic;
 }
 
@@ -135,6 +135,6 @@ export function getMergedSuggestions(
     return true;
   });
 
-  console.log(`[AI SUGGESTIONS GENERATED] Total: ${unique.length}, Shown: ${Math.min(unique.length, maxVisible)}`);
+  // console.log(`[AI SUGGESTIONS GENERATED] Total: ${unique.length}, Shown: ${Math.min(unique.length, maxVisible)}`);
   return unique.slice(0, maxVisible);
 }

@@ -405,7 +405,7 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
       });
     }
 
-    console.log(`[NOTIFICATIONS GENERATED] Actionable count: ${generated.length}`);
+    // console.log(`[NOTIFICATIONS GENERATED] Actionable count: ${generated.length}`);
     set({ notifications: generated });
   },
 
@@ -432,7 +432,7 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
   },
 
   dismissNotification: (id) => {
-    console.log(`[NOTIFICATION DISMISSED] id: ${id}`);
+    // console.log(`[NOTIFICATION DISMISSED] id: ${id}`);
     set((state) => {
       const updatedDismissed = new Set(state.dismissedIds).add(id);
       const updatedNotifications = state.notifications.filter((n) => n.id !== id);

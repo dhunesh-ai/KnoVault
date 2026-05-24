@@ -23,37 +23,37 @@ export interface ImportantDay {
 export const importantDaysApi = {
   getImportantDays: async () => {
     const url = '/api/important-days';
-    console.log("[IMPORTANT DAY API REQUEST]", url);
+    // console.log("[IMPORTANT DAY API REQUEST]", url);
     const response = await apiClient.get<ImportantDay[]>(url);
-    console.log("[IMPORTANT DAY API RESPONSE]", response.data);
+    // console.log("[IMPORTANT DAY API RESPONSE]", response.data);
     return response.data;
   },
   getImportantDayById: async (id: number) => {
     const url = `/api/important-days/${id}`;
-    console.log("[IMPORTANT DAY API REQUEST]", url);
+    // console.log("[IMPORTANT DAY API REQUEST]", url);
     const response = await apiClient.get<ImportantDay>(url);
-    console.log("[IMPORTANT DAY API RESPONSE]", response.data);
+    // console.log("[IMPORTANT DAY API RESPONSE]", response.data);
     return response.data;
   },
   getTodayImportantDays: async () => {
     const url = '/api/important-days/today';
-    console.log("[IMPORTANT DAY API REQUEST]", url);
+    // console.log("[IMPORTANT DAY API REQUEST]", url);
     const response = await apiClient.get<ImportantDay[]>(url);
-    console.log("[IMPORTANT DAY API RESPONSE]", response.data);
+    // console.log("[IMPORTANT DAY API RESPONSE]", response.data);
     return response.data;
   },
   createImportantDay: async (data: Partial<ImportantDay>) => {
-    console.log("[IMPORTANT DAY CREATE REQUEST]", data);
+    // console.log("[IMPORTANT DAY CREATE REQUEST]", data);
     const response = await apiClient.post<ImportantDay>('/api/important-days', data);
     return response.data;
   },
   updateImportantDay: async (id: number, data: Partial<ImportantDay>) => {
-    console.log("[IMPORTANT DAY UPDATE REQUEST]", id, data);
+    // console.log("[IMPORTANT DAY UPDATE REQUEST]", id, data);
     const response = await apiClient.put<ImportantDay>(`/api/important-days/${id}`, data);
     return response.data;
   },
   deleteImportantDay: async (id: number) => {
-    console.log("[IMPORTANT DAY DELETE REQUEST]", id);
+    // console.log("[IMPORTANT DAY DELETE REQUEST]", id);
     await apiClient.delete(`/api/important-days/${id}`);
   },
 };

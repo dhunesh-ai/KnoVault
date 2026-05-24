@@ -1,9 +1,9 @@
 /**
- * Kogniva — Axios HTTP Client
+ * KnoVault — Axios HTTP Client
  *
- * Configured for LAN-mode physical device testing.
+ * Production API client for Render backend.
  * Automatically attaches JWT bearer tokens from SecureStore.
- * Handles 401 responses by clearing auth state.
+ * Handles 401 responses with token refresh and auth state cleanup.
  */
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import * as SecureStore from 'expo-secure-store';
@@ -22,7 +22,7 @@ const client = axios.create({
 // ── Request Interceptor: Attach JWT & Log ───────────────────────────
 client.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, config.data || '');
+    // console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, config.data || '');
     try {
       const token = await SecureStore.getItemAsync('user_token');
       if (token && config.headers) {

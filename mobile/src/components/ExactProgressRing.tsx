@@ -34,7 +34,7 @@ export const ExactProgressRing: React.FC<ProgressRingProps> = ({
   const animatedProgress = useSharedValue(0);
 
   useEffect(() => {
-    console.log(`[RING UPDATED] Target: ${Math.round(targetProgress * 100)}% (${completed}/${total})`);
+    // console.log(`[RING UPDATED] Target: ${Math.round(targetProgress * 100)}% (${completed}/${total})`);
     animatedProgress.value = withTiming(targetProgress, { duration: 1000 });
   }, [completed, total]);
 

@@ -25,7 +25,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
       authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
       authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-    console.log('[FCM] Permission status:', authStatus, 'enabled:', enabled);
+    // console.log('[FCM] Permission status:', authStatus, 'enabled:', enabled);
     return enabled;
   } catch (error) {
     console.error('[FCM] Permission request failed:', error);
@@ -42,7 +42,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
 export async function getFCMToken(): Promise<string | null> {
   try {
     const token = await messaging().getToken();
-    console.log('[FCM] Device token:', token?.substring(0, 20) + '...');
+    // console.log('[FCM] Device token:', token?.substring(0, 20) + '...');
     return token;
   } catch (error) {
     console.error('[FCM] Failed to get token:', error);
@@ -58,12 +58,12 @@ export async function syncFCMToken(): Promise<void> {
   try {
     const token = await getFCMToken();
     if (!token) {
-      console.log('[FCM] No token to sync');
+      // console.log('[FCM] No token to sync');
       return;
     }
 
     await authApi.updateFCMToken(token);
-    console.log('[FCM] ✅ Token synced with backend');
+    // console.log('[FCM] ✅ Token synced with backend');
   } catch (error) {
     console.warn('[FCM] Token sync failed (likely expired session):', error.message);
     // Don't throw — FCM sync failure shouldn't block the user
@@ -107,7 +107,7 @@ export function setupNotificationListeners(): () => void {
 
   // 1. Foreground message handler
   const unsubForeground = messaging().onMessage(async (remoteMessage) => {
-    console.log('[FCM] Foreground message:', remoteMessage.notification?.title);
+    // console.log('[FCM] Foreground message:', remoteMessage.notification?.title);
 
     const payload: NotificationPayload = {
       title: remoteMessage.notification?.title || 'KnoVault',
@@ -126,7 +126,7 @@ export function setupNotificationListeners(): () => void {
 
   // 2. Notification opened (app was in background)
   const unsubOpened = messaging().onNotificationOpenedApp((remoteMessage) => {
-    console.log('[FCM] Notification opened (background):', remoteMessage.notification?.title);
+    // console.log('[FCM] Notification opened (background):', remoteMessage.notification?.title);
 
     const payload: NotificationPayload = {
       title: remoteMessage.notification?.title || '',
@@ -142,10 +142,10 @@ export function setupNotificationListeners(): () => void {
 
   // 3. Token refresh handler — sync new token with backend
   const unsubTokenRefresh = messaging().onTokenRefresh(async (newToken) => {
-    console.log('[FCM] Token refreshed, syncing...');
+    // console.log('[FCM] Token refreshed, syncing...');
     try {
       await authApi.updateFCMToken(newToken);
-      console.log('[FCM] ✅ Refreshed token synced');
+      // console.log('[FCM] ✅ Refreshed token synced');
     } catch (error) {
       console.error('[FCM] Token refresh sync failed:', error);
     }
@@ -157,7 +157,7 @@ export function setupNotificationListeners(): () => void {
     .getInitialNotification()
     .then((remoteMessage) => {
       if (remoteMessage) {
-        console.log('[FCM] App opened from quit state notification:', remoteMessage.notification?.title);
+        // console.log('[FCM] App opened from quit state notification:', remoteMessage.notification?.title);
 
         const payload: NotificationPayload = {
           title: remoteMessage.notification?.title || '',
@@ -171,12 +171,12 @@ export function setupNotificationListeners(): () => void {
       }
     });
 
-  console.log('[FCM] ✅ All notification listeners registered');
+  // console.log('[FCM] ✅ All notification listeners registered');
 
   // Return cleanup function
   return () => {
     unsubscribers.forEach((unsub) => unsub());
-    console.log('[FCM] Notification listeners cleaned up');
+    // console.log('[FCM] Notification listeners cleaned up');
   };
 }
 
@@ -186,7 +186,7 @@ export function setupNotificationListeners(): () => void {
 
 export function registerBackgroundHandler() {
   messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-    console.log('[FCM] Background message:', remoteMessage.notification?.title);
+    // console.log('[FCM] Background message:', remoteMessage.notification?.title);
     // Background processing can be done here
     // The notification will be displayed automatically by the system
   });

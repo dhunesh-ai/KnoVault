@@ -56,7 +56,7 @@ export const ProjectItem: React.FC<ProjectItemProps> = ({ project, onUpdate, onD
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
     } catch (e) {
-      console.log('[Haptics Not Supported]', e);
+      // console.log('[Haptics Not Supported]', e);
     }
   };
 

@@ -43,7 +43,7 @@ export const GoalItem: React.FC<GoalItemProps> = ({ goal, onToggle, onDelete, on
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
     } catch (e) {
-      console.log('[Haptics not supported/enabled]', e);
+      // console.log('[Haptics not supported/enabled]', e);
     }
   };
 
@@ -55,7 +55,7 @@ export const GoalItem: React.FC<GoalItemProps> = ({ goal, onToggle, onDelete, on
       withTiming(1, { duration: 100 })
     );
     
-    console.log(`[GOAL TOGGLED] GoalId: ${goal.id}, Title: "${goal.title}", nextCompletedState: ${nextCompleted}`);
+    // console.log(`[GOAL TOGGLED] GoalId: ${goal.id}, Title: "${goal.title}", nextCompletedState: ${nextCompleted}`);
     triggerHaptic(nextCompleted);
     onToggle(goal.id, nextCompleted);
   };

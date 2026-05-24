@@ -19,12 +19,12 @@ export function configureGoogleSignIn() {
   if (_googleSignInConfigured) return;
 
   try {
-    console.log('[Firebase] Configuring Google Sign-In with Web Client ID:', env.GOOGLE_WEB_CLIENT_ID);
+    // console.log('[Firebase] Configuring Google Sign-In with Web Client ID:', env.GOOGLE_WEB_CLIENT_ID);
     GoogleSignin.configure({
       webClientId: env.GOOGLE_WEB_CLIENT_ID,
     });
     _googleSignInConfigured = true;
-    console.log('[Firebase] ✅ Google Sign-In configured');
+    // console.log('[Firebase] ✅ Google Sign-In configured');
   } catch (error) {
     console.error('[Firebase] ❌ Google Sign-In configuration failed:', error);
   }
@@ -50,7 +50,7 @@ export async function signInWithGoogle(): Promise<FirebaseAuthTypes.User | null>
     const response = await GoogleSignin.signIn();
 
     if (!isSuccessResponse(response)) {
-      console.log('[Firebase] Google Sign-In cancelled');
+      // console.log('[Firebase] Google Sign-In cancelled');
       return null;
     }
 
@@ -64,7 +64,7 @@ export async function signInWithGoogle(): Promise<FirebaseAuthTypes.User | null>
 
     // Sign in to Firebase with the Google credential
     const userCredential = await auth().signInWithCredential(googleCredential);
-    console.log('[Firebase] ✅ Google Sign-In success:', userCredential.user.email);
+    // console.log('[Firebase] ✅ Google Sign-In success:', userCredential.user.email);
 
     return userCredential.user;
   } catch (error: any) {
@@ -114,7 +114,7 @@ export async function signOutFirebase(): Promise<void> {
       // Google Sign-In may not have been used
     }
 
-    console.log('[Firebase] ✅ Signed out');
+    // console.log('[Firebase] ✅ Signed out');
   } catch (error) {
     console.error('[Firebase] Sign-out error:', error);
   }

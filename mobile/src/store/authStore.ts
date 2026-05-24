@@ -66,27 +66,27 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   authProvider: null,
 
   initialize: async () => {
-    console.log('[AuthStore] Starting initialization...');
+    // console.log('[AuthStore] Starting initialization...');
     try {
-      console.log('[AuthStore] Fetching token from SecureStore...');
+      // console.log('[AuthStore] Fetching token from SecureStore...');
       const token = await SecureStore.getItemAsync(TOKEN_KEY);
       const provider = (await SecureStore.getItemAsync(AUTH_PROVIDER_KEY)) as AuthProvider;
-      console.log('[AuthStore] Token retrieved:', token ? 'exists' : 'null', 'provider:', provider);
+      // console.log('[AuthStore] Token retrieved:', token ? 'exists' : 'null', 'provider:', provider);
       
       if (token) {
-        console.log('[AuthStore] Token found, fetching profile in background...');
+        // console.log('[AuthStore] Token found, fetching profile in background...');
         set({ token, isAuthenticated: true, isAuthenticating: false, error: null, authProvider: provider });
         await get().fetchUser();
 
         // Sync FCM token in background (don't block init)
         get().syncNotifications().catch(console.warn);
       } else {
-        console.log('[AuthStore] No token found');
+        // console.log('[AuthStore] No token found');
         set({ isAuthenticated: false, isAuthenticating: false, error: null });
       }
-      console.log('[AuthStore] Initialization sequence complete');
+      // console.log('[AuthStore] Initialization sequence complete');
     } catch (err) {
-      console.log('[AuthStore] Initialization failed:', err);
+      // console.log('[AuthStore] Initialization failed:', err);
       set({ isAuthenticated: false, isAuthenticating: false, error: null });
     } finally {
       set({ isLoading: false });
@@ -110,7 +110,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       
       return true;
     } catch (err: any) {
-      console.log('[AuthStore] Login failed:', err?.response?.data || err.message);
+      // console.log('[AuthStore] Login failed:', err?.response?.data || err.message);
       let message = 'Login failed. Please try again.';
       
       const detail = err?.response?.data?.detail;
@@ -164,14 +164,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         authProvider: 'google',
       });
 
-      console.log('[AuthStore] ✅ Google Sign-In complete:', user.email);
+      // console.log('[AuthStore] ✅ Google Sign-In complete:', user.email);
 
       // Sync FCM in background
       get().syncNotifications().catch(console.warn);
 
       return true;
     } catch (err: any) {
-      console.log('[AuthStore] Google Sign-In failed:', err?.response?.data || err.message);
+      // console.log('[AuthStore] Google Sign-In failed:', err?.response?.data || err.message);
       let message = 'Google Sign-In failed. Please try again.';
       const detail = err?.response?.data?.detail;
       if (typeof detail === 'string') {
@@ -185,19 +185,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   register: async (email, fullName) => {
-    console.log('[AuthStore] register called with:', email, fullName);
+    // console.log('[AuthStore] register called with:', email, fullName);
     set({ isAuthenticating: true, error: null });
     try {
-      console.log('[AuthStore] Calling authApi.register...');
+      // console.log('[AuthStore] Calling authApi.register...');
       const response = await authApi.register({ 
         email, 
         full_name: fullName || ''
       });
-      console.log('[AuthStore] authApi.register success:', response);
+      // console.log('[AuthStore] authApi.register success:', response);
       set({ isAuthenticating: false });
       return response.message || 'Verification code sent';
     } catch (err: any) {
-      console.log('[AuthStore] Signup init failed:', err?.response?.data || err.message);
+      // console.log('[AuthStore] Signup init failed:', err?.response?.data || err.message);
       let message = 'Signup failed. Please try again.';
       const detail = err?.response?.data?.detail;
       message = typeof detail === 'string' ? detail : err?.message || message;
@@ -232,7 +232,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       
       return true;
     } catch (err: any) {
-      console.log('[AuthStore] Complete signup failed:', err?.response?.data || err.message);
+      // console.log('[AuthStore] Complete signup failed:', err?.response?.data || err.message);
       let message = 'Failed to create password. Please try again.';
       const detail = err?.response?.data?.detail;
       message = typeof detail === 'string' ? detail : err?.message || message;

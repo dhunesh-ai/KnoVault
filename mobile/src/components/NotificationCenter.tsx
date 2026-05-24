@@ -104,7 +104,7 @@ export const NotificationCenter = ({ visible, onClose }: NotificationCenterProps
   useEffect(() => {
     if (visible) {
       setShouldRender(true);
-      console.log('[NOTIFICATION CENTER OPENED]');
+      // console.log('[NOTIFICATION CENTER OPENED]');
       triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
       progress.value = withTiming(1, {
         duration: 300,
@@ -126,12 +126,12 @@ export const NotificationCenter = ({ visible, onClose }: NotificationCenterProps
     try {
       await Haptics.impactAsync(style);
     } catch (e) {
-      console.log('[Haptics Not Available]', e);
+      // console.log('[Haptics Not Available]', e);
     }
   };
 
   const handleNotificationClick = async (item: AppNotification) => {
-    console.log(`[NOTIFICATION CLICKED] id: ${item.id}, type: ${item.type}`);
+    // console.log(`[NOTIFICATION CLICKED] id: ${item.id}, type: ${item.type}`);
     triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
     markAsRead(item.id);
     onClose();

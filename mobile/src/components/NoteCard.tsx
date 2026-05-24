@@ -44,7 +44,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({ note, onPress, onToggleFavor
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch (e) {
-      console.log('[Haptics Not Available]', e);
+      // console.log('[Haptics Not Available]', e);
     }
   };
 

@@ -95,7 +95,7 @@ export function useSpeech(): UseSpeechReturn {
       if (Speech) {
         Speech.stop();
       }
-      console.log('[VOICE CLEANUP] Speech stopped on unmount');
+      // console.log('[VOICE CLEANUP] Speech stopped on unmount');
     };
   }, []);
 
@@ -103,7 +103,7 @@ export function useSpeech(): UseSpeechReturn {
   useEffect(() => {
     const handleAppState = (nextState: AppStateStatus) => {
       if (nextState !== 'active' && activeIdRef.current) {
-        console.log('[VOICE CLEANUP] Stopping speech — app went to', nextState);
+        // console.log('[VOICE CLEANUP] Stopping speech — app went to', nextState);
         if (Speech) Speech.stop();
         if (isMounted.current) {
           setIsSpeaking(false);
@@ -123,12 +123,12 @@ export function useSpeech(): UseSpeechReturn {
       setIsSpeaking(false);
       setActiveMessageId(null);
     }
-    console.log('[VOICE STOP]');
+    // console.log('[VOICE STOP]');
   }, []);
 
   // ── Speak ─────────────────────────────────────────────────────────
   const speak = useCallback((text: string, messageId: string) => {
-    console.log('[VOICE BUTTON PRESSED]', messageId);
+    // console.log('[VOICE BUTTON PRESSED]', messageId);
 
     if (!Speech) {
       console.warn('[VOICE] Speech module not available');
@@ -138,7 +138,7 @@ export function useSpeech(): UseSpeechReturn {
     // Toggle off if same message is already playing
     if (activeIdRef.current === messageId) {
       stop();
-      console.log('[VOICE TOGGLED OFF]', messageId);
+      // console.log('[VOICE TOGGLED OFF]', messageId);
       return;
     }
 
@@ -147,7 +147,7 @@ export function useSpeech(): UseSpeechReturn {
 
     // Clean markdown for natural speech
     const cleanText = cleanTextForSpeech(text);
-    console.log('[VOICE TEXT READY]', `Length: ${cleanText.length}, Preview: "${cleanText.slice(0, 80)}…"`);
+    // console.log('[VOICE TEXT READY]', `Length: ${cleanText.length}, Preview: "${cleanText.slice(0, 80)}…"`);
 
     if (!cleanText) {
       console.warn('[VOICE] Nothing to speak after cleaning');
@@ -160,28 +160,28 @@ export function useSpeech(): UseSpeechReturn {
     }
 
     try {
-      console.log('[VOICE PLAYBACK START]', messageId);
+      // console.log('[VOICE PLAYBACK START]', messageId);
 
       Speech.speak(cleanText, {
         language: 'en-US',
         pitch: 1.0,
         rate: 0.92,
         onStart: () => {
-          console.log('[VOICE PLAYBACK ACTIVE]');
+          // console.log('[VOICE PLAYBACK ACTIVE]');
         },
         onDone: () => {
           if (isMounted.current) {
             setIsSpeaking(false);
             setActiveMessageId(null);
           }
-          console.log('[VOICE PLAYBACK COMPLETE]');
+          // console.log('[VOICE PLAYBACK COMPLETE]');
         },
         onStopped: () => {
           if (isMounted.current) {
             setIsSpeaking(false);
             setActiveMessageId(null);
           }
-          console.log('[VOICE PLAYBACK INTERRUPTED]');
+          // console.log('[VOICE PLAYBACK INTERRUPTED]');
         },
         onError: (error: any) => {
           if (isMounted.current) {
