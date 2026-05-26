@@ -27,7 +27,7 @@ import { remindersApi } from '../../src/api/reminders';
 import { importantDaysApi } from '../../src/api/important_days';
 import { useTheme } from '../../src/hooks/useTheme';
 import { typography, borderRadius } from '../../src/theme';
-import { getLocalDateString } from '../../src/utils/date';
+import { getLocalDateString, formatTimeStringTo12Hour } from '../../src/utils/date';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
 
 const { width } = Dimensions.get('window');
@@ -98,6 +98,16 @@ export default function CreateReminderScreen() {
   const [selectedTimings, setSelectedTimings] = useState<string[]>(['Breakfast 🍳']);
   const [duration, setDuration] = useState('5 days');
   const [medNotes, setMedNotes] = useState('');
+  const [timingTimes, setTimingTimes] = useState<Record<string, string>>({
+    'Morning 🌅': '08:00',
+    'Breakfast 🍳': '08:30',
+    'Lunch 🍱': '13:00',
+    'Evening 🌇': '17:00',
+    'Dinner 🍽️': '20:30',
+    'Night 🌙': '22:00',
+  });
+  const [activeTimingForTimePicker, setActiveTimingForTimePicker] = useState<string | null>(null);
+  const [showTimingTimePicker, setShowTimingTimePicker] = useState(false);
 
   // Custom Fields
   const [customName, setCustomName] = useState('');
@@ -141,6 +151,9 @@ export default function CreateReminderScreen() {
             setFoodTiming(parsed.foodTiming || 'After Food');
             setFrequency(parsed.frequency || 'Once Daily');
             setSelectedTimings(parsed.timings || []);
+            if (parsed.timing_times) {
+              setTimingTimes(parsed.timing_times);
+            }
             setDuration(parsed.duration || '5 days');
             setMedNotes(parsed.notes || '');
             setTitle(parsed.medName || '');
@@ -197,6 +210,7 @@ export default function CreateReminderScreen() {
           foodTiming,
           frequency,
           timings: selectedTimings,
+          timing_times: timingTimes,
           duration,
           notes: medNotes
         });
@@ -556,6 +570,33 @@ export default function CreateReminderScreen() {
                 })}
               </View>
 
+              {selectedTimings.length > 0 && (
+                <View style={{ marginTop: 15 }}>
+                  <Text style={ds.subLabel}>Configure Dose Times</Text>
+                  {selectedTimings.map((dt) => {
+                    const timeStr = timingTimes[dt] || '08:00';
+                    return (
+                      <View key={dt} style={ds.timingTimeRow}>
+                        <Text style={ds.timingTimeLabel}>{dt}</Text>
+                        <TouchableOpacity
+                          style={ds.timingTimeButton}
+                          onPress={() => {
+                            triggerHaptic();
+                            setActiveTimingForTimePicker(dt);
+                            setShowTimingTimePicker(true);
+                          }}
+                        >
+                          <Ionicons name="time-outline" size={16} color={theme.primary} />
+                          <Text style={ds.timingTimeText}>
+                            {formatTimeStringTo12Hour(timeStr)}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+
               <Text style={[ds.subLabel, { marginTop: 15 }]}>Duration Course</Text>
               <TextInput
                 style={ds.titleInput}
@@ -726,7 +767,9 @@ export default function CreateReminderScreen() {
               <View style={ds.previewTimingRow}>
                 <Ionicons name="alarm-outline" size={14} color={theme.primary} />
                 <Text style={[ds.previewTimingText, { color: theme.textSecondary }]}>
-                  {selectedTimings.length > 0 ? selectedTimings.join(' & ') : 'No timings selected'}
+                  {selectedTimings.length > 0 
+                    ? selectedTimings.map(t => `${t.split(' ')[0]} (${formatTimeStringTo12Hour(timingTimes[t] || '08:00')})`).join(' & ')
+                    : 'No timings selected'}
                 </Text>
               </View>
               <Text style={[ds.previewDuration, { color: theme.primary }]}>
@@ -792,6 +835,32 @@ export default function CreateReminderScreen() {
                 newDate.setSeconds(0);
                 setDate(newDate);
               }
+            }}
+          />
+        )}
+        {showTimingTimePicker && activeTimingForTimePicker && (
+          <DateTimePicker
+            value={(() => {
+              const timeStr = timingTimes[activeTimingForTimePicker] || '08:00';
+              const parts = timeStr.split(':');
+              const h = parseInt(parts[0]) || 8;
+              const m = parseInt(parts[1]) || 0;
+              const d = new Date();
+              d.setHours(h, m, 0, 0);
+              return d;
+            })()}
+            mode="time"
+            onChange={(event, selected) => {
+              setShowTimingTimePicker(false);
+              if (selected) {
+                const h = String(selected.getHours()).padStart(2, '0');
+                const m = String(selected.getMinutes()).padStart(2, '0');
+                setTimingTimes(prev => ({
+                  ...prev,
+                  [activeTimingForTimePicker]: `${h}:${m}`
+                }));
+              }
+              setActiveTimingForTimePicker(null);
             }}
           />
         )}
@@ -1005,5 +1074,37 @@ const styles = (theme: any, isDark: boolean, colors: any) => StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: theme.textSecondary,
+  },
+  timingTimeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: theme.background,
+    padding: 12,
+    borderRadius: 15,
+    borderWidth: 1.2,
+    borderColor: theme.border,
+    marginTop: 8,
+  },
+  timingTimeLabel: {
+    ...typography.bodyMedium,
+    fontWeight: '700',
+    color: theme.text,
+  },
+  timingTimeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1.2,
+    borderColor: theme.border,
+  },
+  timingTimeText: {
+    ...typography.bodySmall,
+    fontWeight: '700',
+    color: theme.primary,
   },
 });

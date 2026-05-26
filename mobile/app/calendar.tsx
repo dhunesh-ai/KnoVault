@@ -20,7 +20,7 @@ import { typography, spacing, borderRadius } from '../src/theme';
 import { calendarApi } from '../src/api/calendar';
 import { getLocalDateString, formatLocalTime, formatTimeStringTo12Hour } from '../src/utils/date';
 import { getThemedShadow } from '../src/components/ThemedComponents';
-import { getReminderTitle, getReminderSubtitle, getReminderCategory } from '../src/utils';
+import { getReminderTitle, getReminderSubtitle, getReminderCategory, getMedicineSummary, formatMedicineSubtitle } from '../src/utils';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = (width - 50 - 50) / 7;
@@ -214,7 +214,9 @@ export default function CalendarScreen() {
                   const isReminder = event.id.toString().startsWith('r-');
                   const titleText = isReminder ? getReminderTitle(event) : event.title;
                   const categoryText = isReminder ? getReminderCategory(event) : event.type;
-                  const subtitleText = isReminder ? getReminderSubtitle(event) : (event.description || event.notes || '');
+                  const isMed = categoryText.toLowerCase() === 'medicine';
+                  const medicineSummary = isMed ? getMedicineSummary(event) : null;
+                  const subtitleText = isMed ? formatMedicineSubtitle(event) : (isReminder ? getReminderSubtitle(event) : (event.description || event.notes || ''));
                   
                   const getCategoryColor = (category: string, defaultColor: string) => {
                     switch (category.toLowerCase()) {
@@ -262,20 +264,39 @@ export default function CalendarScreen() {
                           </View>
                         </View>
                         
-                        <View style={ds.eventMeta}>
-                          <Ionicons name="time-outline" size={14} color={theme.textSecondary} />
-                          <Text style={[ds.eventMetaText, { color: theme.textSecondary }]}>
-                            {event.time ? formatTimeStringTo12Hour(event.time) : "All Day"}
-                          </Text>
-                          {subtitleText ? (
-                            <>
-                              <View style={[ds.metaDivider, { backgroundColor: theme.border }]} />
-                              <Text style={[ds.eventMetaText, { color: theme.textSecondary }]} numberOfLines={1}>
+                        {isMed ? (
+                          <View style={{ marginTop: 4, gap: 2 }}>
+                            {medicineSummary ? (
+                              <Text style={{ fontSize: 13, fontWeight: '700', color: theme.primary }}>
+                                {medicineSummary}
+                              </Text>
+                            ) : null}
+                            {subtitleText ? (
+                              <Text 
+                                style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 16 }} 
+                                numberOfLines={2} 
+                                ellipsizeMode="tail"
+                              >
                                 {subtitleText}
                               </Text>
-                            </>
-                          ) : null}
-                        </View>
+                            ) : null}
+                          </View>
+                        ) : (
+                          <View style={ds.eventMeta}>
+                            <Ionicons name="time-outline" size={14} color={theme.textSecondary} />
+                            <Text style={[ds.eventMetaText, { color: theme.textSecondary }]}>
+                              {event.time ? formatTimeStringTo12Hour(event.time) : "All Day"}
+                            </Text>
+                            {subtitleText ? (
+                              <>
+                                <View style={[ds.metaDivider, { backgroundColor: theme.border }]} />
+                                <Text style={[ds.eventMetaText, { color: theme.textSecondary, flex: 1 }]} numberOfLines={2} ellipsizeMode="tail">
+                                  {subtitleText}
+                                </Text>
+                              </>
+                            ) : null}
+                          </View>
+                        )}
                       </View>
                       <Ionicons name="chevron-forward" size={18} color={theme.border} />
                     </TouchableOpacity>

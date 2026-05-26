@@ -737,3 +737,31 @@
 2026-05-26 19:55:24,890 - KnoVaultAI - INFO - [GROQ CALL] Response received (26 chars)
 2026-05-26 19:55:24,891 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 26 chars
 2026-05-26 20:36:58,547 - watchfiles.main - INFO - 1 change detected
+2026-05-26 20:37:00,497 - watchfiles.main - INFO - 1 change detected
+2026-05-26 20:37:02,015 - watchfiles.main - INFO - 5 changes detected
+2026-05-26 20:37:02,168 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 20:37:07,835 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-26 20:40:07,618 - watchfiles.main - INFO - 1 change detected
+2026-05-26 20:42:39,866 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 20:42:41,741 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 20:42:47,163 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-26 20:43:22,346 - watchfiles.main - INFO - 1 change detected
+2026-05-26 20:43:22,382 - watchfiles.main - INFO - 1 change detected
+2026-05-26 22:03:52,767 - watchfiles.main - INFO - 1 change detected
+2026-05-26 22:03:52,769 - watchfiles.main - INFO - 1 change detected
+2026-05-26 22:07:40,935 - watchfiles.main - INFO - 1 change detected
+2026-05-26 22:07:40,952 - watchfiles.main - INFO - 1 change detected
+2026-05-26 22:07:42,800 - watchfiles.main - INFO - 1 change detected
+2026-05-26 22:07:42,948 - watchfiles.main - INFO - 1 change detected
+2026-05-26 22:07:45,227 - watchfiles.main - INFO - 7 changes detected
+2026-05-26 22:07:45,244 - watchfiles.main - INFO - 7 changes detected
+2026-05-26 22:07:45,705 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 22:07:45,831 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 22:07:51,040 - watchfiles.main - INFO - 1 change detected
+2026-05-26 22:07:51,041 - watchfiles.main - INFO - 1 change detected
+2026-05-26 22:07:54,359 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-26 22:07:55,965 - watchfiles.main - INFO - 1 change detected
+2026-05-26 22:07:58,100 - watchfiles.main - INFO - 5 changes detected
+2026-05-26 22:07:58,444 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 22:08:05,140 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-26 22:08:14,279 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json

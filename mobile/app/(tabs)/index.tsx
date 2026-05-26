@@ -24,7 +24,7 @@ import { projectsApi } from '../../src/api/projects';
 import { remindersApi } from '../../src/api/reminders';
 import { importantDaysApi } from '../../src/api/important_days';
 import { calculateDaysRemaining, sortImportantDaysByUpcoming } from '../../src/utils/important_day';
-import { getReminderTitle, getReminderSubtitle, getReminderCategory } from '../../src/utils';
+import { getReminderTitle, getReminderSubtitle, getReminderCategory, getMedicineSummary, formatMedicineSubtitle } from '../../src/utils';
 import Animated, { 
   FadeInDown, 
   useSharedValue, 
@@ -687,7 +687,9 @@ export default function HomeScreen() {
               {reminders.map((r) => {
                 const category = getReminderCategory(r);
                 const titleText = getReminderTitle(r);
-                const subtitleText = getReminderSubtitle(r);
+                const isMed = category === 'medicine';
+                const medicineSummary = isMed ? getMedicineSummary(r) : null;
+                const subtitleText = isMed ? formatMedicineSubtitle(r) : getReminderSubtitle(r);
                 return (
                   <TouchableOpacity key={r.id} style={ds.reminderCard} onPress={() => router.push(`/reminder/${r.id}`)}>
                     <View style={[ds.reminderBar, { backgroundColor: getReminderColor(category) }]} />
@@ -695,16 +697,35 @@ export default function HomeScreen() {
                       <View style={ds.reminderHeader}>
                         <Text style={ds.reminderTitle} numberOfLines={1}>{titleText}</Text>
                       </View>
-                      {subtitleText ? (
-                        <Text style={[ds.metaText, { marginLeft: 0, marginBottom: 6, fontSize: 12, color: theme.textSecondary }]} numberOfLines={1}>
-                          {subtitleText}
-                        </Text>
-                      ) : null}
+                      {isMed ? (
+                        <View style={{ gap: 2, marginBottom: 6 }}>
+                          {medicineSummary ? (
+                            <Text style={[ds.metaText, { marginLeft: 0, fontSize: 13, fontWeight: '700', color: theme.primary }]}>
+                              {medicineSummary}
+                            </Text>
+                          ) : null}
+                          {subtitleText ? (
+                            <Text style={[ds.metaText, { marginLeft: 0, fontSize: 12, color: theme.textSecondary }]} numberOfLines={1}>
+                              {subtitleText}
+                            </Text>
+                          ) : null}
+                        </View>
+                      ) : (
+                        subtitleText ? (
+                          <Text style={[ds.metaText, { marginLeft: 0, marginBottom: 6, fontSize: 12, color: theme.textSecondary }]} numberOfLines={1}>
+                            {subtitleText}
+                          </Text>
+                        ) : null
+                      )}
                       <View style={ds.reminderMeta}>
                         <Ionicons name="calendar-outline" size={12} color={colors.text.tertiary} />
                         <Text style={ds.metaText}>{new Date(r.reminder_date).toLocaleDateString()}</Text>
-                        <Ionicons name="time-outline" size={12} color={colors.text.tertiary} style={{ marginLeft: 10 }} />
-                        <Text style={ds.metaText}>{formatLocalTime(r.reminder_date)}</Text>
+                        {!isMed && (
+                          <>
+                            <Ionicons name="time-outline" size={12} color={colors.text.tertiary} style={{ marginLeft: 10 }} />
+                            <Text style={ds.metaText}>{formatLocalTime(r.reminder_date)}</Text>
+                          </>
+                        )}
                       </View>
                     </View>
                   </TouchableOpacity>

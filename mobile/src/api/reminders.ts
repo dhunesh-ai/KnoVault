@@ -4,7 +4,7 @@ export interface Reminder {
   id: number;
   title: string;
   description: string | null;
-  type: 'Assignment' | 'Meeting' | 'Birthday' | 'Event' | 'custom';
+  type: 'Assignment' | 'Meeting' | 'Birthday' | 'Event' | 'medicine' | 'custom' | string;
   custom_type?: string | null;
   reminder_date: string;
   user_id: number;
