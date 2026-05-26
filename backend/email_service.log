@@ -696,3 +696,4 @@
 2026-05-26 13:37:03,929 - services.email - INFO - Attempting to send test email to rrrakshith10@gmail.com via Brevo HTTP API...
 2026-05-26 13:37:05,535 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
 2026-05-26 13:37:05,537 - services.email - INFO - Successfully sent test email to rrrakshith10@gmail.com via Brevo HTTP API
+2026-05-26 13:37:05,616 - watchfiles.main - INFO - 1 change detected
