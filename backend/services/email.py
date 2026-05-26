@@ -24,8 +24,8 @@ conf = ConnectionConfig(
     MAIL_PORT=settings.SMTP_PORT,
     MAIL_SERVER=settings.SMTP_HOST,
     MAIL_FROM_NAME="KnoVault",
-    MAIL_STARTTLS=True,
-    MAIL_SSL_TLS=False,
+    MAIL_STARTTLS=True if settings.SMTP_PORT == 587 else False,
+    MAIL_SSL_TLS=True if settings.SMTP_PORT == 465 else False,
     USE_CREDENTIALS=True,
     VALIDATE_CERTS=True
 )
