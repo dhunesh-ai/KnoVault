@@ -62,10 +62,16 @@ export async function syncFCMToken(): Promise<void> {
       return;
     }
 
+    // Only sync if the user is currently authenticated
+    const { useAuthStore } = await import('../store/authStore');
+    if (!useAuthStore.getState().isAuthenticated) {
+      return;
+    }
+
     await authApi.updateFCMToken(token);
     // console.log('[FCM] ✅ Token synced with backend');
-  } catch (error) {
-    console.warn('[FCM] Token sync failed (likely expired session):', error.message);
+  } catch (error: any) {
+    console.warn('[FCM] Token sync failed (likely expired session):', error.message || error);
     // Don't throw — FCM sync failure shouldn't block the user
   }
 }
@@ -144,10 +150,14 @@ export function setupNotificationListeners(): () => void {
   const unsubTokenRefresh = messaging().onTokenRefresh(async (newToken) => {
     // console.log('[FCM] Token refreshed, syncing...');
     try {
-      await authApi.updateFCMToken(newToken);
-      // console.log('[FCM] ✅ Refreshed token synced');
-    } catch (error) {
-      console.error('[FCM] Token refresh sync failed:', error);
+      // Only sync if the user is currently authenticated
+      const { useAuthStore } = await import('../store/authStore');
+      if (useAuthStore.getState().isAuthenticated) {
+        await authApi.updateFCMToken(newToken);
+        // console.log('[FCM] ✅ Refreshed token synced');
+      }
+    } catch (error: any) {
+      console.warn('[FCM] Token refresh sync failed:', error.message || error);
     }
   });
   unsubscribers.push(unsubTokenRefresh);

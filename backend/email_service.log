@@ -602,3 +602,15 @@
 2026-05-24 11:19:05,222 - services.email - INFO - Successfully sent signup email to thinkgood24hr@gmail.com
 2026-05-24 11:38:21,811 - watchfiles.main - INFO - 1 change detected
 2026-05-24 11:46:02,565 - watchfiles.main - INFO - 1 change detected
+2026-05-24 11:47:23,510 - watchfiles.main - INFO - 1 change detected
+2026-05-24 12:29:48,551 - watchfiles.main - INFO - 1 change detected
+2026-05-24 12:29:50,888 - watchfiles.main - INFO - 1 change detected
+2026-05-24 12:57:55,575 - watchfiles.main - INFO - 1 change detected
+2026-05-26 08:50:40,448 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 08:50:42,714 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 08:50:51,597 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-26 09:01:38,422 - watchfiles.main - INFO - 1 change detected
+2026-05-26 09:01:46,990 - watchfiles.main - INFO - 1 change detected
+2026-05-26 09:01:56,030 - watchfiles.main - INFO - 1 change detected
+2026-05-26 09:02:02,693 - watchfiles.main - INFO - 1 change detected
+2026-05-26 09:04:21,919 - watchfiles.main - INFO - 1 change detected

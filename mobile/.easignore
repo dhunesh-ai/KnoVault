@@ -1,0 +1,30 @@
+# Node
+node_modules/
+
+# Android local build artifacts (EAS rebuilds everything from scratch)
+android/.gradle/
+android/build/
+android/app/build/
+android/.cxx/
+android/app/.cxx/
+android/local.properties
+
+# iOS (not needed for Android builds)
+ios/
+
+# Development tools
+.expo/
+.idea/
+.vscode/
+
+# Python helper scripts
+*.py
+__pycache__/
+
+# Logs and temp files
+*.log
+build_log.txt
+
+# OS files
+.DS_Store
+Thumbs.db
