@@ -1,23 +1,37 @@
 import Constants from 'expo-constants';
 
 /**
- * KnoVault — Production Environment Configuration
+ * KnoVault — Environment Configuration
  *
- * All API traffic is routed to the live Render backend.
- * Firebase Auth uses the Web Client ID for Google Sign-In.
+ * Automatically detects whether we are running in development or production.
+ * In development, it dynamically resolves the local machine's IP address (via Metro's hostUri)
+ * so that both physical devices and emulators can connect to the local FastAPI backend.
+ * In production, it routes all API traffic to the live Render backend.
  */
 
+const getLocalApiUrl = (): string => {
+  const hostUri = Constants.expoConfig?.hostUri; // e.g., "192.168.1.15:8081" or "localhost:8081"
+  if (hostUri) {
+    const ip = hostUri.split(':')[0];
+    if (ip) {
+      return `http://${ip}:8000`;
+    }
+  }
+  return 'http://10.0.2.2:8000'; // Fallback for standard Android Emulator
+};
+
 const extra = Constants.expoConfig?.extra ?? {};
+const isDevMode = __DEV__;
 
 export const env = {
   /** Base URL for the FastAPI backend (no trailing slash) */
-  API_BASE_URL: 'https://knovault-jbph.onrender.com',
+  API_BASE_URL: (extra.apiBaseUrl as string) || (isDevMode ? getLocalApiUrl() : 'https://knovault-jbph.onrender.com'),
 
   /** Current environment */
-  APP_ENV: 'production',
+  APP_ENV: (extra.appEnv as string) || (isDevMode ? 'development' : 'production'),
 
   /** Whether we are running in development mode */
-  isDev: false,
+  isDev: isDevMode,
 
   /**
    * Google Web Client ID for Google Sign-In.

@@ -697,3 +697,43 @@
 2026-05-26 13:37:05,535 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
 2026-05-26 13:37:05,537 - services.email - INFO - Successfully sent test email to rrrakshith10@gmail.com via Brevo HTTP API
 2026-05-26 13:37:05,616 - watchfiles.main - INFO - 1 change detected
+2026-05-26 13:41:22,219 - watchfiles.main - INFO - 1 change detected
+2026-05-26 13:45:36,376 - watchfiles.main - INFO - 1 change detected
+2026-05-26 14:00:49,369 - watchfiles.main - INFO - 1 change detected
+2026-05-26 14:06:54,611 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 14:06:57,635 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 14:07:05,374 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-26 18:17:29,925 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 18:17:31,807 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 18:17:40,232 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-26 18:41:41,094 - watchfiles.main - INFO - 1 change detected
+2026-05-26 18:48:47,267 - watchfiles.main - INFO - 1 change detected
+2026-05-26 19:01:22,346 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 19:01:24,237 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 19:01:30,416 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-26 19:48:07,119 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 19:48:08,919 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 19:48:16,540 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-26 19:53:13,291 - KnoVaultAI - INFO - [INTRO PROMPT DETECTED] Pattern matched for: 'Hi'
+2026-05-26 19:53:13,292 - KnoVaultAI - INFO - [CONCISE MODE ENABLED] Intro/greeting question
+2026-05-26 19:53:13,292 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Hi...' | max_tokens=200
+2026-05-26 19:53:13,293 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-26 19:53:13,987 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-26 19:53:14,059 - KnoVaultAI - INFO - [GROQ CALL] Response received (59 chars)
+2026-05-26 19:53:14,061 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 59 chars
+2026-05-26 19:53:35,066 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Do you know me...' | max_tokens=400
+2026-05-26 19:53:35,067 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-26 19:53:35,900 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-26 19:53:35,901 - KnoVaultAI - INFO - [GROQ CALL] Response received (198 chars)
+2026-05-26 19:53:35,902 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 198 chars
+2026-05-26 19:54:57,454 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'I am Dhuneshwaran remember me...' | max_tokens=400
+2026-05-26 19:54:57,455 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-26 19:54:58,326 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-26 19:54:58,328 - KnoVaultAI - INFO - [GROQ CALL] Response received (345 chars)
+2026-05-26 19:54:58,329 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 345 chars
+2026-05-26 19:55:24,149 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Can you say my name...' | max_tokens=400
+2026-05-26 19:55:24,150 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-26 19:55:24,887 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-26 19:55:24,890 - KnoVaultAI - INFO - [GROQ CALL] Response received (26 chars)
+2026-05-26 19:55:24,891 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 26 chars
+2026-05-26 20:36:58,547 - watchfiles.main - INFO - 1 change detected

@@ -20,6 +20,7 @@ import { typography, spacing, borderRadius } from '../src/theme';
 import { calendarApi } from '../src/api/calendar';
 import { getLocalDateString, formatLocalTime, formatTimeStringTo12Hour } from '../src/utils/date';
 import { getThemedShadow } from '../src/components/ThemedComponents';
+import { getReminderTitle, getReminderSubtitle, getReminderCategory } from '../src/utils';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = (width - 50 - 50) / 7;
@@ -209,58 +210,77 @@ export default function CalendarScreen() {
             Object.entries(groupedEvents).map(([type, events], gIdx) => (
               <Animated.View key={type} entering={FadeInDown.delay(gIdx * 100)}>
                 <Text style={[ds.groupLabel, { color: theme.textSecondary }]}>{type.toUpperCase()}</Text>
-                {events.map((event, eIdx) => (
-                  <TouchableOpacity 
-                    key={event.id} 
-                    style={[ds.eventCard, { backgroundColor: theme.card, borderColor: theme.border }]}
-                    onPress={() => {
-                        if (event.id.toString().startsWith('s-')) {
-                          const specialDayId = event.id.toString().replace('s-', '');
-                          console.log("[SPECIAL DAY DETAILS OPEN] From Calendar", specialDayId);
-                          router.push(`/special_day/${specialDayId}`);
-                        } else if (event.id.toString().startsWith('b-')) {
-                          const birthdayId = event.id.toString().replace('b-', '');
-                          router.push(`/special_day/${birthdayId}`);
-                        } else if (event.id.toString().startsWith('r-')) {
-                          const reminderId = event.id.toString().replace('r-', '');
-                          console.log("[REMINDER DETAILS OPEN] From Calendar", reminderId);
-                          router.push(`/reminder/${reminderId}`);
-                        } else {
-                          console.warn("[CALENDAR] Unknown event ID format:", event.id);
-                        }
-                    }}
-                  >
-                    <View style={[ds.eventIndicator, { backgroundColor: event.color }]} />
-                    <View style={ds.eventContent}>
-                      <View style={ds.eventHeader}>
-                        <Text style={[ds.eventTitle, { color: theme.text }]} numberOfLines={1}>{event.title}</Text>
-                        <View style={[ds.miniBadge, { backgroundColor: event.color + '15' }]}>
-                          <Text style={[ds.miniBadgeText, { color: event.color }]}>
-                            {event.type.toUpperCase()}
-                          </Text>
+                {events.map((event, eIdx) => {
+                  const isReminder = event.id.toString().startsWith('r-');
+                  const titleText = isReminder ? getReminderTitle(event) : event.title;
+                  const categoryText = isReminder ? getReminderCategory(event) : event.type;
+                  const subtitleText = isReminder ? getReminderSubtitle(event) : (event.description || event.notes || '');
+                  
+                  const getCategoryColor = (category: string, defaultColor: string) => {
+                    switch (category.toLowerCase()) {
+                      case 'meeting': return '#10B981';
+                      case 'assignment': return '#3B82F6';
+                      case 'event': return '#8B5CF6';
+                      case 'birthday': return '#FFD700';
+                      case 'medicine': return '#10B981';
+                      case 'custom': return '#F59E0B';
+                      default: return defaultColor;
+                    }
+                  };
+                  
+                  const badgeColor = getCategoryColor(categoryText, event.color);
+
+                  return (
+                    <TouchableOpacity 
+                      key={event.id} 
+                      style={[ds.eventCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+                      onPress={() => {
+                          if (event.id.toString().startsWith('s-')) {
+                            const specialDayId = event.id.toString().replace('s-', '');
+                            console.log("[SPECIAL DAY DETAILS OPEN] From Calendar", specialDayId);
+                            router.push(`/special_day/${specialDayId}`);
+                          } else if (event.id.toString().startsWith('b-')) {
+                            const birthdayId = event.id.toString().replace('b-', '');
+                            router.push(`/special_day/${birthdayId}`);
+                          } else if (event.id.toString().startsWith('r-')) {
+                            const reminderId = event.id.toString().replace('r-', '');
+                            console.log("[REMINDER DETAILS OPEN] From Calendar", reminderId);
+                            router.push(`/reminder/${reminderId}`);
+                          } else {
+                            console.warn("[CALENDAR] Unknown event ID format:", event.id);
+                          }
+                      }}
+                    >
+                      <View style={[ds.eventIndicator, { backgroundColor: badgeColor }]} />
+                      <View style={ds.eventContent}>
+                        <View style={ds.eventHeader}>
+                          <Text style={[ds.eventTitle, { color: theme.text }]} numberOfLines={1}>{titleText}</Text>
+                          <View style={[ds.miniBadge, { backgroundColor: badgeColor + '15' }]}>
+                            <Text style={[ds.miniBadgeText, { color: badgeColor }]}>
+                              {categoryText.toUpperCase()}
+                            </Text>
+                          </View>
                         </View>
-                      </View>
-                      
-                      {event.time && (
+                        
                         <View style={ds.eventMeta}>
                           <Ionicons name="time-outline" size={14} color={theme.textSecondary} />
                           <Text style={[ds.eventMetaText, { color: theme.textSecondary }]}>
                             {event.time ? formatTimeStringTo12Hour(event.time) : "All Day"}
                           </Text>
-                          {event.description && (
+                          {subtitleText ? (
                             <>
                               <View style={[ds.metaDivider, { backgroundColor: theme.border }]} />
                               <Text style={[ds.eventMetaText, { color: theme.textSecondary }]} numberOfLines={1}>
-                                {event.description}
+                                {subtitleText}
                               </Text>
                             </>
-                          )}
+                          ) : null}
                         </View>
-                      )}
-                    </View>
-                    <Ionicons name="chevron-forward" size={18} color={theme.border} />
-                  </TouchableOpacity>
-                ))}
+                      </View>
+                      <Ionicons name="chevron-forward" size={18} color={theme.border} />
+                    </TouchableOpacity>
+                  );
+                })}
               </Animated.View>
             ))
           )}

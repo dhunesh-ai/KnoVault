@@ -52,7 +52,7 @@ async def get_upcoming_reminders(
     print("[UPCOMING NOW]", now)
     print("[UPCOMING USER]", current_user.id)
     
-    allowed_types = ["meeting", "assignment", "event"]
+    allowed_types = ["meeting", "assignment", "event", "birthday", "medicine", "custom"]
     
     # Query with case-insensitive type matching and timezone awareness
     query = select(Reminder).where(
@@ -100,7 +100,8 @@ async def create_reminder(
     
     # Normalize type: ensure it's one of the expected types
     reminder_type = data.type.lower().strip()
-    if reminder_type not in ["meeting", "assignment", "event", "birthday"]:
+    valid_types = ["meeting", "assignment", "event", "birthday", "medicine", "custom"]
+    if reminder_type not in valid_types:
         reminder_type = "custom"
 
     reminder = Reminder(

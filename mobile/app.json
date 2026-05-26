@@ -54,7 +54,7 @@
         }
       ],
       "@react-native-community/datetimepicker",
-      "@react-native-voice/voice",
+      "expo-speech-recognition",
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       "@react-native-firebase/messaging",

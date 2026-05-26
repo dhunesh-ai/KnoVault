@@ -24,6 +24,7 @@ import { projectsApi } from '../../src/api/projects';
 import { remindersApi } from '../../src/api/reminders';
 import { importantDaysApi } from '../../src/api/important_days';
 import { calculateDaysRemaining, sortImportantDaysByUpcoming } from '../../src/utils/important_day';
+import { getReminderTitle, getReminderSubtitle, getReminderCategory } from '../../src/utils';
 import Animated, { 
   FadeInDown, 
   useSharedValue, 
@@ -683,22 +684,32 @@ export default function HomeScreen() {
             <View style={ds.loadingContainer}><ActivityIndicator color={theme.primary} /></View>
           ) : reminders && reminders.length > 0 ? (
             <Animated.View entering={FadeInDown.delay(600)}>
-              {reminders.map((r) => (
-                <TouchableOpacity key={r.id} style={ds.reminderCard} onPress={() => router.push(`/reminder/${r.id}`)}>
-                  <View style={[ds.reminderBar, { backgroundColor: getReminderColor(r.type) }]} />
-                  <View style={ds.reminderInfo}>
-                    <View style={ds.reminderHeader}>
-                      <Text style={ds.reminderTitle} numberOfLines={1}>{r.title}</Text>
+              {reminders.map((r) => {
+                const category = getReminderCategory(r);
+                const titleText = getReminderTitle(r);
+                const subtitleText = getReminderSubtitle(r);
+                return (
+                  <TouchableOpacity key={r.id} style={ds.reminderCard} onPress={() => router.push(`/reminder/${r.id}`)}>
+                    <View style={[ds.reminderBar, { backgroundColor: getReminderColor(category) }]} />
+                    <View style={ds.reminderInfo}>
+                      <View style={ds.reminderHeader}>
+                        <Text style={ds.reminderTitle} numberOfLines={1}>{titleText}</Text>
+                      </View>
+                      {subtitleText ? (
+                        <Text style={[ds.metaText, { marginLeft: 0, marginBottom: 6, fontSize: 12, color: theme.textSecondary }]} numberOfLines={1}>
+                          {subtitleText}
+                        </Text>
+                      ) : null}
+                      <View style={ds.reminderMeta}>
+                        <Ionicons name="calendar-outline" size={12} color={colors.text.tertiary} />
+                        <Text style={ds.metaText}>{new Date(r.reminder_date).toLocaleDateString()}</Text>
+                        <Ionicons name="time-outline" size={12} color={colors.text.tertiary} style={{ marginLeft: 10 }} />
+                        <Text style={ds.metaText}>{formatLocalTime(r.reminder_date)}</Text>
+                      </View>
                     </View>
-                    <View style={ds.reminderMeta}>
-                      <Ionicons name="calendar-outline" size={12} color={colors.text.tertiary} />
-                      <Text style={ds.metaText}>{new Date(r.reminder_date).toLocaleDateString()}</Text>
-                      <Ionicons name="time-outline" size={12} color={colors.text.tertiary} style={{ marginLeft: 10 }} />
-                      <Text style={ds.metaText}>{formatLocalTime(r.reminder_date)}</Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
+                  </TouchableOpacity>
+                );
+              })}
             </Animated.View>
           ) : (
             <View style={ds.emptyState}><Text style={ds.emptyText}>No upcoming reminders</Text></View>

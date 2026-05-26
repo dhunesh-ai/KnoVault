@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import Voice, { SpeechResultsEvent, SpeechErrorEvent } from '@react-native-voice/voice';
+import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notesApi } from '../../src/api/notes';
 import { useTheme } from '../../src/hooks/useTheme';
@@ -26,86 +26,134 @@ export default function VoiceNoteScreen() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
-  useEffect(() => {
-    try {
-      if (Voice) {
-        Voice.onSpeechResults = (e: SpeechResultsEvent) => {
-          if (e.value && e.value.length > 0) {
-            setContent((prev) => prev + (prev.length > 0 ? ' ' : '') + e.value![0]);
-          }
-        };
+  // Keep references to handle stale closures in event listeners
+  const isRecordingRef = useRef(false);
+  const isPausedRef = useRef(false);
+  const accumulatedText = useRef('');
 
-        Voice.onSpeechError = (e: SpeechErrorEvent) => {
-          console.log('Voice Error:', e);
-          setIsRecording(false);
-        };
+  // Listen to speech results in real time
+  useSpeechRecognitionEvent('result', (event) => {
+    if (event.results && event.results.length > 0) {
+      const currentSessionText = event.results[0]?.transcript || '';
+      const prefix = accumulatedText.current;
+      const combined = prefix + (prefix.length > 0 && currentSessionText.length > 0 ? ' ' : '') + currentSessionText;
+      
+      setContent(combined);
+      
+      if (event.isFinal) {
+        accumulatedText.current = combined;
       }
-    } catch (e) {
-      console.log('Voice initialization error:', e);
     }
+  });
 
+  useSpeechRecognitionEvent('error', (event) => {
+    console.log('Voice Error:', event.error);
+    isRecordingRef.current = false;
+    isPausedRef.current = false;
+    setIsRecording(false);
+    setIsPaused(false);
+  });
+
+  // Keep listening continuously by restarting the speech engine if it ends automatically
+  useSpeechRecognitionEvent('end', () => {
+    if (isRecordingRef.current && !isPausedRef.current) {
+      console.log('Speech recognition session ended automatically. Restarting...');
+      ExpoSpeechRecognitionModule.start({
+        lang: 'en-US',
+        interimResults: true,
+        continuous: true,
+      });
+    }
+  });
+
+  // Stop recording if the user leaves the screen
+  useEffect(() => {
     return () => {
       try {
-        if (Voice && Voice.destroy) {
-          Voice.destroy().then(() => {
-            if (Voice.removeAllListeners) Voice.removeAllListeners();
-          }).catch(e => console.log('Destroy error', e));
-        }
+        isRecordingRef.current = false;
+        isPausedRef.current = false;
+        ExpoSpeechRecognitionModule.stop();
       } catch (e) {
-        // Ignore native module missing errors on unmount
+        // Ignore unmount errors
       }
     };
   }, []);
 
   const toggleRecording = async () => {
     try {
-      // Check if native module is available
-      const isAvailable = await Voice.isAvailable().catch(() => false);
+      const isAvailable = ExpoSpeechRecognitionModule.isRecognitionAvailable();
       
       if (!isAvailable) {
+        isRecordingRef.current = false;
+        isPausedRef.current = false;
         setIsRecording(false);
+        setIsPaused(false);
         Alert.alert(
           "Development Build Required",
-          "Real-time voice transcription requires custom native code that is not available in the standard 'Expo Go' app. Please build and run a Development Client to use this feature.\n\nTry running: npx expo run:android"
+          "Real-time voice transcription requires speech services that are not available. Please ensure you are running on a physical device with Speech Services by Google installed."
         );
         return;
       }
 
       if (isRecording) {
-        await Voice.stop();
+        isRecordingRef.current = false;
+        isPausedRef.current = false;
         setIsRecording(false);
+        setIsPaused(false);
+        await ExpoSpeechRecognitionModule.stop();
       } else {
-        // Request permissions for Android
-        if (Platform.OS === 'android') {
-          const { PermissionsAndroid } = require('react-native');
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-            {
-              title: "Microphone Permission",
-              message: "KnoVault needs access to your microphone to transcribe voice notes.",
-              buttonNeutral: "Ask Me Later",
-              buttonNegative: "Cancel",
-              buttonPositive: "OK"
-            }
-          );
-          if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-            Alert.alert("Permission Denied", "Microphone access is required for voice notes.");
-            return;
-          }
+        const permission = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+        if (!permission.granted) {
+          Alert.alert("Permission Denied", "Microphone access is required for voice notes.");
+          return;
         }
 
         setContent(''); 
-        await Voice.start('en-US');
+        accumulatedText.current = '';
+        isRecordingRef.current = true;
+        isPausedRef.current = false;
         setIsRecording(true);
+        setIsPaused(false);
+        await ExpoSpeechRecognitionModule.start({
+          lang: 'en-US',
+          interimResults: true,
+          continuous: true,
+        });
       }
     } catch (e) {
+      isRecordingRef.current = false;
+      isPausedRef.current = false;
       setIsRecording(false);
+      setIsPaused(false);
       console.error('Voice Error:', e);
       Alert.alert(
         "Voice Recognition Error",
-        "An error occurred while starting voice recognition. Please ensure you are using a compatible development build."
+        "An error occurred while starting voice recognition. Please ensure microphone permissions are allowed."
       );
+    }
+  };
+
+  const togglePause = async () => {
+    try {
+      if (isPaused) {
+        // Resume
+        isPausedRef.current = false;
+        setIsPaused(false);
+        await ExpoSpeechRecognitionModule.start({
+          lang: 'en-US',
+          interimResults: true,
+          continuous: true,
+        });
+      } else {
+        // Pause
+        isPausedRef.current = true;
+        setIsPaused(true);
+        await ExpoSpeechRecognitionModule.stop();
+      }
+    } catch (e) {
+      console.error('Error toggling pause:', e);
     }
   };
 
@@ -134,11 +182,14 @@ export default function VoiceNoteScreen() {
   const handleSave = async () => {
     if (isRecording) {
       try {
-        await Voice.stop();
+        isRecordingRef.current = false;
+        isPausedRef.current = false;
+        await ExpoSpeechRecognitionModule.stop();
       } catch (e) {
         console.log("Error stopping voice:", e);
       }
       setIsRecording(false);
+      setIsPaused(false);
     }
     saveMutation.mutate();
   };
@@ -183,7 +234,10 @@ export default function VoiceNoteScreen() {
           placeholder="Speak or type your note..."
           placeholderTextColor={colors.text.tertiary}
           value={content}
-          onChangeText={setContent}
+          onChangeText={(text) => {
+            setContent(text);
+            accumulatedText.current = text;
+          }}
           multiline
           textAlignVertical="top"
         />
@@ -192,20 +246,38 @@ export default function VoiceNoteScreen() {
       {/* Footer / Mic Controls */}
       <View style={ds.footer}>
         <Text style={[ds.statusText, { color: theme.textSecondary }]}>
-          {isRecording ? 'Listening...' : 'Tap the mic to start speaking'}
+          {isRecording 
+            ? (isPaused ? 'Paused - Speak or type your note...' : 'Listening...') 
+            : 'Tap the mic to start speaking'}
         </Text>
         
-        <TouchableOpacity 
-          style={[ds.micBtn, { backgroundColor: theme.primary }, isRecording && ds.micBtnActive]}
-          onPress={toggleRecording}
-          activeOpacity={0.8}
-        >
-          <Ionicons 
-            name={isRecording ? "stop" : "mic"} 
-            size={28} 
-            color="#FFFFFF" 
-          />
-        </TouchableOpacity>
+        <View style={ds.controlsRow}>
+          {isRecording && (
+            <TouchableOpacity 
+              style={[ds.controlBtn, { backgroundColor: theme.card, borderColor: theme.border }]}
+              onPress={togglePause}
+              activeOpacity={0.8}
+            >
+              <Ionicons 
+                name={isPaused ? "play" : "pause"} 
+                size={22} 
+                color={theme.text} 
+              />
+            </TouchableOpacity>
+          )}
+          
+          <TouchableOpacity 
+            style={[ds.micBtn, { backgroundColor: theme.primary }, isRecording && ds.micBtnActive]}
+            onPress={toggleRecording}
+            activeOpacity={0.8}
+          >
+            <Ionicons 
+              name={isRecording ? "stop" : "mic"} 
+              size={28} 
+              color="#FFFFFF" 
+            />
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -287,5 +359,20 @@ const styles = (theme: any, isDark: boolean, colors: any) => StyleSheet.create({
   },
   micBtnActive: {
     backgroundColor: '#EF4444',
+  },
+  controlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 20,
+  },
+  controlBtn: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    borderWidth: 1.2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...getThemedShadow(theme, 'medium'),
   },
 });
