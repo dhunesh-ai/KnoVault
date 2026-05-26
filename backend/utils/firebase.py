@@ -76,26 +76,35 @@ def initialize_firebase() -> bool:
             cred = credentials.Certificate(cred_path)
             _firebase_app = firebase_admin.initialize_app(cred)
             logger.info(f"[Firebase] Initialized from: {cred_path}")
-            print(f"[Firebase] ✅ Admin SDK initialized from: {cred_path}")
+            print(f"[Firebase] [OK] Admin SDK initialized from: {cred_path}")
             return True
 
-        # Try inline JSON from env
-        cred_json = os.environ.get("FIREBASE_CREDENTIALS_JSON")
+        # Try inline JSON from settings/env
+        from config import get_settings
+        settings = get_settings()
+        
+        cred_json = (
+            settings.FIREBASE_CREDENTIALS_JSON or
+            settings.FIREBASE_SERVICE_ACCOUNT_JSON or
+            os.environ.get("FIREBASE_CREDENTIALS_JSON") or
+            os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON")
+        )
+        
         if cred_json:
             cred_dict = json.loads(cred_json)
             cred = credentials.Certificate(cred_dict)
             _firebase_app = firebase_admin.initialize_app(cred)
-            logger.info("[Firebase] Initialized from FIREBASE_CREDENTIALS_JSON env var")
-            print("[Firebase] ✅ Admin SDK initialized from environment variable")
+            logger.info("[Firebase] Initialized from inline JSON credentials")
+            print("[Firebase] [OK] Admin SDK initialized from inline JSON credentials environment/config variable")
             return True
 
         logger.warning("[Firebase] No credentials found — Firebase features disabled")
-        print("[Firebase] ⚠️ No credentials found — Firebase features will be disabled")
+        print("[Firebase] [WARN] No credentials found — Firebase features will be disabled")
         return False
 
     except Exception as e:
         logger.error(f"[Firebase] Initialization failed: {e}")
-        print(f"[Firebase] ❌ Initialization failed: {e}")
+        print(f"[Firebase] [ERROR] Initialization failed: {e}")
         return False
 
 

@@ -20,6 +20,8 @@ class Settings(BaseSettings):
 
     # Firebase Settings
     FIREBASE_CREDENTIALS_PATH: str = "secrets/firebase-adminsdk.json"
+    FIREBASE_CREDENTIALS_JSON: str = ""
+    FIREBASE_SERVICE_ACCOUNT_JSON: str = ""
     GOOGLE_WEB_CLIENT_ID: str = ""
 
     # Encryption Settings
