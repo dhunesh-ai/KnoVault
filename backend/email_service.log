@@ -675,3 +675,24 @@
 2026-05-26 11:11:28,421 - watchfiles.main - INFO - 5 changes detected
 2026-05-26 11:11:29,005 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
 2026-05-26 11:11:31,935 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 11:11:32,017 - watchfiles.main - INFO - 1 change detected
+2026-05-26 11:11:37,574 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-26 11:13:43,668 - watchfiles.main - INFO - 1 change detected
+2026-05-26 13:18:52,140 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 13:18:54,305 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 13:19:04,107 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-26 13:35:04,054 - watchfiles.main - INFO - 1 change detected
+2026-05-26 13:35:48,133 - watchfiles.main - INFO - 1 change detected
+2026-05-26 13:35:49,800 - watchfiles.main - INFO - 1 change detected
+2026-05-26 13:35:50,711 - watchfiles.main - INFO - 5 changes detected
+2026-05-26 13:35:51,592 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 13:35:58,152 - watchfiles.main - INFO - 1 change detected
+2026-05-26 13:36:02,171 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-26 13:36:11,273 - watchfiles.main - INFO - 1 change detected
+2026-05-26 13:36:12,854 - watchfiles.main - INFO - 1 change detected
+2026-05-26 13:36:13,880 - watchfiles.main - INFO - 5 changes detected
+2026-05-26 13:36:14,456 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-26 13:36:20,672 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-26 13:37:03,929 - services.email - INFO - Attempting to send test email to rrrakshith10@gmail.com via Brevo HTTP API...
+2026-05-26 13:37:05,535 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
+2026-05-26 13:37:05,537 - services.email - INFO - Successfully sent test email to rrrakshith10@gmail.com via Brevo HTTP API

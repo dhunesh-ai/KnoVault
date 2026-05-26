@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_FROM: str = "KnoVault <noreply@knovault.com>"
 
+    # Brevo API Settings
+    BREVO_API_KEY: str = ""
+
     # Firebase Settings
     FIREBASE_CREDENTIALS_PATH: str = "secrets/firebase-adminsdk.json"
     FIREBASE_CREDENTIALS_JSON: str = ""

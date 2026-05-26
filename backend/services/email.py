@@ -1,5 +1,6 @@
 import logging
 import traceback
+import httpx
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from config import get_settings
 from pydantic import EmailStr
@@ -32,7 +33,8 @@ conf = ConnectionConfig(
 
 async def send_otp_email(email: str, otp: str, purpose: str = "verification"):
     """
-    Sends an OTP email asynchronously using fastapi-mail.
+    Sends an OTP email asynchronously.
+    Uses Brevo HTTP API if BREVO_API_KEY is present, otherwise falls back to fastapi-mail (SMTP).
     """
     subject = "KnoVault - Verify your account" if purpose == "verification" else "KnoVault - Reset your password"
     
@@ -54,6 +56,44 @@ async def send_otp_email(email: str, otp: str, purpose: str = "verification"):
     </html>
     """
 
+    if settings.BREVO_API_KEY:
+        logger.info(f"Attempting to send {purpose} email to {email} via Brevo HTTP API...")
+        try:
+            async with httpx.AsyncClient() as client:
+                headers = {
+                    "accept": "application/json",
+                    "api-key": settings.BREVO_API_KEY,
+                    "content-type": "application/json"
+                }
+                payload = {
+                    "sender": {
+                        "name": "KnoVault",
+                        "email": settings.SMTP_USER or "thinkgood24hrs@gmail.com"
+                    },
+                    "to": [
+                        {
+                            "email": email
+                        }
+                    ],
+                    "subject": subject,
+                    "htmlContent": html
+                }
+                response = await client.post(
+                    "https://api.brevo.com/v3/smtp/email",
+                    json=payload,
+                    headers=headers,
+                    timeout=15.0
+                )
+                if response.status_code in (200, 201, 202):
+                    logger.info(f"Successfully sent {purpose} email to {email} via Brevo HTTP API")
+                    return True
+                else:
+                    logger.error(f"Brevo API error: {response.status_code} - {response.text}")
+        except Exception as e:
+            logger.error(f"Failed to send email via Brevo HTTP API: {e}")
+
+    # Fallback to SMTP (FastMail)
+    logger.info(f"Attempting to send {purpose} email to {email} via SMTP fallback...")
     message = MessageSchema(
         subject=subject,
         recipients=[email],
@@ -63,12 +103,11 @@ async def send_otp_email(email: str, otp: str, purpose: str = "verification"):
 
     fm = FastMail(conf)
     try:
-        logger.info(f"Attempting to send {purpose} email to {email}...")
         await fm.send_message(message)
-        logger.info(f"Successfully sent {purpose} email to {email}")
+        logger.info(f"Successfully sent {purpose} email to {email} via SMTP fallback")
         return True
     except Exception as e:
-        logger.error(f"CRITICAL ERROR: Failed to send email to {email}")
+        logger.error(f"CRITICAL ERROR: Failed to send email to {email} via SMTP fallback")
         logger.error(f"Error Type: {type(e).__name__}")
         logger.error(f"Error Details: {str(e)}")
         logger.error(traceback.format_exc())
