@@ -10,6 +10,8 @@ import os
 import json
 import logging
 from pathlib import Path
+import firebase_admin
+from firebase_admin import credentials, auth, messaging
 
 logger = logging.getLogger(__name__)
 
