@@ -830,3 +830,10 @@
 2026-05-27 08:39:32,634 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
 2026-05-27 08:39:42,430 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
 2026-05-27 08:40:05,631 - watchfiles.main - INFO - 1 change detected
+2026-05-27 08:44:41,599 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-27 08:44:43,533 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-27 08:44:51,049 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-27 08:47:17,021 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-27 08:48:10,552 - utils.firebase - WARNING - [Firebase] Invalid token: Token used too early, 1779851890 < 1779851958. Check that your computer's clock is set correctly.
+2026-05-27 08:59:47,219 - watchfiles.main - INFO - 1 change detected
+2026-05-27 08:59:59,494 - watchfiles.main - INFO - 1 change detected

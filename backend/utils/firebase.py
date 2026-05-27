@@ -132,7 +132,7 @@ def verify_firebase_token(id_token: str) -> dict | None:
 
     try:
         from firebase_admin import auth
-        decoded = auth.verify_id_token(id_token)
+        decoded = auth.verify_id_token(id_token, clock_skew_seconds=600)
         return decoded
     except firebase_admin.auth.ExpiredIdTokenError:
         logger.warning("[Firebase] Token expired")
