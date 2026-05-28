@@ -18,6 +18,8 @@ class GoalResponse(BaseModel):
     completed: bool
     user_id: int
     created_at: datetime
+    updated_at: datetime | None = None
+    is_deleted: bool = False
 
     class Config:
         from_attributes = True

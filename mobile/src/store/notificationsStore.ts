@@ -62,8 +62,8 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
       const daysLeft = calculateDaysRemaining(eventDateStr, isRecurring);
       const isUpcoming = daysLeft > 0 && daysLeft <= 7;
 
-      const getEmojiForType = (typeStr: string) => {
-        const t = typeStr?.toLowerCase() || 'birthday';
+      const getEmojiForType = (typeStr?: string) => {
+        const t = String(typeStr || 'birthday').toLowerCase();
         if (t.includes('birthday')) return '🎂';
         if (t.includes('wedding') || t.includes('anniversary')) return '💍';
         if (t.includes('engagement')) return '💎';
@@ -74,8 +74,8 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
         return '✨';
       };
 
-      const getTitleForToday = (typeStr: string) => {
-        const t = typeStr?.toLowerCase() || 'birthday';
+      const getTitleForToday = (typeStr?: string) => {
+        const t = String(typeStr || 'birthday').toLowerCase();
         const emoji = getEmojiForType(typeStr);
         if (t.includes('birthday')) return `${emoji} Birthday Today!`;
         if (t.includes('wedding') || t.includes('anniversary')) return `${emoji} Anniversary Today!`;
@@ -123,7 +123,21 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
 
     // 2. Process Reminders today & upcoming
     reminders.forEach((r) => {
+      if (!r || !r.reminder_date) {
+        console.warn('[NOTIFICATIONS] Skipping malformed reminder missing date:', r);
+        return;
+      }
+
+      const safeType = String(r?.type || r?.category || 'custom').toLowerCase();
+      const safeTitle = r?.title || 'Reminder';
+      const safeDescription = r?.description || '';
+
       const rDate = new Date(r.reminder_date);
+      if (isNaN(rDate.getTime())) {
+        console.warn('[NOTIFICATIONS] Skipping reminder with invalid date:', r);
+        return;
+      }
+      
       const rDateStr = getLocalDateString(rDate);
       const isToday = rDateStr === todayStr;
 
@@ -133,11 +147,11 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
       const isUpcoming = diffDays > 0 && diffDays <= 7;
 
       // Check if medicine type
-      let isMed = r.type.toLowerCase() === 'medicine';
+      let isMed = safeType === 'medicine';
       let medInfo: any = null;
       try {
-        if (r.description && r.description.startsWith('{')) {
-          const parsed = JSON.parse(r.description);
+        if (safeDescription && safeDescription.startsWith('{')) {
+          const parsed = JSON.parse(safeDescription);
           if (parsed.isMedicine) {
             isMed = true;
             medInfo = parsed;
@@ -150,7 +164,7 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
       if (isMed && medInfo) {
         // Check if course completed
         let durationDays = 5;
-        const dur = medInfo.duration.toLowerCase();
+        const dur = String(medInfo?.duration || '').toLowerCase();
         if (dur.includes('day')) {
           durationDays = parseInt(dur) || 5;
         } else if (dur.includes('week')) {
@@ -216,8 +230,8 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
               id,
               type: 'reminder',
               section: 'Today',
-              title: r.type.toLowerCase() === 'event' ? `📅 Event: ${r.title}` : `⏰ Reminder: ${r.title}`,
-              description: r.description || `Scheduled at ${formatLocalTime(r.reminder_date)}`,
+              title: safeType === 'event' ? `📅 Event: ${safeTitle}` : `⏰ Reminder: ${safeTitle}`,
+              description: safeDescription || `Scheduled at ${formatLocalTime(r.reminder_date)}`,
               timestamp: formatLocalTime(r.reminder_date),
               isRead: readIds.has(id),
               importance: 'high',
@@ -245,8 +259,8 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
               id,
               type: 'reminder',
               section: 'Upcoming',
-              title: `📅 Upcoming: ${r.title}`,
-              description: `${r.description || 'Upcoming event'} - ${rDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${formatLocalTime(r.reminder_date)}`,
+              title: `📅 Upcoming: ${safeTitle}`,
+              description: `${safeDescription || 'Upcoming event'} - ${rDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${formatLocalTime(r.reminder_date)}`,
               timestamp: rDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
               isRead: readIds.has(id),
               importance: 'normal',

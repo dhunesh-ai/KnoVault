@@ -15,6 +15,33 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useAuthStore } from '../src/store/authStore';
 import { colors, lightColors } from '../src/theme/colors';
 import { setupNotificationListeners } from '../src/utils/notifications';
+import * as BackgroundFetch from 'expo-background-fetch';
+import * as TaskManager from 'expo-task-manager';
+import { syncWorkspace } from '../src/services/sync';
+import { initDB } from '../src/services/db';
+
+const BACKGROUND_SYNC_TASK = 'background-sync';
+
+TaskManager.defineTask(BACKGROUND_SYNC_TASK, async () => {
+  try {
+    const success = await syncWorkspace();
+    return success ? BackgroundFetch.BackgroundFetchResult.NewData : BackgroundFetch.BackgroundFetchResult.NoData;
+  } catch (error) {
+    return BackgroundFetch.BackgroundFetchResult.Failed;
+  }
+});
+
+async function registerBackgroundSync() {
+  try {
+    await BackgroundFetch.registerTaskAsync(BACKGROUND_SYNC_TASK, {
+      minimumInterval: 60 * 15, // 15 minutes
+      stopOnTerminate: false, // android only
+      startOnBoot: true, // android only
+    });
+  } catch (err) {
+    console.log("Task Register failed:", err);
+  }
+}
 
 
 import { ThemeProvider } from '../src/context/ThemeContext';
@@ -35,9 +62,12 @@ export default function RootLayout() {
 
   console.log('[RootLayout] Render - isLoading:', isLoading, 'isAuthenticated:', isAuthenticated, 'user:', !!user);
 
-  // Initialize auth on app start
+  // Initialize auth and db on app start
   useEffect(() => {
-    console.log('[RootLayout] Mounting - initializing auth...');
+    console.log('[RootLayout] Mounting - initializing auth & db...');
+    initDB().then(() => {
+        registerBackgroundSync();
+    });
     initialize();
   }, []);
 

@@ -60,6 +60,8 @@ class ImportantDayResponse(BaseModel):
     message_draft: str | None = None
     user_id: int
     created_at: datetime
+    updated_at: datetime | None = None
+    is_deleted: bool = False
 
     person_name: str | None = None
     birth_date: dt_date | None = None

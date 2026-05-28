@@ -12,23 +12,40 @@ from datetime import datetime, timezone, timedelta
 
 router = APIRouter(prefix="/api/reminders", tags=["Reminders"])
 
+DEFAULT_TIMING_HOURS = {
+    "morning": "08:00",
+    "breakfast": "08:30",
+    "lunch": "13:00",
+    "afternoon": "14:00",
+    "evening": "17:00",
+    "dinner": "20:30",
+    "night": "22:00",
+    "bedtime": "22:30"
+}
+
 
 @router.get("", response_model=list[ReminderResponse])
 async def get_reminders(
     type: str | None = None,
     upcoming: bool = False,
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    print(f"[REMINDERS] Fetching reminders for user: {current_user.id} (type: {type}, upcoming: {upcoming})")
+    print(f"[REMINDERS] Fetching reminders for user: {current_user.id} (type: {type}, upcoming: {upcoming}, start_date: {start_date}, end_date: {end_date})")
     query = select(Reminder).where(Reminder.user_id == current_user.id)
 
     if type:
         query = query.where(Reminder.type == type)
     if upcoming:
         query = query.where(Reminder.reminder_date >= datetime.now(timezone.utc))
+    if start_date:
+        query = query.where(Reminder.reminder_date >= start_date)
+    if end_date:
+        query = query.where(Reminder.reminder_date <= end_date)
 
     query = query.order_by(Reminder.reminder_date.asc()).offset(skip).limit(limit)
     result = await db.execute(query)
@@ -139,8 +156,18 @@ async def generate_medicine_reminders(
         timing_times = {"Breakfast 🍳": "08:00"}
         
     for d in range(duration_days):
-        for t in timings:
-            time_str = timing_times.get(t, "08:00")
+        for idx, t in enumerate(timings):
+            # Resolve time_str from timing_times or DEFAULT_TIMING_HOURS
+            time_str = timing_times.get(t)
+            if not time_str:
+                t_clean = t.lower()
+                matched_time = None
+                for key, val in DEFAULT_TIMING_HOURS.items():
+                    if key in t_clean:
+                        matched_time = val
+                        break
+                time_str = matched_time or "08:00"
+                
             try:
                 time_clean = time_str.split(" ")[0].strip()
                 parts = time_clean.split(":")
@@ -179,7 +206,14 @@ async def generate_medicine_reminders(
                 type="medicine",
                 custom_type=None,
                 reminder_date=occurrence_date,
-                user_id=current_user.id
+                user_id=current_user.id,
+                start_date=start_date,
+                end_date=start_date + timedelta(days=duration_days),
+                timing_label=t,
+                dose_index=idx,
+                course_day=d + 1,
+                is_completed=False,
+                series_id=series_id
             )
             db.add(reminder)
             if first_reminder is None:
@@ -261,8 +295,8 @@ async def update_reminder(
         raise HTTPException(status_code=404, detail="Reminder not found")
 
     # Check if the existing reminder is part of a series
-    old_series_id = None
-    if reminder.description and reminder.description.startswith('{'):
+    old_series_id = reminder.series_id
+    if not old_series_id and reminder.description and reminder.description.startswith('{'):
         try:
             parsed = json.loads(reminder.description)
             old_series_id = parsed.get("series_id")
@@ -288,12 +322,23 @@ async def update_reminder(
         except Exception:
             pass
 
-    if is_new_medicine:
+    # Detect if configuration changed (structure, date, names)
+    config_changed = False
+    if data.title is not None and data.title != reminder.title:
+        config_changed = True
+    if data.description is not None and data.description != reminder.description:
+        config_changed = True
+    if data.reminder_date is not None and data.reminder_date != reminder.reminder_date:
+        config_changed = True
+    if data.type is not None and data.type != reminder.type:
+        config_changed = True
+
+    if is_new_medicine and config_changed:
         # If it was an old series, delete the old series first
         if old_series_id:
             delete_stmt = delete(Reminder).where(
                 Reminder.user_id == current_user.id,
-                Reminder.description.like(f'%"series_id": "{old_series_id}"%')
+                (Reminder.series_id == old_series_id) | Reminder.description.like(f'%"series_id": "{old_series_id}"%')
             )
             await db.execute(delete_stmt)
         else:
@@ -309,17 +354,27 @@ async def update_reminder(
         raise HTTPException(status_code=400, detail="Failed to regenerate medicine reminder series")
 
     # Standard update flow
-    if old_series_id:
+    if not is_new_medicine and old_series_id:
         # If transitioning from a series to a standard reminder, delete all other series reminders
         delete_stmt = delete(Reminder).where(
             Reminder.user_id == current_user.id,
-            Reminder.description.like(f'%"series_id": "{old_series_id}"%'),
+            ((Reminder.series_id == old_series_id) | Reminder.description.like(f'%"series_id": "{old_series_id}"%')),
             Reminder.id != reminder_id
         )
         await db.execute(delete_stmt)
 
     for key, value in data.model_dump(exclude_unset=True).items():
-        setattr(reminder, key, value)
+        if key == "is_completed":
+            reminder.is_completed = value
+            if reminder.description and reminder.description.startswith('{'):
+                try:
+                    parsed = json.loads(reminder.description)
+                    parsed["is_completed"] = value
+                    reminder.description = json.dumps(parsed)
+                except Exception:
+                    pass
+        else:
+            setattr(reminder, key, value)
 
     await db.flush()
     await db.refresh(reminder)
@@ -340,19 +395,21 @@ async def delete_reminder(
         raise HTTPException(status_code=404, detail="Reminder not found")
 
     # Check if it has a series_id
-    if reminder.description and reminder.description.startswith('{'):
+    series_id = reminder.series_id
+    if not series_id and reminder.description and reminder.description.startswith('{'):
         try:
             parsed = json.loads(reminder.description)
             series_id = parsed.get("series_id")
-            if series_id:
-                # Delete all matching series reminders
-                delete_stmt = delete(Reminder).where(
-                    Reminder.user_id == current_user.id,
-                    Reminder.description.like(f'%"series_id": "{series_id}"%')
-                )
-                await db.execute(delete_stmt)
-                return
         except Exception:
             pass
+
+    if series_id:
+        # Delete all matching series reminders
+        delete_stmt = delete(Reminder).where(
+            Reminder.user_id == current_user.id,
+            (Reminder.series_id == series_id) | Reminder.description.like(f'%"series_id": "{series_id}"%')
+        )
+        await db.execute(delete_stmt)
+        return
 
     await db.delete(reminder)

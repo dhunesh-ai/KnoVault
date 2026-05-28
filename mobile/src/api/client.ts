@@ -42,7 +42,12 @@ client.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
     
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Don't trigger token refresh or logout for auth endpoints
+    // These are pre-authentication calls where 401 means invalid credentials, not expired session
+    const authEndpoints = ['/api/auth/login', '/api/auth/firebase-sync', '/api/auth/complete-signup'];
+    const isAuthEndpoint = authEndpoints.some(ep => originalRequest?.url?.includes(ep));
+    
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true;
       try {
         const refreshToken = await SecureStore.getItemAsync('refresh_token');
@@ -67,7 +72,7 @@ client.interceptors.response.use(
         const { logout } = (await import('../store/authStore')).useAuthStore.getState();
         await logout();
       }
-    } else if (error.response?.status === 401) {
+    } else if (error.response?.status === 401 && !isAuthEndpoint) {
       // Direct 401 without refresh possibility - clear state
       const { logout } = (await import('../store/authStore')).useAuthStore.getState();
       await logout();

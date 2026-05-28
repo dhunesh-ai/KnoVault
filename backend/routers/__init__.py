@@ -10,6 +10,8 @@ from routers.backup import router as backup_router
 from routers.calendar import router as calendar_router
 from routers.notifications import router as notifications_router
 
+from routers.sync import router as sync_router
+
 special_days_router = important_days_router
 birthdays_router = important_days_router
 
@@ -17,5 +19,5 @@ __all__ = [
     "auth_router", "notes_router", "goals_router", "projects_router",
     "reminders_router", "birthdays_router", "special_days_router", "important_days_router",
     "ai_chat_router", "profile_router", "backup_router", "calendar_router",
-    "notifications_router",
+    "notifications_router", "sync_router"
 ]

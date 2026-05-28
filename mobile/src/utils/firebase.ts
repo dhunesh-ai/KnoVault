@@ -50,7 +50,7 @@ export async function signInWithGoogle(): Promise<FirebaseAuthTypes.User | null>
     const response = await GoogleSignin.signIn();
 
     if (!isSuccessResponse(response)) {
-      // console.log('[Firebase] Google Sign-In cancelled');
+      console.log('[Firebase] Google Sign-In cancelled by user');
       return null;
     }
 
@@ -58,17 +58,18 @@ export async function signInWithGoogle(): Promise<FirebaseAuthTypes.User | null>
     if (!idToken) {
       throw new Error('Google Sign-In succeeded but no ID token returned');
     }
+    console.log('[Firebase] Google idToken received, length:', idToken.length);
 
     // Create Firebase credential from Google token
     const googleCredential = auth.GoogleAuthProvider.credential(idToken);
 
     // Sign in to Firebase with the Google credential
     const userCredential = await auth().signInWithCredential(googleCredential);
-    // console.log('[Firebase] ✅ Google Sign-In success:', userCredential.user.email);
+    console.log('[Firebase] Firebase signInWithCredential success:', userCredential.user.email);
 
     return userCredential.user;
   } catch (error: any) {
-    console.error('[Firebase] Google Sign-In error:', error);
+    console.error('[Firebase] Google Sign-In error:', error?.code, error?.message);
 
     // Handle specific error codes
     if (error?.code === 'SIGN_IN_CANCELLED' || error?.code === '12501') {

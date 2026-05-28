@@ -837,3 +837,125 @@
 2026-05-27 08:48:10,552 - utils.firebase - WARNING - [Firebase] Invalid token: Token used too early, 1779851890 < 1779851958. Check that your computer's clock is set correctly.
 2026-05-27 08:59:47,219 - watchfiles.main - INFO - 1 change detected
 2026-05-27 08:59:59,494 - watchfiles.main - INFO - 1 change detected
+2026-05-27 09:00:01,204 - watchfiles.main - INFO - 1 change detected
+2026-05-27 09:00:02,471 - watchfiles.main - INFO - 5 changes detected
+2026-05-27 09:00:03,303 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-27 09:00:18,638 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-27 09:02:52,454 - watchfiles.main - INFO - 1 change detected
+2026-05-27 09:03:17,523 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-27 09:03:19,700 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-27 09:03:26,825 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-27 09:06:07,797 - utils.firebase - ERROR - [Firebase] Token verification error: Illegal clock_skew_seconds value: 600. Must be between 0 and 60, inclusive.
+2026-05-27 09:06:36,251 - utils.firebase - ERROR - [Firebase] Token verification error: Illegal clock_skew_seconds value: 600. Must be between 0 and 60, inclusive.
+2026-05-27 09:11:19,561 - watchfiles.main - INFO - 1 change detected
+2026-05-27 09:11:51,794 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-27 09:11:53,833 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-27 09:12:01,351 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-27 09:14:11,710 - utils.firebase - ERROR - [Firebase] Token verification error: Illegal clock_skew_seconds value: 600. Must be between 0 and 60, inclusive.
+2026-05-27 09:14:27,928 - utils.firebase - ERROR - [Firebase] Token verification error: Illegal clock_skew_seconds value: 600. Must be between 0 and 60, inclusive.
+2026-05-27 09:21:57,813 - watchfiles.main - INFO - 1 change detected
+2026-05-27 09:23:13,822 - watchfiles.main - INFO - 1 change detected
+2026-05-27 09:23:15,480 - watchfiles.main - INFO - 1 change detected
+2026-05-27 09:23:16,699 - watchfiles.main - INFO - 5 changes detected
+2026-05-27 09:23:17,503 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-27 09:23:26,628 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-27 09:25:24,071 - watchfiles.main - INFO - 1 change detected
+2026-05-27 09:25:25,515 - watchfiles.main - INFO - 1 change detected
+2026-05-27 09:25:26,532 - watchfiles.main - INFO - 5 changes detected
+2026-05-27 09:25:27,273 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-27 09:25:34,956 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-27 09:25:44,681 - watchfiles.main - INFO - 1 change detected
+2026-05-27 09:25:46,168 - watchfiles.main - INFO - 1 change detected
+2026-05-27 09:25:47,088 - watchfiles.main - INFO - 5 changes detected
+2026-05-27 09:25:47,920 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-27 09:25:55,926 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-27 11:27:28,127 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-27 11:27:30,527 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-27 11:27:36,025 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-27 11:30:24,250 - utils.firebase - WARNING - [Firebase] Clock skew detected beyond 60s: Token used too early, 1779861624 < 1779861692. Check that your computer's clock is set correctly.
+2026-05-27 11:30:24,698 - utils.firebase - INFO - [Firebase] Token verified with extended clock tolerance for: thinkgood24hr@gmail.com
+2026-05-27 11:35:14,495 - watchfiles.main - INFO - 1 change detected
+2026-05-27 11:40:53,124 - utils.firebase - WARNING - [Firebase] Clock skew detected beyond 60s: Token used too early, 1779862253 < 1779862322. Check that your computer's clock is set correctly.
+2026-05-27 11:40:53,883 - utils.firebase - INFO - [Firebase] Token verified with extended clock tolerance for: thinkgood24hr@gmail.com
+2026-05-27 11:46:12,623 - utils.firebase - WARNING - [Firebase] Clock skew detected beyond 60s: Token used too early, 1779862572 < 1779862641. Check that your computer's clock is set correctly.
+2026-05-27 11:46:13,079 - utils.firebase - INFO - [Firebase] Token verified with extended clock tolerance for: ramaiahricemill@gmail.com
+2026-05-27 11:49:13,769 - utils.firebase - WARNING - [Firebase] Clock skew detected beyond 60s: Token used too early, 1779862753 < 1779862822. Check that your computer's clock is set correctly.
+2026-05-27 11:49:14,519 - utils.firebase - INFO - [Firebase] Token verified with extended clock tolerance for: dhuneshwaran4@gmail.com
+2026-05-27 14:24:04,757 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-27 14:24:10,645 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-27 14:29:01,427 - utils.firebase - WARNING - [Firebase] Clock skew detected beyond 60s: Token used too early, 1779872341 < 1779872409. Check that your computer's clock is set correctly.
+2026-05-27 14:29:01,960 - utils.firebase - INFO - [Firebase] Token verified with extended clock tolerance for: dhuneshwaran4@gmail.com
+2026-05-28 09:37:50,050 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-28 09:37:52,728 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-28 09:38:20,786 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-28 10:35:08,792 - watchfiles.main - INFO - 1 change detected
+2026-05-28 10:35:15,095 - watchfiles.main - INFO - 1 change detected
+2026-05-28 10:35:19,241 - watchfiles.main - INFO - 1 change detected
+2026-05-28 10:36:19,365 - watchfiles.main - INFO - 1 change detected
+2026-05-28 10:36:33,487 - watchfiles.main - INFO - 1 change detected
+2026-05-28 10:37:29,122 - watchfiles.main - INFO - 1 change detected
+2026-05-28 10:52:16,590 - watchfiles.main - INFO - 1 change detected
+2026-05-28 10:52:18,966 - watchfiles.main - INFO - 1 change detected
+2026-05-28 10:52:20,559 - watchfiles.main - INFO - 5 changes detected
+2026-05-28 10:52:21,885 - watchfiles.main - INFO - 1 change detected
+2026-05-28 10:52:22,266 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-28 10:52:26,832 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-28 10:52:28,482 - watchfiles.main - INFO - 2 changes detected
+2026-05-28 10:52:30,023 - watchfiles.main - INFO - 5 changes detected
+2026-05-28 10:52:30,688 - watchfiles.main - INFO - 5 changes detected
+2026-05-28 10:52:31,866 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-28 10:52:36,919 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-28 10:52:53,432 - watchfiles.main - INFO - 1 change detected
+2026-05-28 10:52:55,113 - watchfiles.main - INFO - 1 change detected
+2026-05-28 10:52:57,196 - watchfiles.main - INFO - 5 changes detected
+2026-05-28 10:52:57,460 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-28 10:53:02,346 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-28 11:40:52,723 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-28 11:40:54,244 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-28 11:40:59,135 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-28 16:58:13,055 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-28 16:58:15,463 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-28 16:58:22,166 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-28 17:00:51,116 - utils.firebase - WARNING - [Firebase] Invalid token: Firebase ID token has no "kid" claim.
+2026-05-28 18:11:58,568 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:11:59,562 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:11:59,922 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:26:11,129 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:26:11,483 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:27:35,993 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:27:36,355 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:27:44,566 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:27:44,934 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:28:29,585 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:28:29,937 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:30:27,043 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:30:28,769 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:30:29,126 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:30:31,672 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-28 18:30:38,363 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-28 18:30:39,572 - watchfiles.main - INFO - 12 changes detected
+2026-05-28 18:30:41,627 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-28 18:30:46,406 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-28 18:30:47,469 - watchfiles.main - INFO - 11 changes detected
+2026-05-28 18:30:50,112 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-28 18:30:54,727 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-28 18:31:22,958 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:31:24,260 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:31:24,975 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:31:26,529 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-28 18:31:31,849 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-28 18:31:33,047 - watchfiles.main - INFO - 12 changes detected
+2026-05-28 18:31:35,025 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-28 18:31:39,978 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-28 18:31:41,382 - watchfiles.main - INFO - 12 changes detected
+2026-05-28 18:31:44,059 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-28 18:31:49,209 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-28 18:32:01,951 - watchfiles.main - INFO - 2 changes detected
+2026-05-28 18:32:03,288 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:32:05,396 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-28 18:32:10,699 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-28 18:32:21,903 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:32:23,270 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:32:23,933 - watchfiles.main - INFO - 1 change detected
+2026-05-28 18:32:25,534 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-28 18:32:31,971 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json

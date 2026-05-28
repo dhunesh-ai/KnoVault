@@ -733,17 +733,24 @@ export default function CreateReminderScreen() {
         <View style={ds.formCard}>
           <View style={ds.fieldHeader}>
             <Ionicons name="time-outline" size={18} color={theme.primary} />
-            <Text style={ds.fieldLabel}>Alert Schedule</Text>
+            <Text style={ds.fieldLabel}>{type === 'Medicine' ? 'Start Date' : 'Alert Schedule'}</Text>
           </View>
           <View style={ds.dateTimeRow}>
-            <TouchableOpacity style={ds.dateTimeBtn} onPress={() => { triggerHaptic(); setShowDatePicker(true); }}>
+            <TouchableOpacity 
+              style={[ds.dateTimeBtn, type === 'Medicine' && { flex: 1 }]} 
+              onPress={() => { triggerHaptic(); setShowDatePicker(true); }}
+            >
               <Ionicons name="calendar-outline" size={20} color={theme.primary} />
-              <Text style={ds.dateTimeText}>{date.toLocaleDateString()}</Text>
+              <Text style={ds.dateTimeText}>
+                {type === 'Medicine' ? `Starts: ${date.toLocaleDateString()}` : date.toLocaleDateString()}
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={ds.dateTimeBtn} onPress={() => { triggerHaptic(); setShowTimePicker(true); }}>
-              <Ionicons name="time-outline" size={20} color={theme.primary} />
-              <Text style={ds.dateTimeText}>{date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-            </TouchableOpacity>
+            {type !== 'Medicine' && (
+              <TouchableOpacity style={ds.dateTimeBtn} onPress={() => { triggerHaptic(); setShowTimePicker(true); }}>
+                <Ionicons name="time-outline" size={20} color={theme.primary} />
+                <Text style={ds.dateTimeText}>{date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 

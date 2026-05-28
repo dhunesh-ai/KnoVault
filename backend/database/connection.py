@@ -106,6 +106,21 @@ def run_migrations(connection):
         except Exception as e:
             print(f"[MIGRATION] Warning ensuring Firebase columns: {e}")
 
+    # ── Reminders columns migration ───────────────────────────────────
+    if "reminders" in tables:
+        try:
+            connection.execute(text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS start_date TIMESTAMP WITH TIME ZONE"))
+            connection.execute(text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS end_date TIMESTAMP WITH TIME ZONE"))
+            connection.execute(text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS timing_label VARCHAR(100)"))
+            connection.execute(text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS dose_index INTEGER"))
+            connection.execute(text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS course_day INTEGER"))
+            connection.execute(text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS notification_id VARCHAR(200)"))
+            connection.execute(text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS is_completed BOOLEAN DEFAULT FALSE NOT NULL"))
+            connection.execute(text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS series_id VARCHAR(200)"))
+            print("[MIGRATION] ✅ Reminders columns verified on reminders table")
+        except Exception as e:
+            print(f"[MIGRATION] Warning ensuring Reminders columns: {e}")
+
 
 async def init_db():
     print("[DB] Connecting to Neon PostgreSQL...")

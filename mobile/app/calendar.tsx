@@ -79,18 +79,146 @@ export default function CalendarScreen() {
   const selectedDateStr = getLocalDateString(selectedDate);
   const selectedEvents = eventsMap?.[selectedDateStr] || [];
 
+  const getMedicinePeriod = (timeStr: string | null | undefined) => {
+    if (!timeStr) return 'Morning 🌅';
+    try {
+      const parts = timeStr.split(':');
+      const hour = parseInt(parts[0], 10);
+      if (hour >= 5 && hour < 12) return 'Morning 🌅';
+      if (hour >= 12 && hour < 17) return 'Afternoon ☀️';
+      return 'Night 🌙';
+    } catch (e) {
+      return 'Morning 🌅';
+    }
+  };
+
   const groupedEvents = useMemo(() => {
-    const groups: Record<string, typeof selectedEvents> = {};
-    selectedEvents.forEach(e => {
-      const type = e.type || 'other';
-      if (!groups[type]) groups[type] = [];
-      groups[type].push(e);
+    const medicineGroup: Record<string, typeof selectedEvents> = {
+      'Morning 🌅': [],
+      'Afternoon ☀️': [],
+      'Night 🌙': []
+    };
+    const generalGroup: typeof selectedEvents = [];
+
+    const sorted = [...selectedEvents].sort((a, b) => {
+      const timeA = a.time || '';
+      const timeB = b.time || '';
+      return timeA.localeCompare(timeB);
     });
-    return groups;
+
+    sorted.forEach(e => {
+      const isReminder = e.id.toString().startsWith('r-');
+      const categoryText = isReminder ? getReminderCategory(e) : e.type;
+      
+      if (categoryText?.toLowerCase() === 'medicine') {
+        const period = getMedicinePeriod(e.time);
+        medicineGroup[period].push(e);
+      } else {
+        generalGroup.push(e);
+      }
+    });
+
+    return {
+      medicine: medicineGroup,
+      general: generalGroup
+    };
   }, [selectedEvents]);
 
   const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   const ds = styles(theme, isDark, colors);
+
+  const renderEventCard = (event: any) => {
+    const isReminder = event.id.toString().startsWith('r-');
+    const titleText = isReminder ? getReminderTitle(event) : event.title;
+    const categoryText = isReminder ? getReminderCategory(event) : event.type;
+    const isMed = categoryText.toLowerCase() === 'medicine';
+    const medicineSummary = isMed ? getMedicineSummary(event) : null;
+    const subtitleText = isMed ? formatMedicineSubtitle(event) : (isReminder ? getReminderSubtitle(event) : (event.description || event.notes || ''));
+    
+    const getCategoryColor = (category: string, defaultColor: string) => {
+      switch (category.toLowerCase()) {
+        case 'meeting': return '#3B82F6';
+        case 'assignment': return '#8B5CF6';
+        case 'event': return '#EC4899';
+        case 'birthday': return '#F59E0B';
+        case 'medicine': return '#10B981';
+        case 'custom': return '#6366F1';
+        default: return defaultColor;
+      }
+    };
+    
+    const badgeColor = getCategoryColor(categoryText, event.color);
+
+    return (
+      <TouchableOpacity 
+        key={event.id} 
+        style={[ds.eventCard, { backgroundColor: theme.card, borderColor: theme.border }]}
+        onPress={() => {
+            if (event.id.toString().startsWith('s-')) {
+              const specialDayId = event.id.toString().replace('s-', '');
+              console.log("[SPECIAL DAY DETAILS OPEN] From Calendar", specialDayId);
+              router.push(`/special_day/${specialDayId}`);
+            } else if (event.id.toString().startsWith('b-')) {
+              const birthdayId = event.id.toString().replace('b-', '');
+              router.push(`/special_day/${birthdayId}`);
+            } else if (event.id.toString().startsWith('r-')) {
+              const reminderId = event.id.toString().replace('r-', '');
+              console.log("[REMINDER DETAILS OPEN] From Calendar", reminderId);
+              router.push(`/reminder/${reminderId}`);
+            } else {
+              console.warn("[CALENDAR] Unknown event ID format:", event.id);
+            }
+        }}
+      >
+        <View style={[ds.eventIndicator, { backgroundColor: badgeColor }]} />
+        <View style={ds.eventContent}>
+          <View style={ds.eventHeader}>
+            <Text style={[ds.eventTitle, { color: theme.text }]} numberOfLines={1}>{titleText}</Text>
+            <View style={[ds.miniBadge, { backgroundColor: badgeColor + '15' }]}>
+              <Text style={[ds.miniBadgeText, { color: badgeColor }]}>
+                {categoryText.toUpperCase()}
+              </Text>
+            </View>
+          </View>
+          
+          {isMed ? (
+            <View style={{ marginTop: 4, gap: 2 }}>
+              {medicineSummary ? (
+                <Text style={{ fontSize: 13, fontWeight: '700', color: theme.primary }}>
+                  {medicineSummary}
+                </Text>
+              ) : null}
+              {subtitleText ? (
+                <Text 
+                  style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 16 }} 
+                  numberOfLines={2} 
+                  ellipsizeMode="tail"
+                >
+                  {subtitleText}
+                </Text>
+              ) : null}
+            </View>
+          ) : (
+            <View style={ds.eventMeta}>
+              <Ionicons name="time-outline" size={14} color={theme.textSecondary} />
+              <Text style={[ds.eventMetaText, { color: theme.textSecondary }]}>
+                {event.time ? formatTimeStringTo12Hour(event.time) : "All Day"}
+              </Text>
+              {subtitleText ? (
+                <>
+                  <View style={[ds.metaDivider, { backgroundColor: theme.border }]} />
+                  <Text style={[ds.eventMetaText, { color: theme.textSecondary, flex: 1 }]} numberOfLines={2} ellipsizeMode="tail">
+                    {subtitleText}
+                  </Text>
+                </>
+              ) : null}
+            </View>
+          )}
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={theme.border} />
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={ds.container}>
@@ -138,8 +266,8 @@ export default function CalendarScreen() {
               const isTod = date && isToday(date);
               const dateStr = date ? getLocalDateString(date) : null;
               const dayEvents = dateStr ? eventsMap?.[dateStr] || [] : [];
-              
-              const eventColors = Array.from(new Set(dayEvents.map(e => e.color))).slice(0, 3);
+              const dotsCount = Math.min(dayEvents.length, 4);
+              const eventDots = dayEvents.slice(0, dotsCount);
 
               return (
                 <TouchableOpacity
@@ -168,12 +296,12 @@ export default function CalendarScreen() {
                         {date.getDate()}
                       </Text>
                       <View style={ds.dotsContainer}>
-                        {eventColors.map((color, idx) => (
+                        {eventDots.map((e, idx) => (
                           <View 
                             key={idx} 
                             style={[
                               ds.dot, 
-                              { backgroundColor: isSel ? '#FFFFFF' : color }
+                              { backgroundColor: isSel ? '#FFFFFF' : (e.color || theme.primary) }
                             ]} 
                           />
                         ))}
@@ -207,103 +335,33 @@ export default function CalendarScreen() {
               <Text style={[ds.emptyText, { color: theme.textSecondary }]}>No events scheduled for this day</Text>
             </Animated.View>
           ) : (
-            Object.entries(groupedEvents).map(([type, events], gIdx) => (
-              <Animated.View key={type} entering={FadeInDown.delay(gIdx * 100)}>
-                <Text style={[ds.groupLabel, { color: theme.textSecondary }]}>{type.toUpperCase()}</Text>
-                {events.map((event, eIdx) => {
-                  const isReminder = event.id.toString().startsWith('r-');
-                  const titleText = isReminder ? getReminderTitle(event) : event.title;
-                  const categoryText = isReminder ? getReminderCategory(event) : event.type;
-                  const isMed = categoryText.toLowerCase() === 'medicine';
-                  const medicineSummary = isMed ? getMedicineSummary(event) : null;
-                  const subtitleText = isMed ? formatMedicineSubtitle(event) : (isReminder ? getReminderSubtitle(event) : (event.description || event.notes || ''));
-                  
-                  const getCategoryColor = (category: string, defaultColor: string) => {
-                    switch (category.toLowerCase()) {
-                      case 'meeting': return '#10B981';
-                      case 'assignment': return '#3B82F6';
-                      case 'event': return '#8B5CF6';
-                      case 'birthday': return '#FFD700';
-                      case 'medicine': return '#10B981';
-                      case 'custom': return '#F59E0B';
-                      default: return defaultColor;
-                    }
-                  };
-                  
-                  const badgeColor = getCategoryColor(categoryText, event.color);
-
-                  return (
-                    <TouchableOpacity 
-                      key={event.id} 
-                      style={[ds.eventCard, { backgroundColor: theme.card, borderColor: theme.border }]}
-                      onPress={() => {
-                          if (event.id.toString().startsWith('s-')) {
-                            const specialDayId = event.id.toString().replace('s-', '');
-                            console.log("[SPECIAL DAY DETAILS OPEN] From Calendar", specialDayId);
-                            router.push(`/special_day/${specialDayId}`);
-                          } else if (event.id.toString().startsWith('b-')) {
-                            const birthdayId = event.id.toString().replace('b-', '');
-                            router.push(`/special_day/${birthdayId}`);
-                          } else if (event.id.toString().startsWith('r-')) {
-                            const reminderId = event.id.toString().replace('r-', '');
-                            console.log("[REMINDER DETAILS OPEN] From Calendar", reminderId);
-                            router.push(`/reminder/${reminderId}`);
-                          } else {
-                            console.warn("[CALENDAR] Unknown event ID format:", event.id);
-                          }
-                      }}
-                    >
-                      <View style={[ds.eventIndicator, { backgroundColor: badgeColor }]} />
-                      <View style={ds.eventContent}>
-                        <View style={ds.eventHeader}>
-                          <Text style={[ds.eventTitle, { color: theme.text }]} numberOfLines={1}>{titleText}</Text>
-                          <View style={[ds.miniBadge, { backgroundColor: badgeColor + '15' }]}>
-                            <Text style={[ds.miniBadgeText, { color: badgeColor }]}>
-                              {categoryText.toUpperCase()}
-                            </Text>
-                          </View>
-                        </View>
-                        
-                        {isMed ? (
-                          <View style={{ marginTop: 4, gap: 2 }}>
-                            {medicineSummary ? (
-                              <Text style={{ fontSize: 13, fontWeight: '700', color: theme.primary }}>
-                                {medicineSummary}
-                              </Text>
-                            ) : null}
-                            {subtitleText ? (
-                              <Text 
-                                style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 16 }} 
-                                numberOfLines={2} 
-                                ellipsizeMode="tail"
-                              >
-                                {subtitleText}
-                              </Text>
-                            ) : null}
-                          </View>
-                        ) : (
-                          <View style={ds.eventMeta}>
-                            <Ionicons name="time-outline" size={14} color={theme.textSecondary} />
-                            <Text style={[ds.eventMetaText, { color: theme.textSecondary }]}>
-                              {event.time ? formatTimeStringTo12Hour(event.time) : "All Day"}
-                            </Text>
-                            {subtitleText ? (
-                              <>
-                                <View style={[ds.metaDivider, { backgroundColor: theme.border }]} />
-                                <Text style={[ds.eventMetaText, { color: theme.textSecondary, flex: 1 }]} numberOfLines={2} ellipsizeMode="tail">
-                                  {subtitleText}
-                                </Text>
-                              </>
-                            ) : null}
-                          </View>
-                        )}
+            <View>
+              {/* Medicine Section */}
+              {(groupedEvents.medicine['Morning 🌅'].length > 0 || 
+                groupedEvents.medicine['Afternoon ☀️'].length > 0 || 
+                groupedEvents.medicine['Night 🌙'].length > 0) && (
+                <View style={{ marginBottom: 15 }}>
+                  <Text style={[ds.groupLabel, { color: theme.primary, fontSize: 13, fontWeight: '900', letterSpacing: 1 }]}>MEDICATION SCHEDULE</Text>
+                  {Object.entries(groupedEvents.medicine).map(([period, events]) => {
+                    if (events.length === 0) return null;
+                    return (
+                      <View key={period} style={{ marginBottom: 10 }}>
+                        <Text style={[ds.subPeriodLabel, { color: theme.textSecondary }]}>{period}</Text>
+                        {events.map((event) => renderEventCard(event))}
                       </View>
-                      <Ionicons name="chevron-forward" size={18} color={theme.border} />
-                    </TouchableOpacity>
-                  );
-                })}
-              </Animated.View>
-            ))
+                    );
+                  })}
+                </View>
+              )}
+
+              {/* General Section */}
+              {groupedEvents.general.length > 0 && (
+                <View style={{ marginTop: 10 }}>
+                  <Text style={[ds.groupLabel, { color: theme.primary, fontSize: 13, fontWeight: '900', letterSpacing: 1 }]}>TASKS & EVENTS</Text>
+                  {groupedEvents.general.map((event) => renderEventCard(event))}
+                </View>
+              )}
+            </View>
           )}
         </View>
       </ScrollView>
@@ -557,5 +615,15 @@ const styles = (theme: any, isDark: boolean, colors: any) => StyleSheet.create({
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  subPeriodLabel: {
+    ...typography.caption,
+    fontWeight: '800',
+    fontSize: 11,
+    letterSpacing: 0.5,
+    marginTop: 8,
+    marginBottom: 6,
+    marginLeft: 4,
+    textTransform: 'uppercase',
   },
 });

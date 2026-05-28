@@ -243,13 +243,40 @@ export default function HomeScreen() {
     }
   });
   
+  const toggleReminderMutation = useMutation({
+    mutationFn: ({ id, is_completed }: { id: number; is_completed: boolean }) => {
+      return remindersApi.updateReminder(id, { is_completed });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['upcoming-reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
+      queryClient.invalidateQueries({ queryKey: ['reminders'] });
+    },
+    onError: () => {
+      Alert.alert('Error', 'Failed to update reminder status');
+    }
+  });
+
   const { data: reminders, isLoading: isLoadingReminders } = useQuery({ 
     queryKey: ['upcoming-reminders'], 
     queryFn: async () => {
-      const data = await remindersApi.getUpcomingReminders(10);
-      return [...data].sort((a, b) => 
-        new Date(a.reminder_date).getTime() - new Date(b.reminder_date).getTime()
-      );
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+      const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      
+      const data = await remindersApi.getReminders({
+        start_date: start.toISOString(),
+        end_date: end.toISOString()
+      });
+      
+      return [...data].sort((a, b) => {
+        const complA = a.is_completed ? 1 : 0;
+        const complB = b.is_completed ? 1 : 0;
+        if (complA !== complB) {
+          return complA - complB;
+        }
+        return new Date(a.reminder_date).getTime() - new Date(b.reminder_date).getTime();
+      });
     }
   });
 
@@ -317,6 +344,11 @@ export default function HomeScreen() {
   const totalCount = goals?.length ?? 0;
   const completedCount = goals?.filter(g => g.completed).length ?? 0;
   const todayPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+  const todayMedicines = reminders?.filter(r => getReminderCategory(r) === 'medicine') || [];
+  const totalMedCount = todayMedicines.length;
+  const completedMedCount = todayMedicines.filter(r => r.is_completed).length;
+  const remainingMedCount = totalMedCount - completedMedCount;
 
   React.useEffect(() => {
     console.log(`[HOME STATS UPDATED] [HOME STATS] todayTotal=${totalCount} todayCompleted=${completedCount} todayPercentage=${todayPercentage}%`);
@@ -416,7 +448,9 @@ export default function HomeScreen() {
                 'calendar',
                 '#F43F5E',
                 reminders?.length ?? 0,
-                reminders?.[0]?.title ?? 'No reminders',
+                reminders && reminders.length > 0 
+                  ? `${reminders.length} scheduled reminder${reminders.length !== 1 ? 's' : ''}`
+                  : 'No reminders today',
                 () => router.push('/calendar')
               )}
               <View style={{ width: 15 }} />
@@ -679,23 +713,75 @@ export default function HomeScreen() {
             }}
           />
 
+          {/* Medicine Stats Card */}
+          {!isLoadingReminders && totalMedCount > 0 && (
+            <Animated.View entering={FadeInDown.delay(500)} style={[ds.medStatsCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <View style={ds.medStatsHeader}>
+                <Ionicons name="medical-outline" size={20} color="#10B981" />
+                <Text style={[ds.medStatsTitle, { color: theme.text }]}>Today's Medicines</Text>
+              </View>
+              <View style={ds.medStatsRow}>
+                <View style={ds.medStatItem}>
+                  <Text style={[ds.medStatValue, { color: theme.primary }]}>{totalMedCount}</Text>
+                  <Text style={[ds.medStatLabel, { color: theme.textSecondary }]}>Total</Text>
+                </View>
+                <View style={[ds.medStatDivider, { backgroundColor: theme.border }]} />
+                <View style={ds.medStatItem}>
+                  <Text style={[ds.medStatValue, { color: '#10B981' }]}>{completedMedCount}</Text>
+                  <Text style={[ds.medStatLabel, { color: theme.textSecondary }]}>Taken</Text>
+                </View>
+                <View style={[ds.medStatDivider, { backgroundColor: theme.border }]} />
+                <View style={ds.medStatItem}>
+                  <Text style={[ds.medStatValue, { color: remainingMedCount > 0 ? '#F59E0B' : theme.textSecondary }]}>
+                    {remainingMedCount}
+                  </Text>
+                  <Text style={[ds.medStatLabel, { color: theme.textSecondary }]}>Remaining</Text>
+                </View>
+              </View>
+            </Animated.View>
+          )}
+
           <SectionHeader title="Upcoming Reminders" actionLabel="View All" onAction={() => router.push('/calendar')} />
           {isLoadingReminders ? (
             <View style={ds.loadingContainer}><ActivityIndicator color={theme.primary} /></View>
           ) : reminders && reminders.length > 0 ? (
             <Animated.View entering={FadeInDown.delay(600)}>
-              {reminders.map((r) => {
+              {reminders.slice(0, 5).map((r) => {
                 const category = getReminderCategory(r);
                 const titleText = getReminderTitle(r);
                 const isMed = category === 'medicine';
                 const medicineSummary = isMed ? getMedicineSummary(r) : null;
                 const subtitleText = isMed ? formatMedicineSubtitle(r) : getReminderSubtitle(r);
+                const isCompleted = r.is_completed ?? false;
                 return (
-                  <TouchableOpacity key={r.id} style={ds.reminderCard} onPress={() => router.push(`/reminder/${r.id}`)}>
+                  <TouchableOpacity 
+                    key={r.id} 
+                    style={[ds.reminderCard, isCompleted && { opacity: 0.7 }]} 
+                    onPress={() => router.push(`/reminder/${r.id}`)}
+                  >
+                    <TouchableOpacity
+                      style={ds.reminderCheckContainer}
+                      activeOpacity={0.7}
+                      onPress={async () => {
+                        try {
+                          if (!isCompleted) {
+                            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                          } else {
+                            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          }
+                        } catch (e) {}
+                        toggleReminderMutation.mutate({ id: r.id, is_completed: !isCompleted });
+                      }}
+                    >
+                      <View style={[ds.reminderCheck, isCompleted && ds.reminderCheckActive]}>
+                        {isCompleted && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
+                      </View>
+                    </TouchableOpacity>
+                    
                     <View style={[ds.reminderBar, { backgroundColor: getReminderColor(category) }]} />
                     <View style={ds.reminderInfo}>
                       <View style={ds.reminderHeader}>
-                        <Text style={ds.reminderTitle} numberOfLines={1}>{titleText}</Text>
+                        <Text style={[ds.reminderTitle, isCompleted && ds.reminderTitleDone]} numberOfLines={1}>{titleText}</Text>
                       </View>
                       {isMed ? (
                         <View style={{ gap: 2, marginBottom: 6 }}>
@@ -1196,5 +1282,68 @@ const styles = (theme: any, isDark: boolean) => StyleSheet.create({
   homeProjectDeadlineText: {
     fontSize: 11,
     fontWeight: '600',
+  },
+  reminderCheckContainer: {
+    marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  reminderCheck: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: theme.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  reminderCheckActive: {
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
+  },
+  reminderTitleDone: {
+    textDecorationLine: 'line-through',
+    opacity: 0.6,
+  },
+  medStatsCard: {
+    borderRadius: 24,
+    padding: 16,
+    borderWidth: 1.2,
+    marginBottom: 20,
+    ...getThemedShadow(theme, 'soft'),
+  },
+  medStatsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  medStatsTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  medStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+  },
+  medStatItem: {
+    alignItems: 'center',
+  },
+  medStatValue: {
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  medStatLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  medStatDivider: {
+    width: 1.2,
+    height: 24,
   },
 });

@@ -125,26 +125,98 @@ def verify_firebase_token(id_token: str) -> dict | None:
     
     Returns decoded token claims dict on success, None on failure.
     Claims include: uid, email, name, picture, email_verified, etc.
+    
+    Handles clock skew between client devices and server by:
+    1. First attempting standard verification with max allowed skew (60s)
+    2. If that fails due to clock skew, retrying with manual time tolerance
     """
     if not is_firebase_ready():
         logger.warning("[Firebase] Cannot verify token — SDK not initialized")
         return None
 
+    # Attempt 1: Standard verification with maximum allowed clock skew (60s)
     try:
-        from firebase_admin import auth
-        decoded = auth.verify_id_token(id_token, clock_skew_seconds=600)
+        decoded = auth.verify_id_token(id_token, clock_skew_seconds=60)
+        logger.info(f"[Firebase] Token verified successfully for: {decoded.get('email', 'unknown')}")
         return decoded
-    except firebase_admin.auth.ExpiredIdTokenError:
+    except auth.ExpiredIdTokenError:
         logger.warning("[Firebase] Token expired")
         return None
-    except firebase_admin.auth.RevokedIdTokenError:
+    except auth.RevokedIdTokenError:
         logger.warning("[Firebase] Token revoked")
         return None
-    except firebase_admin.auth.InvalidIdTokenError as e:
+    except auth.InvalidIdTokenError as e:
+        error_msg = str(e)
+        # Check if the failure is specifically due to clock skew ("used too early")
+        if "Token used too early" in error_msg:
+            logger.warning(f"[Firebase] Clock skew detected beyond 60s: {e}")
+            return _verify_with_extended_clock_tolerance(id_token)
         logger.warning(f"[Firebase] Invalid token: {e}")
         return None
     except Exception as e:
         logger.error(f"[Firebase] Token verification error: {e}")
+        return None
+
+
+def _verify_with_extended_clock_tolerance(id_token: str) -> dict | None:
+    """
+    Fallback verification for tokens with clock skew > 60 seconds.
+    
+    Uses google.auth.jwt to decode the token and manually validate
+    key claims while tolerating extended clock differences (up to 5 min).
+    """
+    import time
+
+    try:
+        from google.auth.transport import requests as google_requests
+        from google.oauth2 import id_token as google_id_token
+        import google.auth.jwt
+
+        # Decode without full verification to inspect claims
+        # This still validates the signature against Google's public keys
+        header = google.auth.jwt.decode_header(id_token)
+        
+        # Decode the payload (unverified) to inspect timing claims
+        unverified = google.auth.jwt.decode(id_token, verify=False)
+        
+        current_time = time.time()
+        iat = unverified.get("iat", 0)
+        exp = unverified.get("exp", 0)
+        
+        # Allow up to 5 minutes of clock skew for "issued at" time
+        max_clock_skew = 300  # 5 minutes
+        
+        if iat > current_time + max_clock_skew:
+            logger.warning(f"[Firebase] Token iat too far in future even with 5min tolerance: iat={iat}, now={current_time}")
+            return None
+        
+        if exp < current_time - max_clock_skew:
+            logger.warning(f"[Firebase] Token expired even with 5min tolerance: exp={exp}, now={current_time}")
+            return None
+        
+        # Validate issuer
+        project_id = unverified.get("iss", "").replace("https://securetoken.google.com/", "")
+        if not project_id:
+            logger.warning("[Firebase] Token missing valid issuer")
+            return None
+        
+        # Validate audience matches our project
+        aud = unverified.get("aud", "")
+        firebase_project = _firebase_app.project_id if _firebase_app else None
+        if firebase_project and aud != firebase_project:
+            logger.warning(f"[Firebase] Token audience mismatch: {aud} != {firebase_project}")
+            return None
+        
+        # Verify the token signature against Google's public keys
+        # by using google.oauth2.id_token.verify_firebase_token
+        request = google_requests.Request()
+        verified_claims = google_id_token.verify_firebase_token(id_token, request, audience=firebase_project, clock_skew_in_seconds=max_clock_skew)
+        
+        logger.info(f"[Firebase] Token verified with extended clock tolerance for: {verified_claims.get('email', 'unknown')}")
+        return verified_claims
+        
+    except Exception as e:
+        logger.error(f"[Firebase] Extended clock tolerance verification also failed: {e}")
         return None
 
 

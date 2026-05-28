@@ -11,6 +11,7 @@ import * as SecureStore from 'expo-secure-store';
 import { authApi } from '../api/auth';
 import { signInWithGoogle, signOutFirebase, getFirebaseIdToken } from '../utils/firebase';
 import { syncFCMToken, requestNotificationPermission } from '../utils/notifications';
+import { env } from '../config/env';
 import type { User } from '../types';
 
 const TOKEN_KEY = 'user_token';
@@ -134,22 +135,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isAuthenticating: true, error: null });
     try {
       // Step 1: Google Sign-In → Firebase Auth
+      console.log('[AuthStore] Starting Google Sign-In...');
       const firebaseUser = await signInWithGoogle();
       
       if (!firebaseUser) {
         // User cancelled
+        console.log('[AuthStore] Google Sign-In cancelled');
         set({ isAuthenticating: false });
         return false;
       }
+      console.log('[AuthStore] Firebase user:', firebaseUser.email, 'uid:', firebaseUser.uid);
 
       // Step 2: Get Firebase ID token
       const idToken = await getFirebaseIdToken();
       if (!idToken) {
         throw new Error('Failed to get Firebase ID token');
       }
+      console.log('[AuthStore] Firebase ID token obtained, length:', idToken.length);
 
       // Step 3: Sync with KnoVault backend (exchange Firebase token for KnoVault JWT)
+      console.log('[AuthStore] Sending firebase-sync to:', env.API_BASE_URL);
       const { access_token, refresh_token, user } = await authApi.firebaseSync(idToken);
+      console.log('[AuthStore] Backend sync success, user:', user.email);
 
       // Step 4: Store KnoVault tokens
       await SecureStore.setItemAsync(TOKEN_KEY, access_token);
@@ -164,21 +171,35 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         authProvider: 'google',
       });
 
-      // console.log('[AuthStore] ✅ Google Sign-In complete:', user.email);
+      console.log('[AuthStore] Google Sign-In complete:', user.email);
 
       // Sync FCM in background
       get().syncNotifications().catch(console.warn);
 
       return true;
     } catch (err: any) {
-      // console.log('[AuthStore] Google Sign-In failed:', err?.response?.data || err.message);
-      let message = 'Google Sign-In failed. Please try again.';
-      const detail = err?.response?.data?.detail;
-      if (typeof detail === 'string') {
-        message = detail;
+      const isNetworkError = err?.message === 'Network Error' || err?.code === 'ECONNABORTED';
+      console.error('[AuthStore] Google Sign-In failed:', {
+        status: err?.response?.status,
+        data: err?.response?.data,
+        message: err?.message,
+        code: err?.code,
+        isNetworkError,
+        apiUrl: env.API_BASE_URL,
+      });
+      
+      let message: string;
+      if (isNetworkError) {
+        message = `Cannot reach backend at ${env.API_BASE_URL}. Make sure backend is running and phone is on same network.`;
       } else {
-        message = err?.message || message;
+        const detail = err?.response?.data?.detail;
+        if (typeof detail === 'string') {
+          message = detail;
+        } else {
+          message = err?.message || 'Google Sign-In failed. Please try again.';
+        }
       }
+      
       set({ error: message, isAuthenticating: false });
       return false;
     }

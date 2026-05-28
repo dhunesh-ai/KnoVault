@@ -98,6 +98,7 @@ class NoteResponse(BaseModel):
     user_id: int
     created_at: datetime
     updated_at: datetime
+    is_deleted: bool = False
     checklist_items: list[ChecklistItemResponse] = []
     field_notes: list[FieldNoteResponse] = []
     voice_note: VoiceNoteResponse | None = None

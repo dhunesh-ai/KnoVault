@@ -13,7 +13,7 @@ const getLocalApiUrl = (): string => {
   const hostUri = Constants.expoConfig?.hostUri; // e.g., "192.168.1.15:8081" or "localhost:8081"
   if (hostUri) {
     const ip = hostUri.split(':')[0];
-    if (ip) {
+    if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
       return `http://${ip}:8000`;
     }
   }
@@ -23,9 +23,16 @@ const getLocalApiUrl = (): string => {
 const extra = Constants.expoConfig?.extra ?? {};
 const isDevMode = __DEV__;
 
+const resolvedApiUrl = (extra.apiBaseUrl as string) || (isDevMode ? getLocalApiUrl() : 'https://knovault-jbph.onrender.com');
+
+// Log the resolved URL on startup so we can debug connectivity issues
+console.log(`[ENV] API_BASE_URL = ${resolvedApiUrl}`);
+console.log(`[ENV] hostUri = ${Constants.expoConfig?.hostUri ?? 'undefined'}`);
+console.log(`[ENV] isDev = ${isDevMode}`);
+
 export const env = {
   /** Base URL for the FastAPI backend (no trailing slash) */
-  API_BASE_URL: (extra.apiBaseUrl as string) || (isDevMode ? getLocalApiUrl() : 'https://knovault-jbph.onrender.com'),
+  API_BASE_URL: resolvedApiUrl,
 
   /** Current environment */
   APP_ENV: (extra.appEnv as string) || (isDevMode ? 'development' : 'production'),
@@ -41,3 +48,4 @@ export const env = {
 } as const;
 
 export type Env = typeof env;
+

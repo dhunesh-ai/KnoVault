@@ -8,6 +8,16 @@ export interface Reminder {
   custom_type?: string | null;
   reminder_date: string;
   user_id: number;
+  
+  // Medication course fields
+  start_date?: string | null;
+  end_date?: string | null;
+  timing_label?: string | null;
+  dose_index?: number | null;
+  course_day?: number | null;
+  notification_id?: string | null;
+  is_completed?: boolean;
+  series_id?: string | null;
 }
 
 export const remindersApi = {
@@ -28,7 +38,7 @@ export const remindersApi = {
     return response.data;
   },
 
-  getReminders: async (params?: { type?: string; upcoming?: boolean }) => {
+  getReminders: async (params?: { type?: string; upcoming?: boolean; start_date?: string; end_date?: string }) => {
     const url = '/api/reminders';
     // console.log('[API REQUEST]', url, params);
     const response = await apiClient.get<Reminder[]>(url, { params });

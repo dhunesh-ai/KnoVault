@@ -306,14 +306,19 @@ async def firebase_sync(data: FirebaseSyncRequest, db: AsyncSession = Depends(ge
         )
 
     # Verify the Firebase token
+    token_preview = data.id_token[:30] + "..." if len(data.id_token) > 30 else data.id_token
+    print(f"[Firebase Sync] Received token, length={len(data.id_token)}, preview={token_preview}")
+    
     claims = verify_firebase_token(data.id_token)
     if claims is None:
+        print(f"[Firebase Sync] Token verification FAILED")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired Firebase token",
         )
+    print(f"[Firebase Sync] Token verified OK, email={claims.get('email')}, uid={claims.get('uid', claims.get('user_id'))}")
 
-    firebase_uid = claims.get("uid")
+    firebase_uid = claims.get("uid") or claims.get("sub") or claims.get("user_id")
     firebase_email = claims.get("email", "")
     firebase_name = claims.get("name", "")
     email_verified = claims.get("email_verified", False)

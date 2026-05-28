@@ -8,7 +8,7 @@ from routers import (
     auth_router, notes_router, goals_router, projects_router,
     reminders_router, birthdays_router, special_days_router, important_days_router,
     ai_chat_router, profile_router, backup_router, calendar_router,
-    notifications_router,
+    notifications_router, sync_router
 )
 from utils.firebase import initialize_firebase
 
@@ -67,7 +67,7 @@ app.include_router(profile_router)
 app.include_router(backup_router)
 app.include_router(calendar_router)
 app.include_router(notifications_router)
-
+app.include_router(sync_router)
 
 
 @app.get("/")

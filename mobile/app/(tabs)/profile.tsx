@@ -24,6 +24,8 @@ import { remindersApi } from '../../src/api/reminders';
 import { typography } from '../../src/theme';
 import client from '../../src/api/client';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
+import { syncWorkspace } from '../../src/services/sync';
+import { exportLocalBackup, importLocalBackup } from '../../src/services/backup';
 
 let FileSystem: any = null;
 try { FileSystem = require('expo-file-system'); } catch {}
@@ -107,6 +109,8 @@ export default function ProfileScreen() {
   const [autoBackupInterval, setAutoBackupInterval] = useState('Off'); 
   const [lastBackupTime, setLastBackupTime] = useState('Never');
   const [backupSize, setBackupSize] = useState('0 KB');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [dbSize, setDbSize] = useState('0.00 KB');
 
   // Random quote & rotating AI advice index
   const [quote, setQuote] = useState(MOTIVATIONAL_QUOTES[0]);
@@ -166,6 +170,15 @@ export default function ProfileScreen() {
     SecureStore.getItemAsync('knovault_card_radius').then(v => { if (v) setCardRadius(parseInt(v)); });
     SecureStore.getItemAsync('knovault_app_lock').then(v => { if (v) setAppLockEnabled(v === 'true'); });
     SecureStore.getItemAsync('knovault_biometrics').then(v => { if (v) setBiometricsEnabled(v === 'true'); });
+    
+    // Fetch actual DB file size
+    if (FileSystem) {
+        FileSystem.getInfoAsync(FileSystem.documentDirectory + 'SQLite/knovault.db').then((info: any) => {
+            if (info.exists) {
+                setDbSize((info.size / 1024).toFixed(2) + ' KB');
+            }
+        }).catch(() => {});
+    }
   }, []);
 
   // Back handler for modals
@@ -385,31 +398,9 @@ export default function ProfileScreen() {
     setExporting(true);
     triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
     try {
-      const allNotes = await notesApi.getNotes();
-      const goalsRes = await client.get('/api/goals');
-      const allGoals = goalsRes.data;
-      const allReminders = await remindersApi.getUpcomingReminders(100);
-
-      const backupObj = {
-        notes: allNotes,
-        goals: allGoals,
-        reminders: allReminders,
-        exported_at: new Date().toISOString(),
-        settings: {
-          theme: mode,
-          notifications: notificationsEnabled,
-        }
-      };
-
-      const json = JSON.stringify(backupObj, null, 2);
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const filename = `knovault_backup_${timestamp}.json`;
-
-      if (FileSystem && Sharing) {
-        const path = FileSystem.documentDirectory + filename;
-        await FileSystem.writeAsStringAsync(path, json);
-
-        const currentSize = `${(json.length / 1024).toFixed(1)} KB`;
+      const result = await exportLocalBackup();
+      if (result.success) {
+        const currentSize = `${((result.size || 0) / 1024).toFixed(1)} KB`;
         const currentTime = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
         setBackupSize(currentSize);
@@ -417,10 +408,9 @@ export default function ProfileScreen() {
         await SecureStore.setItemAsync(STORAGE_CACHE_KEY, currentSize);
         await SecureStore.setItemAsync(STORAGE_TIME_KEY, currentTime);
 
-        await Sharing.shareAsync(path, { mimeType: 'application/json' });
-        showToast('Workspace backup generated successfully!', 'success');
+        showToast('Secure backup generated successfully!', 'success');
       } else {
-        showToast('File System module is unavailable', 'error');
+        showToast(result.error || 'Export workspace failed', 'error');
       }
     } catch (e) {
       showToast('Export workspace failed', 'error');
@@ -431,39 +421,47 @@ export default function ProfileScreen() {
 
   // Fully Functional Import Workspace
   const importWorkspace = async () => {
-    if (!DocumentPicker || !FileSystem || importing) return;
+    if (importing) return;
     setImporting(true);
     triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
     try {
-      const result = await DocumentPicker.getDocumentAsync({ type: 'application/json' });
+      const result = await importLocalBackup();
       if (result.canceled) {
-        setImporting(false);
-        return;
+         setImporting(false);
+         return;
       }
-      const uri = result.assets?.[0]?.uri;
-      if (!uri) {
-        setImporting(false);
-        return;
+      if (result.success) {
+         qc.invalidateQueries();
+         triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
+         showToast('Workspace imported and restored!', 'success');
+      } else {
+         showToast(result.error || 'Workspace restoration failed', 'error');
       }
-      const content = await FileSystem.readAsStringAsync(uri);
-      const data = JSON.parse(content);
-
-      if (!data.notes || !Array.isArray(data.notes)) {
-        showToast('Invalid backup file structure', 'error');
-        setImporting(false);
-        return;
-      }
-
-      setImporting(false);
-      const formData = new FormData();
-      formData.append('file', { uri, name: 'backup.json', type: 'application/json' } as any);
-      await client.post('/api/backup/import', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-      qc.invalidateQueries();
-      triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-      showToast('Workspace imported and restored!', 'success');
     } catch (e) {
       showToast('Workspace restoration failed', 'error');
+    } finally {
       setImporting(false);
+    }
+  };
+
+  const manualSync = async () => {
+    if (isSyncing) return;
+    setIsSyncing(true);
+    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
+    showToast('Syncing with KnoVault Cloud...', 'info');
+    try {
+        const success = await syncWorkspace();
+        if (success) {
+            triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
+            showToast('Workspace synchronized successfully', 'success');
+            qc.invalidateQueries();
+        } else {
+            showToast('Sync completed with warnings or conflicts', 'error');
+        }
+    } catch (e) {
+        showToast('Sync failed to connect', 'error');
+    } finally {
+        setIsSyncing(false);
     }
   };
 
@@ -633,13 +631,9 @@ export default function ProfileScreen() {
     showToast('Workspace cache cleared successfully', 'success');
   };
 
-  // Force sync settings
+  // Force sync settings (now runs full DB sync)
   const handleSyncSettings = async () => {
-    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-    showToast('Syncing configurations with local storage...', 'info');
-    setTimeout(() => {
-      showToast('Settings synced successfully', 'success');
-    }, 1000);
+    await manualSync();
   };
 
   // Timeline Activity Feed (Grouped and formatted)
@@ -1245,20 +1239,20 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* ── 10. CLOUD & BACKUP CENTER (Postgres Prep) ─────────────── */}
+        {/* ── 10. CLOUD & BACKUP CENTER (Offline-First) ─────────────── */}
         <View style={dynamicStyles.section}>
           <Text style={dynamicStyles.sectionTitle}>Cloud & Backup Center</Text>
           <View style={[dynamicStyles.dataManagementCard, getThemedShadow(theme, 'soft')]}>
             
             {/* Sync status */}
             <View style={dynamicStyles.syncStatusCard}>
-              <Ionicons name="cloud-offline-outline" size={20} color={colors.text.tertiary} />
+              <Ionicons name={isSyncing ? "sync-outline" : "cloud-done-outline"} size={20} color={isSyncing ? accentColor : "#10B981"} />
               <View style={{ flex: 1, marginLeft: 10 }}>
                 <Text style={[dynamicStyles.syncTitle, { color: theme.text }]}>Neon / Postgres Sync</Text>
-                <Text style={dynamicStyles.syncDesc}>Status: Local Workspace Mode (Offline-first)</Text>
+                <Text style={dynamicStyles.syncDesc}>Status: {isSyncing ? 'Syncing in progress...' : 'Workspace Synchronized'}</Text>
               </View>
               <View style={dynamicStyles.syncBadge}>
-                <Text style={dynamicStyles.syncBadgeText}>SQLite</Text>
+                <Text style={dynamicStyles.syncBadgeText}>SQLite Mode</Text>
               </View>
             </View>
 
@@ -1284,14 +1278,14 @@ export default function ProfileScreen() {
             <View style={dynamicStyles.storageAnalyticsWrapper}>
               <View style={dynamicStyles.storageLabelRow}>
                 <Text style={dynamicStyles.storageAnalyticsLabel}>Local Storage Volume</Text>
-                <Text style={dynamicStyles.storageAnalyticsPercent}>{usedStorageStr} / {localCacheStr}</Text>
+                <Text style={dynamicStyles.storageAnalyticsPercent}>{dbSize}</Text>
               </View>
               <View style={dynamicStyles.progressBarBg}>
                 <View style={[dynamicStyles.progressBarFill, { width: `${storagePercentage}%`, backgroundColor: accentColor }]} />
               </View>
               <View style={dynamicStyles.storageDetailSubRow}>
                 <Text style={dynamicStyles.storageSubText}>Secure Vault Size: {secureNotesSize}</Text>
-                <Text style={dynamicStyles.storageSubText}>Notes Database: {usedStorageStr}</Text>
+                <Text style={dynamicStyles.storageSubText}>Raw SQLite File: {dbSize}</Text>
               </View>
             </View>
 
@@ -1305,8 +1299,8 @@ export default function ProfileScreen() {
               </TouchableOpacity>
               
               <TouchableOpacity style={dynamicStyles.quickActionBtn} onPress={exportWorkspace}>
-                <Ionicons name="cloud-download-outline" size={16} color="#10B981" />
-                <Text style={dynamicStyles.quickActionBtnText}>Backup now</Text>
+                <Ionicons name="shield-checkmark-outline" size={16} color="#10B981" />
+                <Text style={dynamicStyles.quickActionBtnText}>Secure Backup</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={dynamicStyles.quickActionBtn} onPress={importWorkspace}>
@@ -1319,9 +1313,9 @@ export default function ProfileScreen() {
                 <Text style={dynamicStyles.quickActionBtnText}>Clear Cache</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={dynamicStyles.quickActionBtn} onPress={handleSyncSettings}>
-                <Ionicons name="sync-outline" size={16} color="#F59E0B" />
-                <Text style={dynamicStyles.quickActionBtnText}>Sync Settings</Text>
+              <TouchableOpacity style={dynamicStyles.quickActionBtn} onPress={handleSyncSettings} disabled={isSyncing}>
+                {isSyncing ? <ActivityIndicator size="small" color="#F59E0B" /> : <Ionicons name="sync-outline" size={16} color="#F59E0B" />}
+                <Text style={dynamicStyles.quickActionBtnText}>{isSyncing ? "Syncing..." : "Sync Now"}</Text>
               </TouchableOpacity>
             </View>
           </View>

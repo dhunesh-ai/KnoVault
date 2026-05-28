@@ -62,7 +62,8 @@
       "./plugins/withManifestFix",
       "./plugins/withDependencyFix",
       "./plugins/withPackagingFix",
-      "./plugins/withGradlePropertiesFix"
+      "./plugins/withGradlePropertiesFix",
+      "expo-sqlite"
     ],
     "extra": {
       "router": {

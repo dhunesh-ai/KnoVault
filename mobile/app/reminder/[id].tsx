@@ -43,6 +43,19 @@ export default function ReminderDetailScreen() {
     },
   });
 
+  const toggleCompletedMutation = useMutation({
+    mutationFn: () => remindersApi.updateReminder(Number(id), { is_completed: !reminder?.is_completed }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reminders', id] });
+      queryClient.invalidateQueries({ queryKey: ['upcoming-reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
+      queryClient.invalidateQueries({ queryKey: ['reminders'] });
+    },
+    onError: () => {
+      Alert.alert('Error', 'Failed to update reminder status');
+    },
+  });
+
   const handleDelete = () => {
     Alert.alert(
       'Delete Reminder',
@@ -74,6 +87,17 @@ export default function ReminderDetailScreen() {
       </View>
     );
   }
+
+  // Status check logic
+  const getStatus = () => {
+    if (reminder.is_completed) return { text: 'Completed', color: '#10B981', bg: 'rgba(16, 185, 129, 0.15)' };
+    const dateLimit = new Date(reminder.reminder_date);
+    if (Date.now() - dateLimit.getTime() > 30 * 60 * 1000) {
+      return { text: 'Missed', color: '#EF4444', bg: 'rgba(239, 68, 68, 0.15)' };
+    }
+    return { text: 'Active', color: '#3B82F6', bg: 'rgba(59, 130, 246, 0.15)' };
+  };
+  const statusInfo = getStatus();
 
   // Parse structured description if possible
   let isMedicine = false;
@@ -118,16 +142,23 @@ export default function ReminderDetailScreen() {
       <ScrollView contentContainerStyle={ds.content} showsVerticalScrollIndicator={false}>
         <View style={[ds.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
           
-          {/* Badge */}
-          <View style={[ds.typeBadge, { backgroundColor: reminderColor + '15' }]}>
-            <Text style={[ds.typeText, { color: reminderColor }]}>
-              {isMedicine 
-                ? 'MEDICINE course 💊' 
-                : isCustom 
-                ? `${customDetails?.customIcon || '🎯'} ${customDetails?.customName || 'CUSTOM'}`.toUpperCase() 
-                : reminder.type.toUpperCase()
-              }
-            </Text>
+          {/* Badge & Status Row */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <View style={[ds.typeBadge, { backgroundColor: reminderColor + '15', marginBottom: 0 }]}>
+              <Text style={[ds.typeText, { color: reminderColor }]}>
+                {isMedicine 
+                  ? 'MEDICINE course 💊' 
+                  : isCustom 
+                  ? `${customDetails?.customIcon || '🎯'} ${customDetails?.customName || 'CUSTOM'}`.toUpperCase() 
+                  : reminder.type.toUpperCase()
+                }
+              </Text>
+            </View>
+            <View style={[ds.typeBadge, { backgroundColor: statusInfo.bg, marginBottom: 0 }]}>
+              <Text style={[ds.typeText, { color: statusInfo.color }]}>
+                {statusInfo.text.toUpperCase()}
+              </Text>
+            </View>
           </View>
 
           {/* Medicine Card View */}
@@ -145,6 +176,25 @@ export default function ReminderDetailScreen() {
                 </View>
                 <View style={[ds.badgeItem, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9' }]}>
                   <Text style={[ds.badgeText, { color: theme.text }]}>{medDetails.foodTiming}</Text>
+                </View>
+              </View>
+
+              {/* Course Progress Section */}
+              <View style={ds.progressSection}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <Text style={[ds.progressLabel, { color: theme.textSecondary }]}>Course Progress</Text>
+                  <Text style={[ds.progressValue, { color: theme.primary, fontWeight: '800' }]}>
+                    Day {reminder.course_day || medDetails.day_number || 1} of {medDetails.total_days || 5}
+                  </Text>
+                </View>
+                <View style={[ds.progressBarTrack, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#E2E8F0' }]}>
+                  <View style={[
+                    ds.progressBarFill, 
+                    { 
+                      backgroundColor: theme.primary,
+                      width: `${((reminder.course_day || medDetails.day_number || 1) / (medDetails.total_days || 5)) * 100}%` 
+                    }
+                  ]} />
                 </View>
               </View>
 
@@ -171,8 +221,10 @@ export default function ReminderDetailScreen() {
                 <View style={ds.infoRow}>
                   <Ionicons name="calendar-outline" size={20} color={theme.primary} style={ds.infoIcon} />
                   <View>
-                    <Text style={ds.infoLabel}>Duration Course</Text>
-                    <Text style={[ds.infoValue, { color: theme.text }]}>{medDetails.duration}</Text>
+                    <Text style={ds.infoLabel}>Course Period</Text>
+                    <Text style={[ds.infoValue, { color: theme.text }]}>
+                      {formatLocalDateDisplay(reminder.start_date || reminder.reminder_date)} → {formatLocalDateDisplay(reminder.end_date || reminder.reminder_date)}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -227,6 +279,22 @@ export default function ReminderDetailScreen() {
             </View>
           )}
         </View>
+
+        {/* Toggle Taken Button */}
+        <TouchableOpacity 
+          style={[ds.actionBtn, { backgroundColor: reminder.is_completed ? 'rgba(16, 185, 129, 0.1)' : theme.primary, borderColor: reminder.is_completed ? '#10B981' : theme.border, borderWidth: 1.2 }]}
+          onPress={() => toggleCompletedMutation.mutate()}
+        >
+          <Ionicons 
+            name={reminder.is_completed ? "checkmark-circle" : "ellipse-outline"} 
+            size={22} 
+            color={reminder.is_completed ? "#10B981" : "#FFFFFF"} 
+            style={{ marginRight: 10 }}
+          />
+          <Text style={[ds.actionText, { color: reminder.is_completed ? "#10B981" : "#FFFFFF", fontWeight: '700' }]}>
+            {reminder.is_completed ? "Dose Taken ✓" : "Mark as Taken"}
+          </Text>
+        </TouchableOpacity>
 
         <TouchableOpacity 
           style={ds.editBtn}
@@ -395,5 +463,40 @@ const styles = (theme: any, isDark: boolean, colors: any) => StyleSheet.create({
   backBtnText: {
     color: '#FFFFFF',
     fontWeight: '700',
+  },
+  progressSection: {
+    marginBottom: 20,
+    marginTop: 10,
+  },
+  progressLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  progressValue: {
+    fontSize: 13,
+  },
+  progressBarTrack: {
+    height: 8,
+    borderRadius: 4,
+    width: '100%',
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  actionBtn: {
+    height: 60,
+    borderRadius: 20,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    ...getThemedShadow(theme, 'medium'),
+  },
+  actionText: {
+    fontSize: 15,
   },
 });
