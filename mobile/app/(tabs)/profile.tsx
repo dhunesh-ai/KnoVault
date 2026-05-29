@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import SwipeWrapper from '../../src/components/SwipeWrapper';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   SafeAreaView, Switch, Modal, TextInput, ActivityIndicator, Platform,
-  BackHandler, TouchableWithoutFeedback, Dimensions, Linking,
+  BackHandler, TouchableWithoutFeedback, Dimensions, Linking, Alert
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,7 +26,7 @@ import { typography } from '../../src/theme';
 import client from '../../src/api/client';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
 import { syncWorkspace } from '../../src/services/sync';
-import { exportLocalBackup, importLocalBackup } from '../../src/services/backup';
+import { exportLocalBackup, importLocalBackup, exportLocalBackupAsJson, importLocalBackupFromJson } from '../../src/services/backup';
 
 let FileSystem: any = null;
 try { FileSystem = require('expo-file-system'); } catch {}
@@ -299,7 +300,12 @@ export default function ProfileScreen() {
 
   const usedStorageStr = useMemo(() => {
     const kb = (totalContentSize + 1024) / 1024;
+    if (kb > 1024) return `${(kb / 1024).toFixed(2)} MB`;
     return `${kb.toFixed(2)} KB`;
+  }, [totalContentSize]);
+
+  const isCloudLimitReached = useMemo(() => {
+    return totalContentSize >= (5 * 1024 * 1024);
   }, [totalContentSize]);
 
   const localCacheStr = useMemo(() => {
@@ -419,13 +425,13 @@ export default function ProfileScreen() {
     }
   };
 
-  // Fully Functional Import Workspace
+  // Fully Functional Import Workspace JSON
   const importWorkspace = async () => {
     if (importing) return;
     setImporting(true);
     triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
     try {
-      const result = await importLocalBackup();
+      const result = await importLocalBackupFromJson();
       if (result.canceled) {
          setImporting(false);
          return;
@@ -433,7 +439,7 @@ export default function ProfileScreen() {
       if (result.success) {
          qc.invalidateQueries();
          triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-         showToast('Workspace imported and restored!', 'success');
+         showToast('Workspace JSON imported and restored!', 'success');
       } else {
          showToast(result.error || 'Workspace restoration failed', 'error');
       }
@@ -636,6 +642,69 @@ export default function ProfileScreen() {
     await manualSync();
   };
 
+  const exportJsonData = async () => {
+    triggerHaptic();
+    showToast('Preparing JSON Export...', 'info');
+    const result = await exportLocalBackupAsJson();
+    if (result.success) {
+        showToast('Export successful', 'success');
+    } else {
+        showToast(result.error || 'Failed to export JSON', 'error');
+    }
+  };
+
+  const handleSecureBackup = async () => {
+    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
+    
+    // Execute actual backup and update times
+    const result = await exportLocalBackup();
+    if (result.success) {
+      const currentSize = `${((result.size || 0) / 1024).toFixed(1)} KB`;
+      const currentTime = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+      setBackupSize(currentSize);
+      setLastBackupTime(currentTime);
+      await SecureStore.setItemAsync(STORAGE_CACHE_KEY, currentSize);
+      await SecureStore.setItemAsync(STORAGE_TIME_KEY, currentTime);
+      
+      Alert.alert(
+        "Backup Secured Successfully",
+        `Last backup was done at ${currentTime}.\nSize: ${currentSize}`,
+        [{ text: "OK", style: "default" }]
+      );
+    } else {
+      showToast(result.error || 'Backup failed', 'error');
+    }
+  };
+
+  const handleResetLocalData = () => {
+    triggerHaptic();
+    if (!isCloudLimitReached) {
+      showToast('Cloud save progressing...', 'info');
+      return;
+    }
+    Alert.alert(
+      "Reset Local Data",
+      "Are you sure you want to delete all local tracked data? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete", 
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const { resetLocalDB } = await import('../../src/services/db');
+              await resetLocalDB();
+              showToast('Local Data Reset!', 'success');
+            } catch (e) {
+              showToast('Failed to reset', 'error');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   // Timeline Activity Feed (Grouped and formatted)
   const recentActivities = useMemo(() => {
     const list = [];
@@ -711,7 +780,8 @@ export default function ProfileScreen() {
   );
 
   return (
-    <SafeAreaView style={dynamicStyles.container}>
+    <SwipeWrapper currentTab="profile">
+      <SafeAreaView style={dynamicStyles.container}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
 
       {/* Floating Toast Notification */}
@@ -1274,14 +1344,28 @@ export default function ProfileScreen() {
               </View>
             </View>
 
-            {/* Storage Analytics Progress Bar */}
+            {/* Cloud Storage Analytics Progress Bar */}
             <View style={dynamicStyles.storageAnalyticsWrapper}>
               <View style={dynamicStyles.storageLabelRow}>
-                <Text style={dynamicStyles.storageAnalyticsLabel}>Local Storage Volume</Text>
-                <Text style={dynamicStyles.storageAnalyticsPercent}>{dbSize}</Text>
+                <Text style={dynamicStyles.storageAnalyticsLabel}>Cloud Storage Volume</Text>
+                <Text style={dynamicStyles.storageAnalyticsPercent}>5.00 MB</Text>
               </View>
               <View style={dynamicStyles.progressBarBg}>
-                <View style={[dynamicStyles.progressBarFill, { width: `${storagePercentage}%`, backgroundColor: accentColor }]} />
+                <View style={[dynamicStyles.progressBarFill, { width: `${Math.min(100, (totalContentSize / (5 * 1024 * 1024)) * 100)}%`, backgroundColor: accentColor }]} />
+              </View>
+              <View style={dynamicStyles.storageDetailSubRow}>
+                <Text style={dynamicStyles.storageSubText}>{usedStorageStr}</Text>
+              </View>
+            </View>
+
+            {/* Local Storage Analytics Progress Bar */}
+            <View style={[dynamicStyles.storageAnalyticsWrapper, { marginTop: 15 }]}>
+              <View style={dynamicStyles.storageLabelRow}>
+                <Text style={dynamicStyles.storageAnalyticsLabel}>Local Storage Volume</Text>
+                <Text style={dynamicStyles.storageAnalyticsPercent}>{isCloudLimitReached ? 'Unlimited' : 'Standby'}</Text>
+              </View>
+              <View style={dynamicStyles.progressBarBg}>
+                <View style={[dynamicStyles.progressBarFill, { width: `${isCloudLimitReached ? Math.min(100, (parseFloat(dbSize) / 50000) * 100) : 0}%`, backgroundColor: '#10B981' }]} />
               </View>
               <View style={dynamicStyles.storageDetailSubRow}>
                 <Text style={dynamicStyles.storageSubText}>Secure Vault Size: {secureNotesSize}</Text>
@@ -1293,12 +1377,12 @@ export default function ProfileScreen() {
 
             {/* Quick Action Buttons Row */}
             <View style={dynamicStyles.quickActionsGrid}>
-              <TouchableOpacity style={dynamicStyles.quickActionBtn} onPress={exportWorkspace}>
+              <TouchableOpacity style={dynamicStyles.quickActionBtn} onPress={exportJsonData}>
                 <Ionicons name="cloud-upload-outline" size={16} color={accentColor} />
                 <Text style={dynamicStyles.quickActionBtnText}>Export JSON</Text>
               </TouchableOpacity>
               
-              <TouchableOpacity style={dynamicStyles.quickActionBtn} onPress={exportWorkspace}>
+              <TouchableOpacity style={dynamicStyles.quickActionBtn} onPress={handleSecureBackup}>
                 <Ionicons name="shield-checkmark-outline" size={16} color="#10B981" />
                 <Text style={dynamicStyles.quickActionBtnText}>Secure Backup</Text>
               </TouchableOpacity>
@@ -1308,9 +1392,9 @@ export default function ProfileScreen() {
                 <Text style={dynamicStyles.quickActionBtnText}>Restore File</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={dynamicStyles.quickActionBtn} onPress={handleClearCache}>
-                <Ionicons name="trash-outline" size={16} color="#EF4444" />
-                <Text style={dynamicStyles.quickActionBtnText}>Clear Cache</Text>
+              <TouchableOpacity style={dynamicStyles.quickActionBtn} onPress={handleResetLocalData}>
+                <Ionicons name="trash-outline" size={16} color={isCloudLimitReached ? "#EF4444" : theme.textSecondary} />
+                <Text style={[dynamicStyles.quickActionBtnText, !isCloudLimitReached && { color: theme.textSecondary }]}>Reset Local Data</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={dynamicStyles.quickActionBtn} onPress={handleSyncSettings} disabled={isSyncing}>
@@ -1671,6 +1755,7 @@ export default function ProfileScreen() {
         </SafeAreaView>
       </Modal>
     </SafeAreaView>
+    </SwipeWrapper>
   );
 }
 

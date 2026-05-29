@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { 
   useAnimatedStyle, 
   withSpring, 
@@ -59,15 +59,25 @@ export const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) =>
             }
           };
 
-          const iconName = () => {
-            switch (route.name) {
-              case 'index': return isFocused ? 'home' : 'home-outline';
-              case 'notes': return isFocused ? 'document-text' : 'document-text-outline';
-              case 'goals': return isFocused ? 'rocket' : 'rocket-outline';
-              case 'ai': return isFocused ? 'sparkles' : 'sparkles-outline';
-              case 'profile': return isFocused ? 'person' : 'person-outline';
-              default: return 'help-circle';
+          const color = isFocused ? theme.primary : colors.text.tertiary;
+
+          const renderIcon = () => {
+            if (route.name === 'profile') {
+              const name = isFocused ? 'account-circle' : 'account-circle-outline';
+              // Fallback to Ionicons person-circle if MaterialCommunityIcons isn't imported, 
+              // but we'll import it above.
+              return <MaterialCommunityIcons name={name as any} size={24} color={color} />;
             }
+            
+            let name;
+            switch (route.name) {
+              case 'index': name = isFocused ? 'home' : 'home-outline'; break;
+              case 'notes': name = isFocused ? 'document-text' : 'document-text-outline'; break;
+              case 'goals': name = isFocused ? 'rocket' : 'rocket-outline'; break;
+              case 'ai': name = isFocused ? 'sparkles' : 'sparkles-outline'; break;
+              default: name = 'help-circle';
+            }
+            return <Ionicons name={name as any} size={22} color={color} />;
           };
 
           return (
@@ -77,11 +87,7 @@ export const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) =>
               style={styles.tabItem}
               activeOpacity={0.7}
             >
-              <Ionicons 
-                name={iconName() as any} 
-                size={22} 
-                color={isFocused ? theme.primary : colors.text.tertiary} 
-              />
+              {renderIcon()}
               {isFocused && (
                 <Animated.View 
                   entering={FadeIn.duration(200)}

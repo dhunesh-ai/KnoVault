@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0F0A1E"
+      "backgroundColor": "#7C4DFF"
     },
     "updates": {
       "enabled": false
@@ -32,7 +32,7 @@
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0F0A1E"
+        "backgroundColor": "#7C4DFF"
       },
       "package": "com.knovault.app",
       "googleServicesFile": "./google-services.json"

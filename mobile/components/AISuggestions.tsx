@@ -15,6 +15,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../src/hooks/useTheme';
+import { useSwipe } from '../src/components/SwipeWrapper';
 import { getThemedShadow } from '../src/components/ThemedComponents';
 import { typography } from '../src/theme';
 import type { AISuggestion } from '../src/constants/aiSuggestions';
@@ -29,6 +30,7 @@ const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function AISuggestions({ suggestions, onSelect, disabled }: AISuggestionsProps) {
   const { colors, theme } = useTheme();
+  const { setSwipeEnabled } = useSwipe();
 
   useEffect(() => {
     if (suggestions.length > 0) {
@@ -49,6 +51,10 @@ export default function AISuggestions({ suggestions, onSelect, disabled }: AISug
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        onTouchStart={() => setSwipeEnabled(false)}
+        onTouchEnd={() => setSwipeEnabled(true)}
+        onTouchCancel={() => setSwipeEnabled(true)}
+        onMomentumScrollEnd={() => setSwipeEnabled(true)}
       >
         {suggestions.map((chip, idx) => (
           <SuggestionChip

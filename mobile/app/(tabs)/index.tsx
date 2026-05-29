@@ -1,4 +1,5 @@
 import React from 'react';
+import SwipeWrapper, { useSwipe } from '../../src/components/SwipeWrapper';
 import {
   View,
   Text,
@@ -51,6 +52,7 @@ const { width } = Dimensions.get('window');
 export default function HomeScreen() {
   const { user } = useAuthStore();
   const { colors, theme, isDark, setMode } = useTheme();
+  const { setSwipeEnabled } = useSwipe();
   
   const [securityVisible, setSecurityVisible] = React.useState(false);
   const [pendingNote, setPendingNote] = React.useState<any>(null);
@@ -377,7 +379,8 @@ export default function HomeScreen() {
   const ds = styles(theme, isDark);
 
   return (
-    <SafeAreaView style={ds.container}>
+    <SwipeWrapper currentTab="index">
+      <SafeAreaView style={ds.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={ds.scrollContent}>
         
         <LinearGradient
@@ -698,6 +701,10 @@ export default function HomeScreen() {
             data={recentNotes}
             horizontal
             showsHorizontalScrollIndicator={false}
+            onTouchStart={() => setSwipeEnabled(false)}
+            onTouchEnd={() => setSwipeEnabled(true)}
+            onTouchCancel={() => setSwipeEnabled(true)}
+            onMomentumScrollEnd={() => setSwipeEnabled(true)}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => {
               const isSecure = item.is_secure || item.category === 'Secure';
@@ -931,6 +938,7 @@ export default function HomeScreen() {
         onClose={() => setNotificationsVisible(false)}
       />
     </SafeAreaView>
+    </SwipeWrapper>
   );
 }
 

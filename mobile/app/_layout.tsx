@@ -5,7 +5,7 @@
  * and route protection via redirect.
  */
 import React, { useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity, DeviceEventEmitter } from 'react-native';
 import { Slot, Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -60,34 +60,58 @@ export default function RootLayout() {
   const segments = useSegments();
   const router = useRouter();
 
-  console.log('[RootLayout] Render - isLoading:', isLoading, 'isAuthenticated:', isAuthenticated, 'user:', !!user);
+  const [isAppReady, setIsAppReady] = React.useState(false);
+  const [bootError, setBootError] = React.useState<string | null>(null);
 
   // Initialize auth and db on app start
   useEffect(() => {
-    console.log('[RootLayout] Mounting - initializing auth & db...');
-    initDB().then(() => {
-        registerBackgroundSync();
-    });
-    initialize();
+    let isMounted = true;
+    const bootstrap = async () => {
+      try {
+        console.log('[RootLayout] Mounting - initializing auth & db...');
+        
+        // Parallel initialization for speed, but caught safely
+        await Promise.all([
+          initDB().then(() => registerBackgroundSync().catch(e => console.warn('Background sync init failed', e))),
+          initialize()
+        ]);
+        
+        if (isMounted) setIsAppReady(true);
+      } catch (e: any) {
+        console.error('[RootLayout] Fatal Boot Error:', e);
+        if (isMounted) setBootError(e?.message || 'Failed to initialize app data');
+      }
+    };
+    bootstrap();
+    return () => { isMounted = false; };
   }, []);
 
   // Initialize FCM notifications
   useEffect(() => {
     console.log('[RootLayout] Setting up FCM listeners...');
-    const unsubscribeFCM = setupNotificationListeners();
-    return () => {
-      unsubscribeFCM();
-    };
+    try {
+      const unsubscribeFCM = setupNotificationListeners();
+      return () => { unsubscribeFCM(); };
+    } catch (e) {
+      console.warn('FCM listeners failed to setup', e);
+    }
+  }, []);
+
+  // Listen for local DB modifications to trigger auto-sync
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('TRIGGER_AUTO_SYNC', () => {
+      console.log('[RootLayout] Auto-sync triggered from DB mutation');
+      syncWorkspace().catch(e => console.warn('Auto-sync failed', e));
+    });
+    return () => sub.remove();
   }, []);
 
   // Handle SplashScreen and Auth redirection
   useEffect(() => {
-    if (!isLoading) {
-      console.log('[RootLayout] Auth initialized - hiding splash screen');
-      SplashScreen.hideAsync().catch(console.warn);
-    }
+    if (!isAppReady || isLoading) return;
 
-    if (isLoading) return;
+    console.log('[RootLayout] App ready - hiding splash screen');
+    SplashScreen.hideAsync().catch(console.warn);
 
     // If authenticated but user profile isn't loaded yet, wait for it
     if (isAuthenticated && !user) {
@@ -95,24 +119,46 @@ export default function RootLayout() {
       return;
     }
 
-    const isVerified = user?.is_verified ?? false;
     const inAuthGroup = segments[0] === '(auth)';
-
-    console.log('[RootLayout] Navigating - segments:', segments, 'auth:', isAuthenticated, 'verified:', isVerified);
-
+    
     if (!isAuthenticated && !inAuthGroup) {
-      // Not logged in, redirect to login
-      console.log('[RootLayout] Redirecting to login');
       setTimeout(() => router.replace('/(auth)/login'), 0);
     } else if (isAuthenticated && inAuthGroup) {
-      // Logged in, redirect to main app (tabs)
-      console.log('[RootLayout] Redirecting to tabs');
       setTimeout(() => router.replace('/(tabs)'), 0);
     }
-  }, [isLoading, isAuthenticated, user, segments]);
+  }, [isAppReady, isLoading, isAuthenticated, user, segments]);
+
+  // Handle Fatal Boot Errors
+  if (bootError) {
+    return (
+      <View style={styles.errorContainer}>
+        <ActivityIndicator size="large" color="#EF4444" style={{ marginBottom: 20 }} />
+        <Text style={styles.errorTitle}>App Initialization Failed</Text>
+        <Text style={styles.errorDesc}>{bootError}</Text>
+        <Text style={styles.errorHelp}>If this issue persists, your local database may be corrupted.</Text>
+        
+        <TouchableOpacity 
+          style={styles.resetButton}
+          onPress={async () => {
+            try {
+              const { resetLocalDB } = await import('../src/services/db');
+              await resetLocalDB();
+              setBootError(null);
+              setIsAppReady(true);
+            } catch (e) {
+              console.error(e);
+              setBootError('Reset failed. Please reinstall the app.');
+            }
+          }}
+        >
+          <Text style={styles.resetButtonText}>Reset Local Database</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   // Show loading indicator while restoring auth
-  if (isLoading) {
+  if (!isAppReady || isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#6C63FF" />
@@ -142,4 +188,40 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  errorContainer: {
+    flex: 1,
+    backgroundColor: lightColors.surface.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#EF4444',
+    marginBottom: 10,
+  },
+  errorDesc: {
+    fontSize: 14,
+    color: lightColors.text.secondary,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  errorHelp: {
+    fontSize: 12,
+    color: lightColors.text.tertiary,
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  resetButton: {
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  resetButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+  }
 });

@@ -115,3 +115,66 @@ export const importLocalBackup = async () => {
         return { success: false, error: String(error) };
     }
 };
+
+export const exportLocalBackupAsJson = async () => {
+    try {
+        const payload = await generateBackupPayload(); // raw JSON string
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const filename = `KnoVault_Export_${timestamp}.json`;
+        const path = ((FileSystem as any).documentDirectory || '') + filename;
+        
+        await FileSystem.writeAsStringAsync(path, payload);
+        
+        if (await Sharing.isAvailableAsync()) {
+            await Sharing.shareAsync(path, { mimeType: 'application/json', dialogTitle: 'Export KnoVault JSON Data' });
+            return { success: true, size: payload.length, filename };
+        }
+        return { success: false, error: 'Sharing not available' };
+    } catch (error) {
+        console.error('JSON Export failed:', error);
+        return { success: false, error: String(error) };
+    }
+};
+
+export const importLocalBackupFromJson = async () => {
+    try {
+        const result = await DocumentPicker.getDocumentAsync({ type: 'application/json' });
+        if (result.canceled) return { success: false, canceled: true };
+        
+        const uri = result.assets?.[0]?.uri;
+        if (!uri) return { success: false, error: 'No file selected' };
+        
+        const fileString = await FileSystem.readAsStringAsync(uri);
+        const data = JSON.parse(fileString);
+        
+        if (!data.version || !data.notes) {
+            return { success: false, error: 'Invalid backup JSON file format' };
+        }
+        
+        // Restore process (Clear and rebuild)
+        await clearDB();
+        
+        // Push directly to local DB via localInsert to trigger syncQueue
+        for (const note of data.notes) {
+            delete note.id; // Let SQLite auto-increment
+            await localInsert('Notes', note);
+        }
+        for (const goal of data.goals) {
+            delete goal.id;
+            await localInsert('Goals', goal);
+        }
+        for (const rem of data.reminders) {
+            delete rem.id;
+            await localInsert('Reminders', rem);
+        }
+        for (const iday of data.important_days) {
+            delete iday.id;
+            await localInsert('ImportantDays', iday);
+        }
+        
+        return { success: true };
+    } catch (error) {
+        console.error('JSON Import failed:', error);
+        return { success: false, error: String(error) };
+    }
+};

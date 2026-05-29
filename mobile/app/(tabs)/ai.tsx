@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import SwipeWrapper from '../../src/components/SwipeWrapper';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   KeyboardAvoidingView, Platform, FlatList, ActivityIndicator,
@@ -280,7 +281,8 @@ function AIScreen() {
   }
 
   return (
-    <View style={ds.container}>
+    <SwipeWrapper currentTab="ai">
+      <View style={ds.container}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
 
       {/* ── Header ────────────────────────────────────────────────── */}
@@ -442,6 +444,7 @@ function AIScreen() {
         </View>
       </KeyboardAvoidingView>
     </View>
+    </SwipeWrapper>
   );
 }
 

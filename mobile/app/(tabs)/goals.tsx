@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SwipeWrapper from '../../src/components/SwipeWrapper';
 import {
   View,
   Text,
@@ -350,7 +351,8 @@ export default function GoalsScreen() {
   const activeProjectsCount = projects?.filter(p => !p.completed).length || 0;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SwipeWrapper currentTab="goals">
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -729,6 +731,7 @@ export default function GoalsScreen() {
         </View>
       </Modal>
     </SafeAreaView>
+    </SwipeWrapper>
   );
 }
 

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import SwipeWrapper, { useSwipe } from '../../src/components/SwipeWrapper';
 import {
   View,
   Text,
@@ -41,6 +42,7 @@ const CATEGORIES = [
 export default function NotesScreen() {
   const router = useRouter();
   const { colors, theme, isDark } = useTheme();
+  const { setSwipeEnabled } = useSwipe();
   const [securityVisible, setSecurityVisible] = useState(false);
   const [pendingNote, setPendingNote] = useState<any>(null);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -182,7 +184,8 @@ export default function NotesScreen() {
   }, [notes, selectedCategory, searchQuery, showFavoritesOnly]);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SwipeWrapper currentTab="notes">
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* ── Search Bar & AI Button ─────────────────────────────────────── */}
       <View style={styles.header}>
         <View style={styles.searchRow}>
@@ -228,6 +231,10 @@ export default function NotesScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categoriesScroll}
+          onTouchStart={() => setSwipeEnabled(false)}
+          onTouchEnd={() => setSwipeEnabled(true)}
+          onTouchCancel={() => setSwipeEnabled(true)}
+          onMomentumScrollEnd={() => setSwipeEnabled(true)}
         >
           {/* Favorites filter chip */}
           <TouchableOpacity
@@ -378,6 +385,7 @@ export default function NotesScreen() {
         </TouchableOpacity>
       </View>
     </SafeAreaView>
+    </SwipeWrapper>
   );
 }
 

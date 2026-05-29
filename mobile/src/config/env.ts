@@ -20,15 +20,19 @@ const getLocalApiUrl = (): string => {
   return 'http://10.0.2.2:8000'; // Fallback for standard Android Emulator
 };
 
+import { buildConfig } from './buildConfig';
+
 const extra = Constants.expoConfig?.extra ?? {};
 const isDevMode = __DEV__;
 
-const resolvedApiUrl = (extra.apiBaseUrl as string) || (isDevMode ? getLocalApiUrl() : 'https://knovault-jbph.onrender.com');
+const resolvedApiUrl = buildConfig.API_URL_OVERRIDE || (extra.apiBaseUrl as string) || (isDevMode ? getLocalApiUrl() : 'https://knovault-jbph.onrender.com');
+
+import { logger } from '../utils/logger';
 
 // Log the resolved URL on startup so we can debug connectivity issues
-console.log(`[ENV] API_BASE_URL = ${resolvedApiUrl}`);
-console.log(`[ENV] hostUri = ${Constants.expoConfig?.hostUri ?? 'undefined'}`);
-console.log(`[ENV] isDev = ${isDevMode}`);
+logger.log(`[ENV] API_BASE_URL = ${resolvedApiUrl}`);
+logger.log(`[ENV] hostUri = ${Constants.expoConfig?.hostUri ?? 'undefined'}`);
+logger.log(`[ENV] isDev = ${isDevMode}`);
 
 export const env = {
   /** Base URL for the FastAPI backend (no trailing slash) */

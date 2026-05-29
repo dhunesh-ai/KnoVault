@@ -1,4 +1,6 @@
 import * as SQLite from 'expo-sqlite';
+import { DeviceEventEmitter } from 'react-native';
+import { logger } from '../utils/logger';
 
 export const getDB = () => {
   return SQLite.openDatabaseSync('knovault.db');
@@ -116,7 +118,7 @@ export const initDB = async () => {
     await db.runAsync("INSERT INTO SyncMetadata (last_sync) VALUES ('1970-01-01T00:00:00Z')");
   }
 
-  console.log('Local Database Initialized');
+  logger.info('Local Database Initialized');
 };
 
 export const clearDB = async () => {
@@ -129,6 +131,20 @@ export const clearDB = async () => {
         DELETE FROM SyncQueue;
         UPDATE SyncMetadata SET last_sync = '1970-01-01T00:00:00Z';
     `);
+};
+
+export const resetLocalDB = async () => {
+    const db = getDB();
+    logger.warn('Dropping all tables to reset database...');
+    await db.execAsync(`
+        DROP TABLE IF EXISTS Notes;
+        DROP TABLE IF EXISTS Goals;
+        DROP TABLE IF EXISTS Reminders;
+        DROP TABLE IF EXISTS ImportantDays;
+        DROP TABLE IF EXISTS SyncQueue;
+        DROP TABLE IF EXISTS SyncMetadata;
+    `);
+    await initDB();
 };
 
 export const generateTempId = () => {
@@ -155,6 +171,10 @@ export const localInsert = async (table: string, data: any) => {
   const result = await db.runAsync(query, values as any[]);
   
   await queueSyncAction('INSERT', table, result.lastInsertRowId, tempId);
+  
+  // Trigger Auto-Sync in the background safely
+  setTimeout(() => DeviceEventEmitter.emit('TRIGGER_AUTO_SYNC'), 1500);
+  
   return { id: result.lastInsertRowId, tempId };
 };
 
@@ -170,6 +190,9 @@ export const localUpdate = async (table: string, id: number, data: any) => {
   await db.runAsync(query, [...values, id] as any[]);
   
   await queueSyncAction('UPDATE', table, id);
+
+  // Trigger Auto-Sync in the background safely
+  setTimeout(() => DeviceEventEmitter.emit('TRIGGER_AUTO_SYNC'), 1500);
 };
 
 export const localDelete = async (table: string, id: number) => {
@@ -180,6 +203,9 @@ export const localDelete = async (table: string, id: number) => {
   await db.runAsync(`UPDATE ${table} SET is_deleted = 1, updated_at = ? WHERE id = ?`, [now, id]);
   
   await queueSyncAction('DELETE', table, id);
+
+  // Trigger Auto-Sync in the background safely
+  setTimeout(() => DeviceEventEmitter.emit('TRIGGER_AUTO_SYNC'), 1500);
 };
 
 export const getSyncQueue = async () => {
