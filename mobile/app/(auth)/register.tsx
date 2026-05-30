@@ -146,7 +146,7 @@ export default function RegisterScreen() {
             </View>
             <Text style={ds.headerTitle}>Create Account</Text>
             <Text style={ds.headerSubtitle}>
-              Join Kogniva and boost your productivity
+              Join KnoVault and boost your productivity
             </Text>
           </View>
         </LinearGradient>

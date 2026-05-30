@@ -114,7 +114,7 @@ export default function LoginScreen() {
               <Ionicons name="flash" size={32} color="#FFFFFF" />
             </View>
           </Animated.View>
-          <Text style={ds.heroTitle}>Kogniva</Text>
+          <Text style={ds.heroTitle}>KnoVault</Text>
           <Text style={ds.heroSubtitle}>Your intelligent productivity hub</Text>
         </LinearGradient>
 

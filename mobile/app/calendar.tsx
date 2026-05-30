@@ -13,7 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
+import { getFadeIn, getFadeInDown } from '../src/utils/animations';
 import { useTheme } from '../src/hooks/useTheme';
 import { typography, spacing, borderRadius } from '../src/theme';
 import { calendarApi } from '../src/api/calendar';
@@ -239,7 +240,7 @@ export default function CalendarScreen() {
         }
       >
         {/* Calendar Card */}
-        <Animated.View entering={FadeInDown} style={[ds.calendarCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        <Animated.View entering={getFadeInDown()} style={[ds.calendarCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <View style={ds.monthNav}>
             <Text style={[ds.monthLabel, { color: theme.text }]}>
               {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
@@ -328,7 +329,7 @@ export default function CalendarScreen() {
           {isLoading ? (
             <ActivityIndicator size="large" color={theme.primary} style={{ marginTop: 40 }} />
           ) : selectedEvents.length === 0 ? (
-            <Animated.View entering={FadeIn} style={ds.emptyState}>
+            <Animated.View entering={getFadeIn()} style={ds.emptyState}>
               <View style={[ds.emptyIconContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
                 <Ionicons name="calendar-outline" size={42} color={theme.textSecondary} />
               </View>

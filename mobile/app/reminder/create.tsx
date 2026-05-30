@@ -16,12 +16,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
-import Animated, {
+import Animated, { 
   useAnimatedStyle,
   withSpring,
+  useSharedValue,
   withTiming,
-  FadeInDown,
+  withSequence,
+  Easing
 } from 'react-native-reanimated';
+import { getFadeInDown } from '../../src/utils/animations';
 import { remindersApi } from '../../src/api/reminders';
 import { importantDaysApi } from '../../src/api/important_days';
 import { useTheme } from '../../src/hooks/useTheme';
@@ -376,7 +379,7 @@ export default function CreateReminderScreen() {
 
         {/* NORMAL REMINDER FORM */}
         {type !== 'Medicine' && type !== 'Custom' && (
-          <Animated.View entering={FadeInDown.duration(200)} style={ds.formCard}>
+          <Animated.View entering={getFadeInDown(0, 200)} style={ds.formCard}>
             <Text style={ds.label}>Reminder Title</Text>
             <TextInput
               style={ds.titleInput}
@@ -402,7 +405,7 @@ export default function CreateReminderScreen() {
 
         {/* MEDICINE REMINDER FORM */}
         {type === 'Medicine' && (
-          <Animated.View entering={FadeInDown.duration(200)}>
+          <Animated.View entering={getFadeInDown(0, 200)}>
             {/* Card 1: Medicine Name & Type */}
             <View style={ds.formCard}>
               <View style={ds.fieldHeader}>
@@ -643,7 +646,7 @@ export default function CreateReminderScreen() {
 
         {/* CUSTOM CATEGORY FORM */}
         {type === 'Custom' && (
-          <Animated.View entering={FadeInDown.duration(200)} style={ds.formCard}>
+          <Animated.View entering={getFadeInDown(0, 200)} style={ds.formCard}>
             <View style={ds.fieldHeader}>
               <Ionicons name="create-outline" size={18} color={theme.primary} />
               <Text style={ds.fieldLabel}>Custom Category Details</Text>

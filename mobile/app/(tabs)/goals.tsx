@@ -26,13 +26,15 @@ import { GoalItem } from '../../src/components/GoalItem';
 import { ProjectItem } from '../../src/components/ProjectItem';
 import { ExactProgressRing } from '../../src/components/ExactProgressRing';
 import Animated, { 
-  FadeInDown, 
-  FadeInUp, 
-  FadeOut, 
   useAnimatedStyle, 
-  useSharedValue, 
-  withSpring 
+  withTiming, 
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  Easing
 } from 'react-native-reanimated';
+import { getFadeInDown, getFadeInUp } from '../../src/utils/animations';
 import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from '../../src/hooks/useTheme';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
@@ -422,7 +424,7 @@ export default function GoalsScreen() {
             // ── DAILY GOALS VIEW ──────────────────────────────
             <View>
               {/* Top Progress Card */}
-              <Animated.View entering={FadeInDown.delay(100)} style={styles.topCardContainer}>
+              <Animated.View entering={getFadeInDown(100, 400)} style={styles.topCardContainer}>
                 <LinearGradient
                   colors={colors.gradient.primary}
                   style={[styles.topCard, getThemedShadow(theme, 'medium')]}
@@ -519,7 +521,7 @@ export default function GoalsScreen() {
             // ── PROJECTS VIEW ─────────────────────────────────
             <View>
               {/* Projects Overview Card */}
-              <Animated.View entering={FadeInDown.delay(100)} style={styles.topCardContainer}>
+              <Animated.View entering={getFadeInDown(100, 400)} style={styles.topCardContainer}>
                 <LinearGradient
                   colors={isDark ? ['#1e1b4b', '#311042'] : ['#8B5CF6', '#C084FC']}
                   style={[styles.topCard, getThemedShadow(theme, 'medium')]}
@@ -569,7 +571,7 @@ export default function GoalsScreen() {
                   </TouchableOpacity>
                 ) : (
                   <Animated.View
-                    entering={FadeInUp.duration(200)}
+                    entering={getFadeInUp(0, 200)}
                     style={[
                       styles.projectFormContainer,
                       { backgroundColor: theme.card, borderColor: theme.border, ...getThemedShadow(theme, 'medium') },
@@ -710,7 +712,7 @@ export default function GoalsScreen() {
       >
         <View style={styles.modalOverlay}>
           <Animated.View
-            entering={FadeInDown.delay(100)}
+            entering={getFadeInDown(100, 400)}
             style={[
               styles.modalCard,
               { backgroundColor: theme.card, borderColor: theme.border, ...getThemedShadow(theme, 'medium') },

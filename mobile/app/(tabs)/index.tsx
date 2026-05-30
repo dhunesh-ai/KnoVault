@@ -27,7 +27,6 @@ import { importantDaysApi } from '../../src/api/important_days';
 import { calculateDaysRemaining, sortImportantDaysByUpcoming } from '../../src/utils/important_day';
 import { getReminderTitle, getReminderSubtitle, getReminderCategory, getMedicineSummary, formatMedicineSubtitle } from '../../src/utils';
 import Animated, { 
-  FadeInDown, 
   useSharedValue, 
   useAnimatedStyle, 
   withRepeat, 
@@ -35,6 +34,7 @@ import Animated, {
   withTiming,
   withSpring,
 } from 'react-native-reanimated';
+import { getFadeInDown } from '../../src/utils/animations';
 import { typography } from '../../src/theme';
 import { ExactProgressRing } from '../../src/components/ExactProgressRing';
 import { FeatureCard } from '../../src/components/FeatureCard';
@@ -396,7 +396,7 @@ export default function HomeScreen() {
         </LinearGradient>
 
         <View style={ds.content}>
-          <Animated.View entering={FadeInDown.delay(200)} style={ds.quickGrid}>
+          <Animated.View entering={getFadeInDown(200, 400)} style={ds.quickGrid}>
             <View style={ds.gridRow}>
               {renderWidget(
                 'Notes',
@@ -485,7 +485,7 @@ export default function HomeScreen() {
           {isLoadingTodayImportantDays ? (
             <View style={ds.loadingContainer}><ActivityIndicator color="#F59E0B" /></View>
           ) : todayImportantDays && todayImportantDays.length > 0 ? (
-            <Animated.View entering={FadeInDown.delay(400)}>
+            <Animated.View entering={getFadeInDown(400, 400)}>
               <SectionHeader title="✨ Today's Special Days" actionLabel="View All" onAction={() => router.push('/special_days')} />
               {todayImportantDays.map((b) => {
                 const getIconForType = (type: string) => {
@@ -693,7 +693,7 @@ export default function HomeScreen() {
 
           {/* Medicine Stats Card */}
           {!isLoadingReminders && totalMedCount > 0 && (
-            <Animated.View entering={FadeInDown.delay(500)} style={[ds.medStatsCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            <Animated.View entering={getFadeInDown(500, 400)} style={[ds.medStatsCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
               <View style={ds.medStatsHeader}>
                 <Ionicons name="medical-outline" size={20} color="#10B981" />
                 <Text style={[ds.medStatsTitle, { color: theme.text }]}>Today's Medicines</Text>
@@ -723,7 +723,7 @@ export default function HomeScreen() {
           {isLoadingReminders ? (
             <View style={ds.loadingContainer}><ActivityIndicator color={theme.primary} /></View>
           ) : reminders && reminders.length > 0 ? (
-            <Animated.View entering={FadeInDown.delay(600)}>
+            <Animated.View entering={getFadeInDown(600, 400)}>
               {reminders.slice(0, 5).map((r) => {
                 const category = getReminderCategory(r);
                 const titleText = getReminderTitle(r);

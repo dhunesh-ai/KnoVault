@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#7C4DFF"
+      "backgroundColor": "#EAF6FF"
     },
     "updates": {
       "enabled": false
@@ -31,15 +31,15 @@
         "android.permission.RECEIVE_BOOT_COMPLETED"
       ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#7C4DFF"
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#EAF6FF"
       },
       "package": "com.knovault.app",
       "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icon.png"
     },
     "plugins": [
       "expo-router",

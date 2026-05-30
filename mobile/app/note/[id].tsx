@@ -12,8 +12,8 @@ import {
   Pressable,
   Linking,
   Modal,
+  TouchableOpacity,
 } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ScreenContainer from '../../src/components/ScreenContainer';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -28,13 +28,8 @@ import Animated, {
   withSequence,
   interpolate,
   interpolateColor,
-  FadeInDown,
-  FadeOutUp,
-  ZoomIn,
-  FadeOutDown,
-  FadeIn,
-  FadeOut,
 } from 'react-native-reanimated';
+import { getFadeIn, getFadeInDown, getFadeOut, getFadeOutUp, getZoomIn } from '../../src/utils/animations';
 import * as Haptics from 'expo-haptics';
 import * as Clipboard from 'expo-clipboard';
 import { BlurView } from 'expo-blur';
@@ -237,6 +232,7 @@ export default function NoteEditorScreen() {
   const [isSecure, setIsSecure] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isCategoryModalVisible, setCategoryModalVisible] = useState(false);
+  const [categorySearchQuery, setCategorySearchQuery] = useState('');
   
   const [checklist, setChecklist] = useState<{ id: string, text: string, done: boolean }[]>([]);
   const [fields, setFields] = useState<{ id: string, label: string, value: string }[]>([]);
@@ -818,7 +814,7 @@ export default function NoteEditorScreen() {
 
         <View style={ds.headerActions}>
           {isEditing && isExistingNote && (
-            <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(200)}>
+            <Animated.View entering={getFadeIn(0, 200)} exiting={getFadeOut(200)}>
               <TouchableOpacity 
                 onPress={handleDelete} 
                 style={[ds.deleteBtn, { backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : '#FEF2F2' }]}
@@ -866,7 +862,7 @@ export default function NoteEditorScreen() {
           </Pressable>
 
           {!isEditing ? (
-            <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(200)}>
+            <Animated.View entering={getFadeIn(0, 200)} exiting={getFadeOut(200)}>
               <Pressable
                 onPress={handleEnableEdit}
                 onPressIn={() => {
@@ -886,7 +882,7 @@ export default function NoteEditorScreen() {
               </Pressable>
             </Animated.View>
           ) : (
-            <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(200)}>
+            <Animated.View entering={getFadeIn(0, 200)} exiting={getFadeOut(200)}>
               <TouchableOpacity 
                 onPress={() => {
                   console.log('Save button pressed');
@@ -925,7 +921,7 @@ export default function NoteEditorScreen() {
               {/* Mode Badges & Metadata */}
               {isEditing ? (
                 <Animated.View 
-                  entering={FadeInDown.duration(200)}
+                  entering={getFadeInDown(0, 200)}
                   style={ds.badgeRow}
                 >
                   <View style={[ds.editModeBadge, { backgroundColor: 'rgba(124, 77, 255, 0.1)' }]}>
@@ -938,7 +934,7 @@ export default function NoteEditorScreen() {
               ) : (
                 <View style={ds.badgeRow}>
                   <Animated.View 
-                    entering={FadeInDown.duration(200)}
+                    entering={getFadeInDown(0, 200)}
                     style={[ds.readModeBadge, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}
                   >
                     <Ionicons name="eye-outline" size={12} color={theme.textSecondary} />
@@ -976,34 +972,41 @@ export default function NoteEditorScreen() {
 
               {/* Category Selector */}
               <View style={ds.categorySection}>
-                <View style={ds.sectionHeader}>
-                  <Text style={[ds.sectionTitle, { color: theme.textSecondary }]}>CATEGORY</Text>
-                  {isEditing && (
-                    <TouchableOpacity onPress={handleToggleSecure}>
-                      <Animated.View style={[ds.lockToggle, { backgroundColor: theme.card, borderColor: theme.border }, animatedLockToggleStyle]}>
-                        <Animated.View style={animatedLockStyle}>
-                          <Ionicons name={isSecure ? "lock-closed" : "lock-open-outline"} size={18} color={isSecure ? theme.primary : theme.textSecondary} />
-                        </Animated.View>
-                        <Text style={[ds.lockText, { color: theme.textSecondary }, isSecure && { color: theme.primary }]}>{isSecure ? 'Secure' : 'Public'}</Text>
-                      </Animated.View>
+                <View style={[ds.sectionHeader, { marginBottom: 0 }]}>
+                  <Text style={[ds.sectionTitle, { color: theme.textSecondary }]} numberOfLines={1}>CATEGORY</Text>
+                  
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <TouchableOpacity 
+                      style={[
+                        ds.compactCategoryChip, 
+                        { 
+                          backgroundColor: isDark ? 'rgba(124, 77, 255, 0.15)' : '#F5F3FF',
+                          borderColor: isDark ? 'rgba(124, 77, 255, 0.3)' : '#E9D5FF'
+                        }
+                      ]}
+                      onPress={() => isEditing && setCategoryModalVisible(true)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={ds.compactCategoryEmoji}>{CATEGORY_ICONS[category] || '📋'}</Text>
+                      <Text style={[ds.compactCategoryText, { color: theme.primary }]}>{category}</Text>
+                      {isEditing && <Ionicons name="chevron-down" size={14} color={theme.primary} style={{ marginLeft: 4 }} />}
                     </TouchableOpacity>
-                  )}
-                </View>
-                <TouchableOpacity 
-                  style={[ds.categorySelectorBtn, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)', borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)' }]} 
-                  onPress={() => isEditing && setCategoryModalVisible(true)}
-                  activeOpacity={0.7}
-                >
-                  <View style={ds.categorySelectorContent}>
-                    <Text style={ds.categorySelectorEmoji}>{CATEGORY_ICONS[category] || '📋'}</Text>
-                    <Text style={[ds.categorySelectorText, { color: theme.text }]}>{category}</Text>
+
+                    {isEditing && (
+                      <TouchableOpacity onPress={handleToggleSecure}>
+                        <Animated.View style={[ds.lockToggle, { backgroundColor: theme.card, borderColor: theme.border }, animatedLockToggleStyle]}>
+                          <Animated.View style={animatedLockStyle}>
+                            <Ionicons name={isSecure ? "lock-closed" : "lock-open-outline"} size={18} color={isSecure ? theme.primary : theme.textSecondary} />
+                          </Animated.View>
+                        </Animated.View>
+                      </TouchableOpacity>
+                    )}
                   </View>
-                  {isEditing && <Ionicons name="chevron-down" size={20} color={theme.textSecondary} />}
-                </TouchableOpacity>
+                </View>
               </View>
 
               {isEditing && isSecure && !hasContent() && (
-                <Animated.View entering={FadeInDown} exiting={FadeOutUp} style={[ds.helperTextContainer, { backgroundColor: isDark ? 'rgba(124,77,255,0.15)' : '#FAF5FF', borderColor: isDark ? 'rgba(124,77,255,0.3)' : '#E9D5FF' }]}>
+                <Animated.View entering={getFadeInDown()} exiting={getFadeOutUp()} style={[ds.helperTextContainer, { backgroundColor: isDark ? 'rgba(124,77,255,0.15)' : '#FAF5FF', borderColor: isDark ? 'rgba(124,77,255,0.3)' : '#E9D5FF' }]}>
                   <Ionicons name="shield-checkmark-outline" size={16} color={theme.primary} />
                   <Text style={[ds.helperText, { color: theme.primary }]}>Secure notes are encrypted and hidden from AI access.</Text>
                 </Animated.View>
@@ -1195,8 +1198,8 @@ export default function NoteEditorScreen() {
 
       {toast && (
         <Animated.View
-          entering={FadeInDown.duration(350).springify()}
-          exiting={FadeOutUp.duration(250)}
+          entering={getFadeInDown(0, 350).springify()}
+          exiting={getFadeOutUp(250)}
           style={[
             ds.toastWrapper,
             {
@@ -1219,7 +1222,7 @@ export default function NoteEditorScreen() {
               }
             ]}
           >
-            <Animated.View entering={ZoomIn.duration(400).springify()}>
+            <Animated.View entering={getZoomIn()}>
               <Ionicons
                 name={
                   toast.type === 'success'
@@ -1247,8 +1250,8 @@ export default function NoteEditorScreen() {
 
       {showHint && !isEditing && (
         <Animated.View
-          entering={FadeInDown.duration(400).springify()}
-          exiting={FadeOutDown.duration(300)}
+          entering={getFadeInDown(0, 400).springify()}
+          exiting={getFadeOut(300)}
           style={[
             ds.hintWrapper,
             {
@@ -1281,48 +1284,89 @@ export default function NoteEditorScreen() {
       <Modal
         visible={isCategoryModalVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setCategoryModalVisible(false)}
       >
-        <View style={ds.modalOverlay}>
+        <KeyboardAvoidingView 
+          style={ds.modalOverlay} 
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
           <BlurView intensity={isDark ? 80 : 90} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
           <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => setCategoryModalVisible(false)} />
-          <View style={[ds.bottomSheet, { backgroundColor: theme.background }]}>
+          
+          <Animated.View 
+            entering={getFadeInDown(0, 300).springify()}
+            style={[ds.bottomSheet, { backgroundColor: theme.background, maxHeight: '80%' }]}
+          >
             <View style={ds.bottomSheetHeader}>
               <Text style={[ds.bottomSheetTitle, { color: theme.text }]}>Select Category</Text>
               <TouchableOpacity onPress={() => setCategoryModalVisible(false)}>
-                <Ionicons name="close" size={24} color={theme.text} />
+                <Ionicons name="close-circle" size={28} color={theme.textSecondary} />
               </TouchableOpacity>
             </View>
-            <ScrollView style={ds.bottomSheetScroll} showsVerticalScrollIndicator={false}>
-              {CATEGORIES.map(cat => (
+
+            {/* Search Box */}
+            <View style={[ds.categorySearchContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <Ionicons name="search" size={18} color={theme.textSecondary} />
+              <TextInput
+                style={[ds.categorySearchInput, { color: theme.text }]}
+                placeholder="Search categories..."
+                placeholderTextColor={theme.textSecondary}
+                value={categorySearchQuery}
+                onChangeText={setCategorySearchQuery}
+                autoCapitalize="none"
+              />
+              {categorySearchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setCategorySearchQuery('')}>
+                  <Ionicons name="close" size={16} color={theme.textSecondary} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <ScrollView style={ds.bottomSheetScroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              {CATEGORIES.filter(c => c.toLowerCase().includes(categorySearchQuery.toLowerCase())).map(cat => (
                 <TouchableOpacity 
                   key={cat}
                   style={[
                     ds.bottomSheetItem, 
-                    category === cat && [ds.bottomSheetItemSelected, { backgroundColor: isDark ? 'rgba(124, 77, 255, 0.15)' : 'rgba(124, 77, 255, 0.1)' }]
+                    category === cat && [ds.bottomSheetItemSelected, { backgroundColor: isDark ? 'rgba(124, 77, 255, 0.15)' : '#F5F3FF', borderColor: theme.primary }]
                   ]}
                   onPress={() => {
+                    console.log('Category pressed:', cat);
+                    Haptics.selectionAsync();
                     handleCategoryChange(cat);
+                    console.log('Category updated:', cat);
                     setCategoryModalVisible(false);
+                    setCategorySearchQuery('');
                   }}
                 >
                   <View style={ds.bottomSheetItemContent}>
-                    <Text style={ds.bottomSheetItemEmoji}>{CATEGORY_ICONS[cat]}</Text>
+                    <View style={[ds.categoryIconCircle, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F1F5F9' }]}>
+                      <Text style={ds.bottomSheetItemEmoji}>{CATEGORY_ICONS[cat]}</Text>
+                    </View>
                     <Text style={[
                       ds.bottomSheetItemText, 
-                      { color: theme.textSecondary },
+                      { color: theme.text },
                       category === cat && [ds.bottomSheetItemTextSelected, { color: theme.primary }]
                     ]}>
                       {cat}
                     </Text>
                   </View>
-                  {category === cat && <Ionicons name="checkmark" size={20} color={theme.primary} />}
+                  {category === cat && (
+                    <Animated.View entering={getZoomIn()}>
+                      <Ionicons name="checkmark-circle" size={24} color={theme.primary} />
+                    </Animated.View>
+                  )}
                 </TouchableOpacity>
               ))}
+              {CATEGORIES.filter(c => c.toLowerCase().includes(categorySearchQuery.toLowerCase())).length === 0 && (
+                <View style={{ padding: 20, alignItems: 'center' }}>
+                  <Text style={{ color: theme.textSecondary }}>No categories found</Text>
+                </View>
+              )}
             </ScrollView>
-          </View>
-        </View>
+          </Animated.View>
+        </KeyboardAvoidingView>
       </Modal>
     </ScreenContainer>
   );
@@ -1789,25 +1833,43 @@ const styles = (theme: any, isDark: boolean, colors: any) => StyleSheet.create({
   bottomSheetItemTextSelected: {
     fontWeight: '800',
   },
-  categorySelectorBtn: {
+  compactCategoryChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 16,
-    borderWidth: 1.2,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
   },
-  categorySelectorContent: {
+  compactCategoryEmoji: {
+    fontSize: 14,
+    marginRight: 6,
+  },
+  compactCategoryText: {
+    ...typography.bodySmall,
+    fontWeight: '800',
+  },
+  categorySearchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    marginHorizontal: 20,
+    marginBottom: 15,
+    paddingHorizontal: 15,
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1,
   },
-  categorySelectorEmoji: {
-    fontSize: 18,
-  },
-  categorySelectorText: {
+  categorySearchInput: {
+    flex: 1,
+    marginLeft: 10,
     ...typography.bodyMedium,
-    fontWeight: '700',
+  },
+  categoryIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
 });

@@ -14,14 +14,17 @@ import * as SecureStore from 'expo-secure-store';
 import * as Haptics from 'expo-haptics';
 import * as LocalAuthentication from 'expo-local-authentication';
 import Animated, { 
-  FadeIn, FadeOut, ZoomIn, ZoomOut, FadeInDown, FadeInUp, FadeOutUp,
-  useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSpring
+  useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSpring, cancelAnimation
 } from 'react-native-reanimated';
+import { getFadeIn, getFadeInUp, getFadeOutUp, getFadeInDown, getFadeOut, getZoomIn, getZoomOut } from '../../src/utils/animations';
 import { LineChart } from 'react-native-chart-kit';
 import { useAuthStore } from '../../src/store/authStore';
+import { useSettingsStore } from '../../src/store/settingsStore';
 import { useTheme } from '../../src/hooks/useTheme';
 import { notesApi } from '../../src/api/notes';
 import { remindersApi } from '../../src/api/reminders';
+import { projectsApi } from '../../src/api/projects';
+import { importantDaysApi } from '../../src/api/important_days';
 import { typography } from '../../src/theme';
 import client from '../../src/api/client';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
@@ -45,20 +48,7 @@ const MOTIVATIONAL_QUOTES = [
   "Deep focus is the superpower of the 21st century."
 ];
 
-const AI_ADVICES = [
-  "Keep your daily goals bite-sized. Break down massive projects into 15-minute tasks to build daily momentum!",
-  "Prioritize your tasks using the Eisenhower Matrix. Focus first on what is both urgent and important.",
-  "Try the Pomodoro Technique: 25 minutes of deep focus followed by a 5-minute break. Repeat 4 times.",
-  "Review your notes weekly to consolidate memory. Synthesize related details into action items.",
-  "Keep your workspace minimal. Clutter in your environment often leads to clutter in your focus.",
-  "Peak focus is a muscle. Train it daily by silencing notifications for at least 90 minutes."
-];
-
 const AVATAR_EMOJIS = ['🧠', '⚡', '🚀', '💡', '📅', '🎯', '🔮', '🛡️', '💼', '🎨', '👑', '🌈'];
-
-const STORAGE_CACHE_KEY = 'knovault_backup_size';
-const STORAGE_TIME_KEY = 'knovault_backup_time';
-const STORAGE_AUTO_KEY = 'knovault_auto_backup';
 
 export default function ProfileScreen() {
   const { user, logout, fetchUser } = useAuthStore();
@@ -72,7 +62,6 @@ export default function ProfileScreen() {
   const [editModal, setEditModal] = useState(false);
   const [aboutModal, setAboutModal] = useState(false);
   const [privacyModal, setPrivacyModal] = useState(false);
-  const [supportModal, setSupportModal] = useState(false);
   const [signOutModal, setSignOutModal] = useState(false);
   const [editName, setEditName] = useState('');
   const [saving, setSaving] = useState(false);
@@ -81,24 +70,13 @@ export default function ProfileScreen() {
 
   // Personalization settings
   const [accentColor, setAccentColor] = useState('#7C4DFF');
-  const [cardRadius, setCardRadius] = useState(18); // 12, 18, 24
-  const [fontSizeMultiplier, setFontSizeMultiplier] = useState('1.0x'); // 0.9x, 1.0x, 1.1x
-  const [animationSpeed, setAnimationSpeed] = useState('Normal'); // Off, Normal, Fast
 
   // Security settings
-  const [appLockEnabled, setAppLockEnabled] = useState(false);
-  const [biometricsEnabled, setBiometricsEnabled] = useState(false);
-
-  // Feedback states
-  const [rating, setRating] = useState(0);
-  const [suggestion, setSuggestion] = useState('');
-  const [selectedFeedbackChips, setSelectedFeedbackChips] = useState<string[]>([]);
-  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
-  const [screenshotName, setScreenshotName] = useState<string | null>(null);
-
-  // Active Line Chart Tooltip Info
-  const [chartTooltip, setChartTooltip] = useState<{ day: string; value: number } | null>(null);
-
+  const { passcodeEnabled, animationsEnabled, setAnimationsEnabled, setPasscode, disablePasscode, verifyPasscode } = useSettingsStore();
+  const [passcodeModal, setPasscodeModal] = useState<{ visible: boolean, mode: 'create' | 'change' | 'verify' }>({ visible: false, mode: 'create' });
+  const [passcodeStep, setPasscodeStep] = useState(1);
+  const [passcodeInput, setPasscodeInput] = useState('');
+  
   // Custom Toast State
   const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'error' | 'info' }>({
     visible: false,
@@ -106,17 +84,11 @@ export default function ProfileScreen() {
     type: 'success',
   });
 
-  // Settings & Data management states
+  // Settings
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [autoBackupInterval, setAutoBackupInterval] = useState('Off'); 
-  const [lastBackupTime, setLastBackupTime] = useState('Never');
-  const [backupSize, setBackupSize] = useState('0 KB');
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [dbSize, setDbSize] = useState('0.00 KB');
 
-  // Random quote & rotating AI advice index
+  // Random quote
   const [quote, setQuote] = useState(MOTIVATIONAL_QUOTES[0]);
-  const [aiAdviceIndex, setAiAdviceIndex] = useState(0);
 
   // Privacy collapsible states
   const [privacyExpanded, setPrivacyExpanded] = useState<Record<string, boolean>>({
@@ -126,6 +98,7 @@ export default function ProfileScreen() {
     'own': false,
     'cloud': false,
   });
+  const [storageInfoExpanded, setStorageInfoExpanded] = useState(false);
 
   // Queries
   const { data: notes, isLoading: loadingNotes } = useQuery({ 
@@ -142,6 +115,88 @@ export default function ProfileScreen() {
     queryKey: ['upcoming-reminders'], 
     queryFn: () => remindersApi.getUpcomingReminders(20) 
   });
+  
+  const { data: projects, isLoading: loadingProjects } = useQuery({ 
+    queryKey: ['projects'], 
+    queryFn: () => projectsApi.getProjects() 
+  });
+  
+  const { data: specialDays, isLoading: loadingDays } = useQuery({ 
+    queryKey: ['special_days'], 
+    queryFn: () => importantDaysApi.getImportantDays() 
+  });
+
+  // Calculate Most Used Category
+  const mostUsedCategory = useMemo(() => {
+    if (!notes || notes.length === 0) return null;
+    const counts: Record<string, number> = {};
+    notes.forEach((n: any) => {
+      const cat = n.category || 'Uncategorized';
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+    let maxCat = '';
+    let maxCount = 0;
+    for (const [cat, count] of Object.entries(counts)) {
+      if (count > maxCount) { maxCount = count; maxCat = cat; }
+    }
+    return maxCount > 0 ? { name: maxCat, count: maxCount } : null;
+  }, [notes]);
+
+  // Calculate Active This Week
+  const activeThisWeek = useMemo(() => {
+    let count = 0;
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    const countRecent = (items: any[]) => {
+      if (!items) return 0;
+      return items.filter(item => {
+        if (!item.created_at) return false;
+        const d = new Date(item.created_at);
+        return d >= sevenDaysAgo && d <= now;
+      }).length;
+    };
+    
+    count += countRecent(notes || []);
+    count += countRecent(reminders || []);
+    count += countRecent(projects || []);
+    count += countRecent(specialDays || []);
+    
+    return count;
+  }, [notes, reminders, projects, specialDays]);
+
+  // Storage Metrics
+  const CLOUD_LIMIT_MB = 5;
+  const storageMetrics = useMemo(() => {
+    let bytes = 0;
+    try {
+      const workspaceData = { notes: notes || [], reminders: reminders || [], stats: stats || {} };
+      if (typeof Blob !== 'undefined') {
+        bytes = new Blob([JSON.stringify(workspaceData)]).size;
+      } else {
+        bytes = JSON.stringify(workspaceData).length; // fallback
+      }
+    } catch (e) {
+      bytes = 0;
+    }
+    const usedMB = parseFloat((bytes / 1024 / 1024).toFixed(2));
+    const usedKB = parseFloat((bytes / 1024).toFixed(1));
+    const usedString = usedMB >= 1 ? `${usedMB.toFixed(1)} MB` : `${usedKB} KB`;
+
+    const remainingMBVal = Math.max(0, CLOUD_LIMIT_MB - usedMB);
+    const remainingMB = remainingMBVal.toFixed(1);
+    const remainingKB = parseFloat((remainingMBVal * 1024).toFixed(1));
+    const remainingString = remainingMBVal >= 1 ? `${remainingMB} MB` : `${remainingKB} KB`;
+
+    const isCloudFull = usedMB >= CLOUD_LIMIT_MB;
+    const progress = Math.min(1, usedMB / CLOUD_LIMIT_MB);
+    
+    let color = '#10B981'; // Green
+    if (progress >= 0.9) color = '#EF4444'; // Red
+    else if (progress >= 0.7) color = '#F59E0B'; // Orange
+    
+    return { usedMB, usedString, remainingMB, remainingString, isCloudFull, progress, color };
+  }, [notes, reminders, stats]);
 
   // Haptic Feedback Helper
   const triggerHaptic = async (style = Haptics.ImpactFeedbackStyle.Light) => {
@@ -162,25 +217,8 @@ export default function ProfileScreen() {
 
   // Load custom values from local storage/SecureStore
   useEffect(() => {
-    SecureStore.getItemAsync(STORAGE_TIME_KEY).then(v => { if (v) setLastBackupTime(v); });
-    SecureStore.getItemAsync(STORAGE_CACHE_KEY).then(v => { if (v) setBackupSize(v); });
-    SecureStore.getItemAsync(STORAGE_AUTO_KEY).then(v => { if (v) setAutoBackupInterval(v); });
     SecureStore.getItemAsync('knovault_avatar_emoji').then(v => { if (v) setAvatarEmoji(v); });
     SecureStore.getItemAsync('knovault_accent_color').then(v => { if (v) setAccentColor(v); });
-    SecureStore.getItemAsync('knovault_font_scale').then(v => { if (v) setFontSizeMultiplier(v); });
-    SecureStore.getItemAsync('knovault_anim_speed').then(v => { if (v) setAnimationSpeed(v); });
-    SecureStore.getItemAsync('knovault_card_radius').then(v => { if (v) setCardRadius(parseInt(v)); });
-    SecureStore.getItemAsync('knovault_app_lock').then(v => { if (v) setAppLockEnabled(v === 'true'); });
-    SecureStore.getItemAsync('knovault_biometrics').then(v => { if (v) setBiometricsEnabled(v === 'true'); });
-    
-    // Fetch actual DB file size
-    if (FileSystem) {
-        FileSystem.getInfoAsync(FileSystem.documentDirectory + 'SQLite/knovault.db').then((info: any) => {
-            if (info.exists) {
-                setDbSize((info.size / 1024).toFixed(2) + ' KB');
-            }
-        }).catch(() => {});
-    }
   }, []);
 
   // Back handler for modals
@@ -189,14 +227,13 @@ export default function ProfileScreen() {
       if (aboutModal) { setAboutModal(false); return true; }
       if (editModal) { setEditModal(false); return true; }
       if (privacyModal) { setPrivacyModal(false); return true; }
-      if (supportModal) { setSupportModal(false); return true; }
       if (avatarModal) { setAvatarModal(false); return true; }
       if (signOutModal) { setSignOutModal(false); return true; }
       return false;
     };
     const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
     return () => subscription.remove();
-  }, [aboutModal, editModal, privacyModal, supportModal, avatarModal, signOutModal]);
+  }, [aboutModal, editModal, privacyModal, avatarModal, signOutModal]);
 
   // Randomize quote on mount
   useEffect(() => {
@@ -209,22 +246,31 @@ export default function ProfileScreen() {
   const orbTranslateY = useSharedValue(0);
 
   useEffect(() => {
-    avatarScale.value = withRepeat(
-      withTiming(1.05, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true
-    );
-    skeletonOpacity.value = withRepeat(
-      withTiming(0.8, { duration: 900, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true
-    );
-    orbTranslateY.value = withRepeat(
-      withTiming(15, { duration: 4000, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true
-    );
-  }, []);
+    if (animationsEnabled) {
+      avatarScale.value = withRepeat(
+        withTiming(1.05, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+        -1,
+        true
+      );
+      skeletonOpacity.value = withRepeat(
+        withTiming(0.8, { duration: 900, easing: Easing.inOut(Easing.ease) }),
+        -1,
+        true
+      );
+      orbTranslateY.value = withRepeat(
+        withTiming(15, { duration: 4000, easing: Easing.inOut(Easing.ease) }),
+        -1,
+        true
+      );
+    } else {
+      cancelAnimation(avatarScale);
+      cancelAnimation(skeletonOpacity);
+      cancelAnimation(orbTranslateY);
+      avatarScale.value = 1;
+      skeletonOpacity.value = 1;
+      orbTranslateY.value = 0;
+    }
+  }, [animationsEnabled]);
 
   const animatedAvatarStyle = useAnimatedStyle(() => ({
     transform: [{ scale: avatarScale.value }],
@@ -238,13 +284,8 @@ export default function ProfileScreen() {
     transform: [{ translateY: orbTranslateY.value }],
   }));
 
-  // Calculations & Values
   const displayName = user?.full_name || 'Innovator';
   const email = user?.email || 'user@knovault.com';
-  const completedGoals = stats?.completed_goals ?? 0;
-  const totalGoals = stats?.total_goals ?? 0;
-  const successRate = stats?.success_rate ?? 0;
-  const dayStreak = stats?.day_streak ?? 0;
   const totalNotes = notes?.length ?? 0;
 
   // Time-based greeting
@@ -264,114 +305,6 @@ export default function ProfileScreen() {
     }
     return 'Joined May 2026';
   }, [user?.created_at]);
-
-  // Workspace Stats Calculations
-  const productivityLevel = useMemo(() => {
-    if (completedGoals >= 15 && totalNotes >= 25) return 'Productivity Alchemist';
-    if (completedGoals >= 8 && totalNotes >= 10) return 'Deep Focus Master';
-    if (completedGoals >= 3 || totalNotes >= 5) return 'Rising Achiever';
-    return 'Productivity Initiate';
-  }, [completedGoals, totalNotes]);
-
-  const focusScoreVal = useMemo(() => {
-    const base = Math.round(successRate * 0.8 + Math.min(20, totalNotes * 0.5));
-    return Math.min(100, base);
-  }, [successRate, totalNotes]);
-
-  const focusScore = `${focusScoreVal}/100`;
-
-  const weeklyProductivityVal = useMemo(() => {
-    const base = Math.round(successRate * 0.9 + Math.min(10, dayStreak * 2));
-    return Math.min(100, base);
-  }, [successRate, dayStreak]);
-
-  const weeklyProductivity = `${weeklyProductivityVal}%`;
-
-  // Storage Analytics sizes
-  const secureNotes = useMemo(() => notes?.filter((n: any) => n.is_secure) || [], [notes]);
-  const secureNotesSize = useMemo(() => {
-    const len = secureNotes.reduce((acc: number, n: any) => acc + (n.content?.length || 0) + (n.title?.length || 0), 0);
-    return `${(len / 1024).toFixed(2)} KB`;
-  }, [secureNotes]);
-
-  const totalContentSize = useMemo(() => {
-    const len = notes?.reduce((acc: number, n: any) => acc + (n.content?.length || 0) + (n.title?.length || 0), 0) || 0;
-    return len;
-  }, [notes]);
-
-  const usedStorageStr = useMemo(() => {
-    const kb = (totalContentSize + 1024) / 1024;
-    if (kb > 1024) return `${(kb / 1024).toFixed(2)} MB`;
-    return `${kb.toFixed(2)} KB`;
-  }, [totalContentSize]);
-
-  const isCloudLimitReached = useMemo(() => {
-    return totalContentSize >= (5 * 1024 * 1024);
-  }, [totalContentSize]);
-
-  const localCacheStr = useMemo(() => {
-    const kb = (totalContentSize * 1.4 + 4096) / 1024;
-    return `${kb.toFixed(2)} KB`;
-  }, [totalContentSize]);
-
-  const storagePercentage = useMemo(() => {
-    const percent = (totalContentSize / 102400) * 100;
-    return Math.min(100, Math.max(8, percent));
-  }, [totalContentSize]);
-
-  // Graph Data generation (Weekly curved graph)
-  const last7DaysData = useMemo(() => {
-    const dataPoints = [0, 0, 0, 0, 0, 0, 0];
-    const labels = [];
-    const today = new Date();
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(today.getDate() - i);
-      labels.push(d.toLocaleDateString(undefined, { weekday: 'short' }));
-      let count = 0;
-      if (notes) {
-        notes.forEach((n: any) => {
-          if (n.created_at && new Date(n.created_at).toDateString() === d.toDateString()) {
-            count += 1;
-          }
-        });
-      }
-      dataPoints[6 - i] = Math.max(1, count + (i % 2 === 0 ? 1 : 2));
-    }
-    return { labels, dataPoints };
-  }, [notes]);
-
-  // Simulated heatmap cells (7 days x 4 weeks = 28 cells) representing note/goal activity
-  const heatmapData = useMemo(() => {
-    const cells = [];
-    const colorsList = ['#EFF6FF', '#EDE9FE', '#DDD6FE', '#C4B5FD', '#8B5CF6'];
-    if (isDark) {
-      colorsList[0] = '#1E1B4B';
-      colorsList[1] = '#312E81';
-      colorsList[2] = '#4C1D95';
-      colorsList[3] = '#6D28D9';
-      colorsList[4] = '#7C4DFF';
-    }
-    for (let i = 0; i < 28; i++) {
-      // Create pseudorandom weight based on note count & seed
-      const weight = Math.abs(Math.sin(i * 1.7 + totalNotes)) * 4.2;
-      const roundedWeight = Math.min(4, Math.floor(weight));
-      cells.push({
-        id: `cell-${i}`,
-        weight: roundedWeight,
-        color: colorsList[roundedWeight]
-      });
-    }
-    return cells;
-  }, [totalNotes, isDark]);
-
-  // AI Advice Rotating Insight
-  const refreshAiAdvice = () => {
-    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-    const nextIdx = (aiAdviceIndex + 1) % AI_ADVICES.length;
-    setAiAdviceIndex(nextIdx);
-    showToast('AI Advice refreshed', 'info');
-  };
 
   // Profile Edit
   const openEditProfile = () => { triggerHaptic(); setEditName(displayName); setEditModal(true); };
@@ -399,163 +332,8 @@ export default function ProfileScreen() {
     });
   };
 
-  // Fully Functional Backup / Export Workspace
-  const exportWorkspace = async () => {
-    if (exporting) return;
-    setExporting(true);
-    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-    try {
-      const result = await exportLocalBackup();
-      if (result.success) {
-        const currentSize = `${((result.size || 0) / 1024).toFixed(1)} KB`;
-        const currentTime = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
-        setBackupSize(currentSize);
-        setLastBackupTime(currentTime);
-        await SecureStore.setItemAsync(STORAGE_CACHE_KEY, currentSize);
-        await SecureStore.setItemAsync(STORAGE_TIME_KEY, currentTime);
 
-        showToast('Secure backup generated successfully!', 'success');
-      } else {
-        showToast(result.error || 'Export workspace failed', 'error');
-      }
-    } catch (e) {
-      showToast('Export workspace failed', 'error');
-    } finally {
-      setExporting(false);
-    }
-  };
-
-  // Fully Functional Import Workspace JSON
-  const importWorkspace = async () => {
-    if (importing) return;
-    setImporting(true);
-    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-    try {
-      const result = await importLocalBackupFromJson();
-      if (result.canceled) {
-         setImporting(false);
-         return;
-      }
-      if (result.success) {
-         qc.invalidateQueries();
-         triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-         showToast('Workspace JSON imported and restored!', 'success');
-      } else {
-         showToast(result.error || 'Workspace restoration failed', 'error');
-      }
-    } catch (e) {
-      showToast('Workspace restoration failed', 'error');
-    } finally {
-      setImporting(false);
-    }
-  };
-
-  const manualSync = async () => {
-    if (isSyncing) return;
-    setIsSyncing(true);
-    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-    showToast('Syncing with KnoVault Cloud...', 'info');
-    try {
-        const success = await syncWorkspace();
-        if (success) {
-            triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-            showToast('Workspace synchronized successfully', 'success');
-            qc.invalidateQueries();
-        } else {
-            showToast('Sync completed with warnings or conflicts', 'error');
-        }
-    } catch (e) {
-        showToast('Sync failed to connect', 'error');
-    } finally {
-        setIsSyncing(false);
-    }
-  };
-
-  // Auto Backup selection
-  const toggleAutoBackup = () => {
-    triggerHaptic();
-    const intervals = ['Daily', 'Weekly', 'Off'];
-    const nextIdx = (intervals.indexOf(autoBackupInterval) + 1) % intervals.length;
-    const val = intervals[nextIdx];
-    setAutoBackupInterval(val);
-    SecureStore.setItemAsync(STORAGE_AUTO_KEY, val);
-    showToast(`Auto Backup: ${val}`, 'info');
-  };
-
-  // Support / Linking Action (6 Support Categories)
-  const handleSupportAction = async (type: 'Bug' | 'Feature' | 'Account' | 'AI' | 'Sync' | 'Security') => {
-    triggerHaptic();
-    const platformStr = Platform.OS === 'ios' ? 'iOS' : 'Android';
-    const timestampStr = new Date().toISOString();
-    const appVersion = '1.2.5';
-    
-    let subject = '';
-    let body = '';
-    
-    if (type === 'Bug') {
-      subject = '[Bug Report] KnoVault Mobile';
-      body = `Describe the bug:\n\n\n\n---\nSystem Info:\nPlatform: ${platformStr}\nVersion: ${appVersion}\nTimestamp: ${timestampStr}\n`;
-    } else if (type === 'Feature') {
-      subject = '[Feature Request] KnoVault Mobile';
-      body = `Describe your feature proposal:\n\n\n\n---\nSystem Info:\nPlatform: ${platformStr}\nVersion: ${appVersion}\n`;
-    } else if (type === 'Account') {
-      subject = '[Account Inquiry] KnoVault Mobile';
-      body = `Details regarding your user account:\n\n\n\n---\nSystem Info:\nPlatform: ${platformStr}\nVersion: ${appVersion}\n`;
-    } else if (type === 'AI') {
-      subject = '[AI Assistant Problem] KnoVault Mobile';
-      body = `Describe the failure in Kogniva AI context/responses:\n\n\n\n---\nSystem Info:\nPlatform: ${platformStr}\nVersion: ${appVersion}\n`;
-    } else if (type === 'Sync') {
-      subject = '[Sync Problem] KnoVault Mobile';
-      body = `Describe database syncload details:\n\n\n\n---\nSystem Info:\nPlatform: ${platformStr}\nVersion: ${appVersion}\n`;
-    } else {
-      subject = '[Security Concern] KnoVault Mobile';
-      body = `Detail your security/privacy feedback:\n\n\n\n---\nSystem Info:\nPlatform: ${platformStr}\nVersion: ${appVersion}\n`;
-    }
-    
-    const mailUrl = `mailto:support@knovault.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    setSupportModal(false);
-    
-    try {
-      const supported = await Linking.canOpenURL(mailUrl);
-      if (supported) {
-        await Linking.openURL(mailUrl);
-      } else {
-        showToast('No mail client found. Email support@knovault.app', 'info');
-      }
-    } catch (e) {
-      showToast('Could not open email client', 'error');
-    }
-  };
-
-  // Feedback submit
-  const submitFeedback = () => {
-    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-    setFeedbackSubmitted(true);
-    showToast('Feedback submitted! Thank you.', 'success');
-    setTimeout(() => {
-      setFeedbackSubmitted(false);
-      setRating(0);
-      setSuggestion('');
-      setSelectedFeedbackChips([]);
-      setScreenshotName(null);
-    }, 3000);
-  };
-
-  const toggleFeedbackChip = (chip: string) => {
-    triggerHaptic();
-    if (selectedFeedbackChips.includes(chip)) {
-      setSelectedFeedbackChips(selectedFeedbackChips.filter(c => c !== chip));
-    } else {
-      setSelectedFeedbackChips([...selectedFeedbackChips, chip]);
-    }
-  };
-
-  const simulateScreenshotUpload = () => {
-    triggerHaptic();
-    showToast('Screenshot attached successfully', 'success');
-    setScreenshotName('screenshot_workspace_profile_01.png');
-  };
 
   // Change avatar emoji
   const handleSelectAvatar = async (emoji: string) => {
@@ -574,141 +352,47 @@ export default function ProfileScreen() {
     showToast('Accent color updated', 'info');
   };
 
-  // Change font size
-  const handleFontScaleChange = async () => {
-    triggerHaptic();
-    const list = ['0.9x', '1.0x', '1.1x'];
-    const idx = (list.indexOf(fontSizeMultiplier) + 1) % list.length;
-    const nextVal = list[idx];
-    setFontSizeMultiplier(nextVal);
-    await SecureStore.setItemAsync('knovault_font_scale', nextVal);
-    showToast(`Font Scale: ${nextVal}`, 'info');
-  };
-
-  // Change animation intensity
-  const handleAnimSpeedChange = async () => {
-    triggerHaptic();
-    const list = ['Off', 'Normal', 'Fast'];
-    const idx = (list.indexOf(animationSpeed) + 1) % list.length;
-    const nextVal = list[idx];
-    setAnimationSpeed(nextVal);
-    await SecureStore.setItemAsync('knovault_anim_speed', nextVal);
-    showToast(`Animations set to: ${nextVal}`, 'info');
-  };
-
-  // Change card radius
-  const handleCardRadiusChange = async () => {
-    triggerHaptic();
-    const list = [12, 18, 24];
-    const idx = (list.indexOf(cardRadius) + 1) % list.length;
-    const nextVal = list[idx];
-    setCardRadius(nextVal);
-    await SecureStore.setItemAsync('knovault_card_radius', nextVal.toString());
-    showToast(`Layout Radius: ${nextVal}px`, 'info');
-  };
-
   // App lock toggle
   const handleAppLockToggle = async (val: boolean) => {
     triggerHaptic();
-    setAppLockEnabled(val);
-    await SecureStore.setItemAsync('knovault_app_lock', val ? 'true' : 'false');
-    showToast(val ? 'App lock enabled' : 'App lock disabled', 'success');
-  };
-
-  // Biometrics toggle
-  const handleBiometricsToggle = async (val: boolean) => {
-    triggerHaptic();
     if (val) {
-      const hasHardware = await LocalAuthentication.hasHardwareAsync();
-      const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-      if (!hasHardware || !isEnrolled) {
-        showToast('Biometrics enrollment not detected', 'error');
-        setBiometricsEnabled(false);
-        return;
-      }
-    }
-    setBiometricsEnabled(val);
-    await SecureStore.setItemAsync('knovault_biometrics', val ? 'true' : 'false');
-    showToast(val ? 'Biometrics protection enabled' : 'Biometrics disabled', 'success');
-  };
-
-  // Clear cache action
-  const handleClearCache = async () => {
-    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-    showToast('Workspace cache cleared successfully', 'success');
-  };
-
-  // Force sync settings (now runs full DB sync)
-  const handleSyncSettings = async () => {
-    await manualSync();
-  };
-
-  const exportJsonData = async () => {
-    triggerHaptic();
-    showToast('Preparing JSON Export...', 'info');
-    const result = await exportLocalBackupAsJson();
-    if (result.success) {
-        showToast('Export successful', 'success');
+      setPasscodeModal({ visible: true, mode: 'create' });
+      setPasscodeStep(1);
+      setPasscodeInput('');
     } else {
-        showToast(result.error || 'Failed to export JSON', 'error');
-    }
-  };
-
-  const handleSecureBackup = async () => {
-    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-    
-    // Execute actual backup and update times
-    const result = await exportLocalBackup();
-    if (result.success) {
-      const currentSize = `${((result.size || 0) / 1024).toFixed(1)} KB`;
-      const currentTime = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-
-      setBackupSize(currentSize);
-      setLastBackupTime(currentTime);
-      await SecureStore.setItemAsync(STORAGE_CACHE_KEY, currentSize);
-      await SecureStore.setItemAsync(STORAGE_TIME_KEY, currentTime);
-      
       Alert.alert(
-        "Backup Secured Successfully",
-        `Last backup was done at ${currentTime}.\nSize: ${currentSize}`,
-        [{ text: "OK", style: "default" }]
-      );
-    } else {
-      showToast(result.error || 'Backup failed', 'error');
-    }
-  };
-
-  const handleResetLocalData = () => {
-    triggerHaptic();
-    if (!isCloudLimitReached) {
-      showToast('Cloud save progressing...', 'info');
-      return;
-    }
-    Alert.alert(
-      "Reset Local Data",
-      "Are you sure you want to delete all local tracked data? This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const { resetLocalDB } = await import('../../src/services/db');
-              await resetLocalDB();
-              showToast('Local Data Reset!', 'success');
-            } catch (e) {
-              showToast('Failed to reset', 'error');
+        'Disable Passcode',
+        'Are you sure you want to disable the app lock?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Disable', 
+            style: 'destructive',
+            onPress: async () => {
+              await disablePasscode();
+              showToast('App lock disabled', 'success');
             }
           }
-        }
-      ]
-    );
+        ]
+      );
+    }
+  };
+
+  // Animations toggle
+  const handleAnimationsToggle = async (val: boolean) => {
+    triggerHaptic();
+    await setAnimationsEnabled(val);
+    showToast(val ? 'Animation Effects Enabled' : 'Animation Effects Disabled', 'info');
+  };
+
+  const handleContactSupport = () => {
+    triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
+    Linking.openURL('mailto:thinkgood24hrs@gmail.com?subject=KnoVault Support Request');
   };
 
   // Timeline Activity Feed (Grouped and formatted)
   const recentActivities = useMemo(() => {
-    const list = [];
+    const list: any[] = [];
     if (notes) {
       notes.slice(0, 3).forEach((n: any) => {
         list.push({
@@ -721,38 +405,8 @@ export default function ProfileScreen() {
         });
       });
     }
-    if (stats && completedGoals > 0) {
-      list.push({
-        id: 'goals-complete',
-        action: `Completed ${completedGoals} daily goals`,
-        time: new Date(Date.now() - 3600000 * 3),
-        icon: 'checkmark-circle-outline',
-        color: '#10B981',
-        type: 'Goal'
-      });
-    }
-    if (reminders && reminders.length > 0) {
-      list.push({
-        id: 'reminder-added',
-        action: `Scheduled ${reminders.length} reminder task(s)`,
-        time: new Date(Date.now() - 3600000 * 6),
-        icon: 'alarm-outline',
-        color: '#3B82F6',
-        type: 'Reminder'
-      });
-    }
-    if (lastBackupTime !== 'Never') {
-      list.push({
-        id: 'backup-exp',
-        action: `Exported KnoVault backup file`,
-        time: new Date(Date.now() - 3600000 * 12),
-        icon: 'cloud-upload-outline',
-        color: '#F59E0B',
-        type: 'Backup'
-      });
-    }
     return list.sort((a, b) => b.time.getTime() - a.time.getTime()).slice(0, 5);
-  }, [notes, stats, completedGoals, reminders, lastBackupTime]);
+  }, [notes, reminders]);
 
   const getRelativeTime = (d: Date) => {
     const diffMs = Date.now() - d.getTime();
@@ -769,7 +423,7 @@ export default function ProfileScreen() {
     setPrivacyExpanded(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const dynamicStyles = styles(theme, isDark, colors, accentColor, cardRadius);
+  const dynamicStyles = styles(theme, isDark, colors, accentColor);
 
   // Loading skeleton card
   const SkeletonCard = () => (
@@ -787,7 +441,7 @@ export default function ProfileScreen() {
 
       {/* Floating Toast Notification */}
       {toast.visible && (
-        <Animated.View entering={FadeInUp.duration(300)} exiting={FadeOutUp.duration(300)} style={dynamicStyles.toast}>
+        <Animated.View entering={getFadeInUp(0, 300)} exiting={getFadeOutUp(300)} style={dynamicStyles.toast}>
           <View style={[dynamicStyles.toastContent, getThemedShadow(theme, 'medium')]}>
             <Ionicons 
               name={toast.type === 'success' ? 'checkmark-circle-outline' : toast.type === 'error' ? 'alert-circle-outline' : 'information-circle-outline'} 
@@ -803,7 +457,7 @@ export default function ProfileScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={dynamicStyles.scroll}>
         
         {/* ── 1. HERO PROFILE CARD ─────────────────────────────────── */}
-        <Animated.View entering={FadeInUp.duration(600)} style={[dynamicStyles.overviewCard, getThemedShadow(theme, 'medium')]}>
+        <Animated.View entering={getFadeInUp(0, 600)} style={[dynamicStyles.overviewCard, getThemedShadow(theme, 'medium')]}>
           
           {/* Animated Background Shapes */}
           <Animated.View style={[dynamicStyles.orbDecorRight, animatedOrbStyle]} />
@@ -829,40 +483,8 @@ export default function ProfileScreen() {
           <Text style={dynamicStyles.email}>{email}</Text>
           <Text style={dynamicStyles.joinedText}>{joinedDate}</Text>
 
-          {/* Quick Header Statistics */}
-          <View style={dynamicStyles.headerStatsRow}>
-            <View style={dynamicStyles.headerStatItem}>
-              <Text style={dynamicStyles.headerStatLabel}>RANK</Text>
-              <Text style={[dynamicStyles.headerStatVal, { color: accentColor }]}>Elite Focus</Text>
-            </View>
-            <View style={dynamicStyles.headerStatDivider} />
-            <View style={dynamicStyles.headerStatItem}>
-              <Text style={dynamicStyles.headerStatLabel}>PROGRESS</Text>
-              <Text style={dynamicStyles.headerStatVal}>{weeklyProductivity}</Text>
-            </View>
-            <View style={dynamicStyles.headerStatDivider} />
-            <View style={dynamicStyles.headerStatItem}>
-              <Text style={dynamicStyles.headerStatLabel}>FOCUS</Text>
-              <Text style={[dynamicStyles.headerStatVal, { color: '#10B981' }]}>Optimal</Text>
-            </View>
-            <View style={dynamicStyles.headerStatDivider} />
-            <View style={dynamicStyles.headerStatItem}>
-              <Text style={dynamicStyles.headerStatLabel}>AI SCORE</Text>
-              <Text style={[dynamicStyles.headerStatVal, { color: '#F59E0B' }]}>A+</Text>
-            </View>
-          </View>
 
-          <View style={dynamicStyles.badgeRow}>
-            <LinearGradient colors={[accentColor, `${accentColor}cc`]} style={dynamicStyles.levelBadge}>
-              <Ionicons name="sparkles" size={12} color="#FFF" style={{ marginRight: 4 }} />
-              <Text style={dynamicStyles.badgeText}>{productivityLevel}</Text>
-            </LinearGradient>
 
-            <View style={dynamicStyles.streakOverviewBadge}>
-              <Ionicons name="flame" size={12} color="#F59E0B" style={{ marginRight: 4 }} />
-              <Text style={dynamicStyles.streakOverviewText}>{dayStreak} Days Streak</Text>
-            </View>
-          </View>
 
           <TouchableOpacity style={dynamicStyles.editBtn} onPress={openEditProfile} activeOpacity={0.8}>
             <Text style={dynamicStyles.editBtnText}>Edit Name</Text>
@@ -874,325 +496,61 @@ export default function ProfileScreen() {
           </View>
         </Animated.View>
 
-        {/* ── 2. PRODUCTIVITY CHART & METRICS ──────────────────────── */}
-        <View style={dynamicStyles.section}>
-          <Text style={dynamicStyles.sectionTitle}>Weekly Productivity Analytics</Text>
-          <View style={[dynamicStyles.chartCard, getThemedShadow(theme, 'soft')]}>
-            
-            {/* Dynamic statistics above the chart */}
-            <View style={dynamicStyles.chartKPIsRow}>
-              <View style={dynamicStyles.chartKPICol}>
-                <Text style={dynamicStyles.chartKPILabel}>Focus Hours</Text>
-                <View style={dynamicStyles.kpiValueWrapper}>
-                  <Text style={dynamicStyles.chartKPIVal}>24.5h</Text>
-                  {/* Mini flex sparkline bar mockup */}
-                  <View style={dynamicStyles.miniSparkline}>
-                    <View style={[dynamicStyles.miniSparklineBar, { height: 10, backgroundColor: accentColor }]} />
-                    <View style={[dynamicStyles.miniSparklineBar, { height: 16, backgroundColor: accentColor }]} />
-                    <View style={[dynamicStyles.miniSparklineBar, { height: 12, backgroundColor: accentColor }]} />
-                    <View style={[dynamicStyles.miniSparklineBar, { height: 18, backgroundColor: accentColor }]} />
-                  </View>
-                </View>
-              </View>
-              <View style={dynamicStyles.chartKPICol}>
-                <Text style={dynamicStyles.chartKPILabel}>Tasks Done</Text>
-                <View style={dynamicStyles.kpiValueWrapper}>
-                  <Text style={dynamicStyles.chartKPIVal}>{completedGoals}/{totalGoals || 5}</Text>
-                  <View style={dynamicStyles.miniSparkline}>
-                    <View style={[dynamicStyles.miniSparklineBar, { height: 6, backgroundColor: '#10B981' }]} />
-                    <View style={[dynamicStyles.miniSparklineBar, { height: 12, backgroundColor: '#10B981' }]} />
-                    <View style={[dynamicStyles.miniSparklineBar, { height: 15, backgroundColor: '#10B981' }]} />
-                    <View style={[dynamicStyles.miniSparklineBar, { height: 9, backgroundColor: '#10B981' }]} />
-                  </View>
-                </View>
-              </View>
-              <View style={dynamicStyles.chartKPICol}>
-                <Text style={dynamicStyles.chartKPILabel}>Productivity Score</Text>
-                <View style={dynamicStyles.kpiValueWrapper}>
-                  <Text style={[dynamicStyles.chartKPIVal, { color: accentColor }]}>{focusScoreVal}%</Text>
-                  <View style={dynamicStyles.miniSparkline}>
-                    <View style={[dynamicStyles.miniSparklineBar, { height: 15, backgroundColor: '#3B82F6' }]} />
-                    <View style={[dynamicStyles.miniSparklineBar, { height: 9, backgroundColor: '#3B82F6' }]} />
-                    <View style={[dynamicStyles.miniSparklineBar, { height: 18, backgroundColor: '#3B82F6' }]} />
-                    <View style={[dynamicStyles.miniSparklineBar, { height: 21, backgroundColor: '#3B82F6' }]} />
-                  </View>
-                </View>
-              </View>
-            </View>
 
-            {chartTooltip && (
-              <Animated.View entering={FadeIn.duration(200)} style={dynamicStyles.chartTooltipContainer}>
-                <Text style={dynamicStyles.tooltipText}>{chartTooltip.day}: {chartTooltip.value} points logged</Text>
-              </Animated.View>
-            )}
-
-            <LineChart
-              data={{
-                labels: last7DaysData.labels,
-                datasets: [{ data: last7DaysData.dataPoints }]
-              }}
-              width={Dimensions.get('window').width - 66}
-              height={180}
-              onDataPointClick={({ value, index }) => {
-                triggerHaptic();
-                setChartTooltip({
-                  day: last7DaysData.labels[index],
-                  value: value
-                });
-              }}
-              chartConfig={{
-                backgroundColor: theme.card,
-                backgroundGradientFrom: theme.card,
-                backgroundGradientTo: isDark ? '#11102A' : '#F5F3FF',
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(124, 77, 255, ${opacity})`,
-                labelColor: (opacity = 1) => isDark ? `rgba(168, 179, 207, ${opacity})` : `rgba(100, 116, 139, ${opacity})`,
-                style: { borderRadius: cardRadius },
-                propsForDots: { r: '5', strokeWidth: '2.5', stroke: accentColor },
-                propsForBackgroundLines: { strokeDasharray: '0', stroke: isDark ? '#2D294D' : '#EDE9FE' }
-              }}
-              bezier
-              style={{ marginVertical: 8, borderRadius: cardRadius }}
-            />
-            
-            {/* Curated Summary stats below chart */}
-            <View style={dynamicStyles.chartStatsSubRow}>
-              <View style={dynamicStyles.chartStatChip}>
-                <Text style={dynamicStyles.chartStatChipLabel}>Peak Productivity: </Text>
-                <Text style={dynamicStyles.chartStatChipVal}>Wednesday</Text>
-              </View>
-              <View style={dynamicStyles.chartStatChip}>
-                <Text style={dynamicStyles.chartStatChipLabel}>Avg Focus: </Text>
-                <Text style={dynamicStyles.chartStatChipVal}>3.5h</Text>
-              </View>
-              <View style={dynamicStyles.chartStatChip}>
-                <Text style={dynamicStyles.chartStatChipLabel}>Trend: </Text>
-                <Text style={[dynamicStyles.chartStatChipVal, { color: '#10B981' }]}>+18.4%</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* ── 3. PRODUCTIVITY HEATMAP GRID (GitHub Contribution Style) ── */}
-        <View style={dynamicStyles.section}>
-          <Text style={dynamicStyles.sectionTitle}>Productivity Heatmap</Text>
-          <View style={[dynamicStyles.heatmapCard, getThemedShadow(theme, 'soft')]}>
-            <Text style={dynamicStyles.heatmapSubtitle}>Daily activity index over the past 4 weeks</Text>
-            
-            <View style={dynamicStyles.heatmapGridContainer}>
-              <View style={dynamicStyles.heatmapLabelsCol}>
-                <Text style={dynamicStyles.heatmapLabelText}>Mon</Text>
-                <Text style={dynamicStyles.heatmapLabelText}>Wed</Text>
-                <Text style={dynamicStyles.heatmapLabelText}>Fri</Text>
-              </View>
-              
-              <View style={dynamicStyles.heatmapBlocksWrapper}>
-                {heatmapData.map((cell) => (
-                  <View 
-                    key={cell.id} 
-                    style={[
-                      dynamicStyles.heatmapCell, 
-                      { backgroundColor: cell.color, borderColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' }
-                    ]} 
-                  />
-                ))}
-              </View>
-            </View>
-
-            <View style={dynamicStyles.heatmapLegend}>
-              <Text style={dynamicStyles.legendText}>Less</Text>
-              <View style={[dynamicStyles.legendCell, { backgroundColor: isDark ? '#1E1B4B' : '#EFF6FF' }]} />
-              <View style={[dynamicStyles.legendCell, { backgroundColor: isDark ? '#312E81' : '#EDE9FE' }]} />
-              <View style={[dynamicStyles.legendCell, { backgroundColor: isDark ? '#4C1D95' : '#DDD6FE' }]} />
-              <View style={[dynamicStyles.legendCell, { backgroundColor: isDark ? '#6D28D9' : '#C4B5FD' }]} />
-              <View style={[dynamicStyles.legendCell, { backgroundColor: isDark ? '#7C4DFF' : '#8B5CF6' }]} />
-              <Text style={dynamicStyles.legendText}>More</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* ── 4. WORKSPACE HEALTH SECTION ──────────────────────────── */}
-        <View style={dynamicStyles.section}>
-          <Text style={dynamicStyles.sectionTitle}>Workspace Health Center</Text>
-          <View style={dynamicStyles.intelligenceGrid}>
-            
-            {/* Cleanliness / Consistency Card */}
-            <View style={[dynamicStyles.intelligenceCard, getThemedShadow(theme, 'soft')]}>
-              <View style={dynamicStyles.intelHeader}>
-                <Ionicons name="pulse" size={18} color="#EF4444" />
-                <Text style={dynamicStyles.intelTitle}>Workspace Health & Cleanliness</Text>
-              </View>
-              <View style={dynamicStyles.healthStatRow}>
-                <Text style={dynamicStyles.healthLabel}>Cleanliness Index</Text>
-                <Text style={dynamicStyles.healthVal}>92%</Text>
-              </View>
-              <View style={dynamicStyles.healthProgressBarBg}>
-                <View style={[dynamicStyles.healthProgressBarFill, { width: '92%', backgroundColor: '#10B981' }]} />
-              </View>
-              <View style={dynamicStyles.healthBadgesRow}>
-                <View style={[dynamicStyles.healthBadge, { backgroundColor: '#10B98115' }]}>
-                  <Text style={[dynamicStyles.healthBadgeText, { color: '#10B981' }]}>Low Burnout Risk</Text>
-                </View>
-                <View style={[dynamicStyles.healthBadge, { backgroundColor: `${accentColor}15` }]}>
-                  <Text style={[dynamicStyles.healthBadgeText, { color: accentColor }]}>Focus: Consistent (+18%)</Text>
-                </View>
-              </View>
-              <Text style={dynamicStyles.intelFooter}>Cleanliness Advice: All reminders are resolved or scheduled. Perfect organization.</Text>
-            </View>
-
-            {/* Daily Momentum / Focus Score */}
-            <View style={[dynamicStyles.intelligenceCard, getThemedShadow(theme, 'soft')]}>
-              <View style={dynamicStyles.intelHeader}>
-                <Ionicons name="speedometer-outline" size={18} color="#10B981" />
-                <Text style={dynamicStyles.intelTitle}>Daily momentum & Cleanliness</Text>
-              </View>
-              <View style={dynamicStyles.healthStatRow}>
-                <Text style={dynamicStyles.healthLabel}>Daily momentum Tracker</Text>
-                <Text style={dynamicStyles.healthVal}>A+ Grade</Text>
-              </View>
-              <View style={dynamicStyles.healthProgressBarBg}>
-                <View style={[dynamicStyles.healthProgressBarFill, { width: '96%', backgroundColor: accentColor }]} />
-              </View>
-              <Text style={dynamicStyles.intelFooter}>Focus advice: Peak notes writing frequency is between 9 AM and 11 AM.</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* ── 5. SMART AI INSIGHTS CARDS ───────────────────────────── */}
-        <View style={dynamicStyles.section}>
-          <Text style={dynamicStyles.sectionTitle}>Smart AI Insights</Text>
-          <View style={dynamicStyles.intelligenceGrid}>
-            
-            {/* Daily Advice Card */}
-            <View style={[dynamicStyles.insightCard, getThemedShadow(theme, 'soft')]}>
-              <LinearGradient colors={['rgba(124, 77, 255, 0.08)', 'rgba(124, 77, 255, 0.02)']} style={dynamicStyles.insightCardBg}>
-                <View style={dynamicStyles.insightHeader}>
-                  <Ionicons name="sparkles" size={18} color={accentColor} />
-                  <Text style={dynamicStyles.insightTitle}>Daily Advice</Text>
-                </View>
-                <Text style={dynamicStyles.insightDesc}>"{AI_ADVICES[aiAdviceIndex]}"</Text>
-                <TouchableOpacity style={[dynamicStyles.regenerateBtn, { borderColor: accentColor }]} onPress={refreshAiAdvice}>
-                  <Ionicons name="refresh-outline" size={12} color={accentColor} />
-                  <Text style={[dynamicStyles.regenerateText, { color: accentColor }]}>Regenerate Advice</Text>
-                </TouchableOpacity>
-              </LinearGradient>
-            </View>
-
-            {/* Productivity Recommendation */}
-            <View style={[dynamicStyles.insightCard, getThemedShadow(theme, 'soft')]}>
-              <LinearGradient colors={['rgba(16, 185, 129, 0.08)', 'rgba(16, 185, 129, 0.02)']} style={dynamicStyles.insightCardBg}>
-                <View style={dynamicStyles.insightHeader}>
-                  <Ionicons name="rocket-outline" size={18} color="#10B981" />
-                  <Text style={dynamicStyles.insightTitle}>Productivity Recommendation</Text>
-                </View>
-                <Text style={dynamicStyles.insightDesc}>Schedule daily focus hours to avoid workspace burnout risk. Break massive tags into modular subtasks.</Text>
-              </LinearGradient>
-            </View>
-
-            {/* Burnout Detection */}
-            <View style={[dynamicStyles.insightCard, getThemedShadow(theme, 'soft')]}>
-              <LinearGradient colors={['rgba(239, 68, 68, 0.08)', 'rgba(239, 68, 68, 0.02)']} style={dynamicStyles.insightCardBg}>
-                <View style={dynamicStyles.insightHeader}>
-                  <Ionicons name="alert-circle-outline" size={18} color="#EF4444" />
-                  <Text style={dynamicStyles.insightTitle}>Burnout Detection</Text>
-                </View>
-                <Text style={dynamicStyles.insightDesc}>Focus consistency looks stable. Keep daily goal targets below 4 tasks to preserve peak mental energy.</Text>
-              </LinearGradient>
-            </View>
-          </View>
-        </View>
 
         {/* ── 6. PRODUCTIVITY INSIGHTS GRID ───────────────────────── */}
         <View style={dynamicStyles.section}>
           <Text style={dynamicStyles.sectionTitle}>Productivity metrics</Text>
-          {loadingNotes || loadingStats ? (
+          {loadingNotes || loadingStats || loadingProjects || loadingDays ? (
             <View style={dynamicStyles.statsGrid}>
+              <SkeletonCard />
+              <SkeletonCard />
               <SkeletonCard />
               <SkeletonCard />
               <SkeletonCard />
               <SkeletonCard />
             </View>
           ) : (
-            <Animated.View entering={FadeInDown.duration(600).delay(100)} style={dynamicStyles.statsGrid}>
+            <Animated.View entering={getFadeInDown(100, 600)} style={dynamicStyles.statsGrid}>
               <StatCard label="Total Notes" value={totalNotes} icon="document-text-outline" color="#8B5CF6" theme={theme} isDark={isDark} />
-              <StatCard label="Goals Completed" value={completedGoals} icon="checkbox-outline" color="#10B981" theme={theme} isDark={isDark} />
-              <StatCard label="Success Rate" value={`${Math.round(successRate)}%`} icon="trending-up-outline" color="#3B82F6" theme={theme} isDark={isDark} />
-              <StatCard label="Focus Score" value={focusScore} icon="sparkles-outline" color={accentColor} theme={theme} isDark={isDark} />
+              <StatCard label="Reminders" value={reminders?.length || 0} icon="alarm-outline" color="#F59E0B" theme={theme} isDark={isDark} />
+              <StatCard label="Projects" value={stats?.total_projects || projects?.length || 0} icon="folder-open-outline" color="#3B82F6" theme={theme} isDark={isDark} />
+              <StatCard label="Special Days" value={stats?.total_special_days || specialDays?.length || 0} icon="calendar-outline" color="#10B981" theme={theme} isDark={isDark} />
+              <StatCard 
+                label="MOST USED" 
+                value={mostUsedCategory ? mostUsedCategory.name : "No Data Yet"} 
+                subtitle={mostUsedCategory ? `${mostUsedCategory.count} Notes` : undefined}
+                icon="pricetag-outline" 
+                color="#EC4899" 
+                theme={theme} 
+                isDark={isDark} 
+                isTextValue={true}
+              />
+              <StatCard 
+                label="THIS WEEK" 
+                value={`${activeThisWeek}`} 
+                subtitle={activeThisWeek === 1 ? "1 Activity" : `${activeThisWeek} Activities`}
+                icon="pulse-outline" 
+                color="#14B8A6" 
+                theme={theme} 
+                isDark={isDark} 
+              />
             </Animated.View>
           )}
         </View>
 
-        {/* ── 7. FEEDBACK & SUGGESTIONS SYSTEM ─────────────────────── */}
-        <View style={dynamicStyles.section}>
-          <Text style={dynamicStyles.sectionTitle}>Feedback Center</Text>
-          <View style={[dynamicStyles.feedbackCard, getThemedShadow(theme, 'soft')]}>
-            <Text style={dynamicStyles.feedbackLabel}>Rate your workspace experience</Text>
-            
-            {/* Star selector */}
-            <View style={dynamicStyles.starRow}>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <TouchableOpacity key={star} onPress={() => { triggerHaptic(); setRating(star); }} activeOpacity={0.8}>
-                  <Ionicons 
-                    name={star <= rating ? "star" : "star-outline"} 
-                    size={28} 
-                    color={star <= rating ? "#F59E0B" : theme.textSecondary} 
-                    style={{ marginHorizontal: 4 }}
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
 
-            {/* Quick Feedback Chips */}
-            <Text style={dynamicStyles.feedbackSubLabel}>Quick feedback tags</Text>
-            <View style={dynamicStyles.feedbackChipsRow}>
-              {['UI Improvement', 'AI Enhancement', 'Performance', 'Sync', 'Notes', 'Reminders'].map(chip => {
-                const isSelected = selectedFeedbackChips.includes(chip);
-                return (
-                  <TouchableOpacity 
-                    key={chip} 
-                    onPress={() => toggleFeedbackChip(chip)}
-                    style={[dynamicStyles.feedbackChip, isSelected && { backgroundColor: `${accentColor}18`, borderColor: accentColor }]}
-                  >
-                    <Text style={[dynamicStyles.feedbackChipText, { color: isSelected ? accentColor : theme.textSecondary }]}>{chip}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            <Text style={dynamicStyles.feedbackSubLabel}>Detailed Suggestions</Text>
-            <TextInput
-              style={dynamicStyles.feedbackInput}
-              value={suggestion}
-              onChangeText={setSuggestion}
-              placeholder="Tell us what we can improve in this workspace..."
-              placeholderTextColor={colors.text.tertiary}
-              multiline
-              numberOfLines={3}
-            />
-
-            {/* Simulated Screenshot Attachment */}
-            <TouchableOpacity style={dynamicStyles.screenshotAttachBtn} onPress={simulateScreenshotUpload}>
-              <Ionicons name="camera-outline" size={16} color={accentColor} />
-              <Text style={[dynamicStyles.screenshotAttachText, { color: theme.text }]}>
-                {screenshotName ? `Attached: ${screenshotName}` : 'Attach Screenshot (Optional)'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[dynamicStyles.feedbackSubmitBtn, { backgroundColor: rating > 0 || suggestion.trim() ? accentColor : theme.border }]} 
-              disabled={rating === 0 && !suggestion.trim()}
-              onPress={submitFeedback}
-            >
-              <Text style={dynamicStyles.feedbackSubmitText}>Send Feedback</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
 
         {/* ── 8. PERSONALIZATION STUDIO ──────────────────────────── */}
         <View style={dynamicStyles.section}>
           <Text style={dynamicStyles.sectionTitle}>Personalization Studio</Text>
           
-          <TouchableOpacity style={dynamicStyles.menuItem} onPress={openThemePicker} activeOpacity={0.7}>
+          <TouchableOpacity style={dynamicStyles.menuItem} onPress={() => {
+            triggerHaptic();
+            const nextMode = mode === 'system' ? 'light' : mode === 'light' ? 'dark' : 'system';
+            setMode(nextMode);
+            showToast(`Theme changed to ${nextMode}`, 'info');
+          }} activeOpacity={0.7}>
             <View style={[dynamicStyles.iconBox, { backgroundColor: '#EC489915' }]}>
               <Ionicons name="color-palette-outline" size={20} color="#EC4899" />
             </View>
@@ -1220,35 +578,6 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Card Border Radius */}
-          <TouchableOpacity style={dynamicStyles.menuItem} onPress={handleCardRadiusChange} activeOpacity={0.7}>
-            <View style={[dynamicStyles.iconBox, { backgroundColor: '#10B98115' }]}>
-              <Ionicons name="square-outline" size={20} color="#10B981" />
-            </View>
-            <Text style={dynamicStyles.menuText}>Card Border Radius</Text>
-            <Text style={dynamicStyles.menuValue}>{cardRadius}px</Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
-          </TouchableOpacity>
-
-          {/* Font scale Settings */}
-          <TouchableOpacity style={dynamicStyles.menuItem} onPress={handleFontScaleChange} activeOpacity={0.7}>
-            <View style={[dynamicStyles.iconBox, { backgroundColor: '#10B98115' }]}>
-              <Ionicons name="text-outline" size={20} color="#10B981" />
-            </View>
-            <Text style={dynamicStyles.menuText}>Font Scaling</Text>
-            <Text style={dynamicStyles.menuValue}>{fontSizeMultiplier}</Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
-          </TouchableOpacity>
-
-          {/* Animation Intensity Settings */}
-          <TouchableOpacity style={dynamicStyles.menuItem} onPress={handleAnimSpeedChange} activeOpacity={0.7}>
-            <View style={[dynamicStyles.iconBox, { backgroundColor: '#3B82F615' }]}>
-              <Ionicons name="play-forward-outline" size={20} color="#3B82F6" />
-            </View>
-            <Text style={dynamicStyles.menuText}>Animation Intensity</Text>
-            <Text style={dynamicStyles.menuValue}>{animationSpeed}</Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
-          </TouchableOpacity>
 
           <View style={dynamicStyles.menuItem}>
             <View style={[dynamicStyles.iconBox, { backgroundColor: '#F59E0B15' }]}>
@@ -1258,6 +587,22 @@ export default function ProfileScreen() {
             <Switch
               value={notificationsEnabled}
               onValueChange={(val) => { triggerHaptic(); setNotificationsEnabled(val); }}
+              trackColor={{ false: theme.border, true: accentColor }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+
+          <View style={dynamicStyles.menuItem}>
+            <View style={[dynamicStyles.iconBox, { backgroundColor: '#14B8A615' }]}>
+              <Ionicons name="color-wand-outline" size={20} color="#14B8A6" />
+            </View>
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={dynamicStyles.menuText}>Animation Effects</Text>
+              <Text style={[typography.caption, { color: theme.textSecondary }]}>{animationsEnabled ? 'Enabled' : 'Disabled'}</Text>
+            </View>
+            <Switch
+              value={animationsEnabled}
+              onValueChange={handleAnimationsToggle}
               trackColor={{ false: theme.border, true: accentColor }}
               thumbColor="#FFFFFF"
             />
@@ -1272,137 +617,113 @@ export default function ProfileScreen() {
             <View style={[dynamicStyles.iconBox, { backgroundColor: '#10B98115' }]}>
               <Ionicons name="lock-closed-outline" size={20} color="#10B981" />
             </View>
-            <Text style={dynamicStyles.menuText}>App Passcode Lock</Text>
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={dynamicStyles.menuText}>App Passcode Lock</Text>
+              <Text style={[typography.caption, { color: theme.textSecondary }]}>{passcodeEnabled ? 'Enabled' : 'Disabled'}</Text>
+            </View>
             <Switch
-              value={appLockEnabled}
+              value={passcodeEnabled}
               onValueChange={handleAppLockToggle}
               trackColor={{ false: theme.border, true: accentColor }}
               thumbColor="#FFFFFF"
             />
           </View>
-
-          <View style={dynamicStyles.menuItem}>
-            <View style={[dynamicStyles.iconBox, { backgroundColor: '#7C4DFF15' }]}>
-              <Ionicons name="finger-print-outline" size={20} color="#7C4DFF" />
-            </View>
-            <Text style={dynamicStyles.menuText}>Biometric Authentication</Text>
-            <Switch
-              value={biometricsEnabled}
-              onValueChange={handleBiometricsToggle}
-              trackColor={{ false: theme.border, true: accentColor }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-
-          {/* Encryption status detail */}
-          <View style={dynamicStyles.menuItem}>
-            <View style={[dynamicStyles.iconBox, { backgroundColor: '#8B5CF615' }]}>
-              <Ionicons name="shield-checkmark-outline" size={20} color="#8B5CF6" />
-            </View>
-            <Text style={dynamicStyles.menuText}>On-Device Encryption</Text>
-            <Text style={[dynamicStyles.menuValue, { color: '#10B981' }]}>Active (AES-256)</Text>
-          </View>
-
-          {/* Active Sessions list */}
-          <View style={dynamicStyles.securityHealthBox}>
-            <Text style={dynamicStyles.securityHealthTitle}>Security Health: Excellent</Text>
-            <Text style={dynamicStyles.securityHealthDesc}>Your local sqlite3-fs volume is fully locked. Active sessions: 1 (Current device).</Text>
-          </View>
-        </View>
-
-        {/* ── 10. CLOUD & BACKUP CENTER (Offline-First) ─────────────── */}
-        <View style={dynamicStyles.section}>
-          <Text style={dynamicStyles.sectionTitle}>Cloud & Backup Center</Text>
-          <View style={[dynamicStyles.dataManagementCard, getThemedShadow(theme, 'soft')]}>
-            
-            {/* Sync status */}
-            <View style={dynamicStyles.syncStatusCard}>
-              <Ionicons name={isSyncing ? "sync-outline" : "cloud-done-outline"} size={20} color={isSyncing ? accentColor : "#10B981"} />
-              <View style={{ flex: 1, marginLeft: 10 }}>
-                <Text style={[dynamicStyles.syncTitle, { color: theme.text }]}>Neon / Postgres Sync</Text>
-                <Text style={dynamicStyles.syncDesc}>Status: {isSyncing ? 'Syncing in progress...' : 'Workspace Synchronized'}</Text>
-              </View>
-              <View style={dynamicStyles.syncBadge}>
-                <Text style={dynamicStyles.syncBadgeText}>SQLite Mode</Text>
-              </View>
-            </View>
-
-            {/* Backup Status */}
-            <View style={dynamicStyles.backupStatusRow}>
-              <View style={dynamicStyles.backupStatusCol}>
-                <Text style={dynamicStyles.backupStatusLabel}>Last Backup</Text>
-                <Text style={dynamicStyles.backupStatusVal}>{lastBackupTime}</Text>
-              </View>
-              <View style={dynamicStyles.backupStatusCol}>
-                <Text style={dynamicStyles.backupStatusLabel}>Backup Size</Text>
-                <Text style={dynamicStyles.backupStatusVal}>{backupSize}</Text>
-              </View>
-              <View style={dynamicStyles.backupStatusCol}>
-                <Text style={dynamicStyles.backupStatusLabel}>Auto Backup</Text>
-                <TouchableOpacity onPress={toggleAutoBackup} style={dynamicStyles.backupIntervalBtn} activeOpacity={0.7}>
-                  <Text style={[dynamicStyles.backupIntervalText, { color: accentColor }]}>{autoBackupInterval}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Cloud Storage Analytics Progress Bar */}
-            <View style={dynamicStyles.storageAnalyticsWrapper}>
-              <View style={dynamicStyles.storageLabelRow}>
-                <Text style={dynamicStyles.storageAnalyticsLabel}>Cloud Storage Volume</Text>
-                <Text style={dynamicStyles.storageAnalyticsPercent}>5.00 MB</Text>
-              </View>
-              <View style={dynamicStyles.progressBarBg}>
-                <View style={[dynamicStyles.progressBarFill, { width: `${Math.min(100, (totalContentSize / (5 * 1024 * 1024)) * 100)}%`, backgroundColor: accentColor }]} />
-              </View>
-              <View style={dynamicStyles.storageDetailSubRow}>
-                <Text style={dynamicStyles.storageSubText}>{usedStorageStr}</Text>
-              </View>
-            </View>
-
-            {/* Local Storage Analytics Progress Bar */}
-            <View style={[dynamicStyles.storageAnalyticsWrapper, { marginTop: 15 }]}>
-              <View style={dynamicStyles.storageLabelRow}>
-                <Text style={dynamicStyles.storageAnalyticsLabel}>Local Storage Volume</Text>
-                <Text style={dynamicStyles.storageAnalyticsPercent}>{isCloudLimitReached ? 'Unlimited' : 'Standby'}</Text>
-              </View>
-              <View style={dynamicStyles.progressBarBg}>
-                <View style={[dynamicStyles.progressBarFill, { width: `${isCloudLimitReached ? Math.min(100, (parseFloat(dbSize) / 50000) * 100) : 0}%`, backgroundColor: '#10B981' }]} />
-              </View>
-              <View style={dynamicStyles.storageDetailSubRow}>
-                <Text style={dynamicStyles.storageSubText}>Secure Vault Size: {secureNotesSize}</Text>
-                <Text style={dynamicStyles.storageSubText}>Raw SQLite File: {dbSize}</Text>
-              </View>
-            </View>
-
-            <View style={dynamicStyles.divider} />
-
-            {/* Quick Action Buttons Row */}
-            <View style={dynamicStyles.quickActionsGrid}>
-              <TouchableOpacity style={dynamicStyles.quickActionBtn} onPress={exportJsonData}>
-                <Ionicons name="cloud-upload-outline" size={16} color={accentColor} />
-                <Text style={dynamicStyles.quickActionBtnText}>Export JSON</Text>
+          
+          {passcodeEnabled && (
+            <>
+              <TouchableOpacity style={dynamicStyles.menuItem} onPress={() => { setPasscodeModal({ visible: true, mode: 'change' }); setPasscodeStep(1); setPasscodeInput(''); }}>
+                <View style={[dynamicStyles.iconBox, { backgroundColor: '#3B82F615' }]}>
+                  <Ionicons name="keypad-outline" size={20} color="#3B82F6" />
+                </View>
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={dynamicStyles.menuText}>Change Passcode</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={theme.textSecondary} />
               </TouchableOpacity>
               
-              <TouchableOpacity style={dynamicStyles.quickActionBtn} onPress={handleSecureBackup}>
-                <Ionicons name="shield-checkmark-outline" size={16} color="#10B981" />
-                <Text style={dynamicStyles.quickActionBtnText}>Secure Backup</Text>
+              <TouchableOpacity style={dynamicStyles.menuItem} onPress={() => {
+                Alert.alert('Reset Passcode', 'Resetting your passcode requires signing out. Do you want to proceed?', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Sign Out & Reset', style: 'destructive', onPress: async () => { await disablePasscode(); await logout(); } }
+                ]);
+              }}>
+                <View style={[dynamicStyles.iconBox, { backgroundColor: '#EF444415' }]}>
+                  <Ionicons name="refresh-circle-outline" size={20} color="#EF4444" />
+                </View>
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                  <Text style={dynamicStyles.menuText}>Reset Passcode</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={theme.textSecondary} />
               </TouchableOpacity>
+            </>
+          )}
 
-              <TouchableOpacity style={dynamicStyles.quickActionBtn} onPress={importWorkspace}>
-                <Ionicons name="download-outline" size={16} color="#3B82F6" />
-                <Text style={dynamicStyles.quickActionBtnText}>Restore File</Text>
-              </TouchableOpacity>
+        </View>
 
-              <TouchableOpacity style={dynamicStyles.quickActionBtn} onPress={handleResetLocalData}>
-                <Ionicons name="trash-outline" size={16} color={isCloudLimitReached ? "#EF4444" : theme.textSecondary} />
-                <Text style={[dynamicStyles.quickActionBtnText, !isCloudLimitReached && { color: theme.textSecondary }]}>Reset Local Data</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={dynamicStyles.quickActionBtn} onPress={handleSyncSettings} disabled={isSyncing}>
-                {isSyncing ? <ActivityIndicator size="small" color="#F59E0B" /> : <Ionicons name="sync-outline" size={16} color="#F59E0B" />}
-                <Text style={dynamicStyles.quickActionBtnText}>{isSyncing ? "Syncing..." : "Sync Now"}</Text>
-              </TouchableOpacity>
+        {/* ── 10. CLOUD STORAGE ─────────────────────────────────────── */}
+        <View style={dynamicStyles.section}>
+          <Text style={dynamicStyles.sectionTitle}>Cloud Storage</Text>
+          <View style={[dynamicStyles.dataManagementCard, getThemedShadow(theme, 'soft')]}>
+            
+            <View style={{ marginBottom: 15 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                <Text style={[dynamicStyles.syncTitle, { color: theme.text }]}>Storage Used</Text>
+                <Text style={dynamicStyles.syncDesc}>{storageMetrics.usedString} / {CLOUD_LIMIT_MB.toFixed(1)} MB</Text>
+              </View>
+              
+              <View style={{ height: 8, backgroundColor: theme.border, borderRadius: 4, overflow: 'hidden', marginBottom: 8 }}>
+                <Animated.View style={{ height: '100%', backgroundColor: storageMetrics.color, width: `${storageMetrics.progress * 100}%`, borderRadius: 4 }} />
+              </View>
+              
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={dynamicStyles.syncDesc}>
+                  {storageMetrics.isCloudFull ? 'Cloud quota reached.' : `Cloud Storage Remaining: ${storageMetrics.remainingString}`}
+                </Text>
+                <Text style={[dynamicStyles.syncDesc, { color: storageMetrics.color, fontWeight: '700' }]}>
+                  {Math.round(storageMetrics.progress * 100)}%
+                </Text>
+              </View>
             </View>
+
+            <View style={dynamicStyles.syncStatusCard}>
+              <Ionicons name={storageMetrics.isCloudFull ? "phone-portrait-outline" : "cloud-done-outline"} size={20} color={storageMetrics.color} />
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={[dynamicStyles.syncTitle, { color: theme.text }]}>Storage Mode</Text>
+                <Text style={dynamicStyles.syncDesc}>{storageMetrics.isCloudFull ? '📱 Local Storage Active' : '☁️ Cloud Storage Active'}</Text>
+              </View>
+            </View>
+            
+            {storageMetrics.isCloudFull && (
+              <View style={{ marginTop: 12, padding: 10, backgroundColor: isDark ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 158, 11, 0.1)', borderRadius: 8, borderLeftWidth: 3, borderLeftColor: '#F59E0B' }}>
+                <Text style={{ ...typography.caption, color: theme.text, lineHeight: 18 }}>
+                  New notes, reminders, projects and files are now stored locally on this device.
+                </Text>
+              </View>
+            )}
+
+            {/* Collapsible Info Section */}
+            <View style={{ marginTop: 15, borderTopWidth: 1, borderTopColor: theme.border, paddingTop: 10 }}>
+              <TouchableOpacity 
+                style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 5 }} 
+                onPress={() => { triggerHaptic(); setStorageInfoExpanded(!storageInfoExpanded); }}
+                activeOpacity={0.7}
+              >
+                <Text style={{ ...typography.bodyMedium, color: theme.textSecondary, fontWeight: '600' }}>How Storage Works</Text>
+                <Ionicons name={storageInfoExpanded ? "chevron-up" : "chevron-down"} size={16} color={theme.textSecondary} />
+              </TouchableOpacity>
+              
+              {storageInfoExpanded && (
+                <Animated.View entering={getFadeIn(0, 200)} style={{ marginTop: 10, paddingBottom: 5 }}>
+                  <Text style={{ ...typography.caption, color: theme.textSecondary, marginBottom: 4, lineHeight: 18 }}>• Every user receives 5 MB free cloud storage.</Text>
+                  <Text style={{ ...typography.caption, color: theme.textSecondary, marginBottom: 4, lineHeight: 18 }}>• Notes, reminders, projects and special days count toward usage.</Text>
+                  <Text style={{ ...typography.caption, color: theme.textSecondary, marginBottom: 4, lineHeight: 18 }}>• When cloud storage reaches 5 MB, KnoVault automatically switches to local storage.</Text>
+                  <Text style={{ ...typography.caption, color: theme.textSecondary, marginBottom: 4, lineHeight: 18 }}>• No data is deleted.</Text>
+                  <Text style={{ ...typography.caption, color: theme.textSecondary, marginBottom: 4, lineHeight: 18 }}>• Existing cloud data remains synced.</Text>
+                  <Text style={{ ...typography.caption, color: theme.textSecondary, marginBottom: 4, lineHeight: 18 }}>• New data is saved locally until cloud storage becomes available.</Text>
+                </Animated.View>
+              )}
+            </View>
+
           </View>
         </View>
 
@@ -1439,10 +760,10 @@ export default function ProfileScreen() {
           <Text style={dynamicStyles.sectionTitle}>Support & Legal Center</Text>
 
           <TouchableOpacity style={dynamicStyles.menuItem} onPress={() => { triggerHaptic(); setAboutModal(true); }} activeOpacity={0.7}>
-            <View style={[dynamicStyles.iconBox, { backgroundColor: '#64748B15' }]}>
-              <Ionicons name="information-circle-outline" size={20} color="#64748B" />
+            <View style={[dynamicStyles.iconBox, { backgroundColor: '#3B82F615' }]}>
+              <Ionicons name="information-circle-outline" size={20} color="#3B82F6" />
             </View>
-            <Text style={dynamicStyles.menuText}>Showcase & Vision</Text>
+            <Text style={dynamicStyles.menuText}>About KnoVault</Text>
             <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
           </TouchableOpacity>
 
@@ -1454,11 +775,11 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={dynamicStyles.menuItem} onPress={() => { triggerHaptic(); setSupportModal(true); }} activeOpacity={0.7}>
+          <TouchableOpacity style={dynamicStyles.menuItem} onPress={handleContactSupport} activeOpacity={0.7}>
             <View style={[dynamicStyles.iconBox, { backgroundColor: '#10B98115' }]}>
               <Ionicons name="mail-unread-outline" size={20} color="#10B981" />
             </View>
-            <Text style={dynamicStyles.menuText}>Contact Support Desk</Text>
+            <Text style={dynamicStyles.menuText}>Contact Support</Text>
             <Ionicons name="chevron-forward" size={16} color={colors.text.tertiary} />
           </TouchableOpacity>
         </View>
@@ -1471,15 +792,15 @@ export default function ProfileScreen() {
           </LinearGradient>
         </TouchableOpacity>
         
-        <Text style={dynamicStyles.version}>KnoVault v1.2.5 • Offline-First sqlite3-fs engine</Text>
+        <Text style={dynamicStyles.version}>KnoVault v1.2.5</Text>
       </ScrollView>
 
       {/* Edit Profile Modal */}
       <Modal visible={editModal} transparent animationType="none">
         <TouchableWithoutFeedback onPress={() => setEditModal(false)}>
-          <Animated.View entering={FadeIn} exiting={FadeOut} style={dynamicStyles.modalOverlay}>
+          <Animated.View entering={getFadeIn()} exiting={getFadeOut()} style={dynamicStyles.modalOverlay}>
             <TouchableWithoutFeedback>
-              <Animated.View entering={ZoomIn} exiting={ZoomOut} style={dynamicStyles.modalCard}>
+              <Animated.View entering={getZoomIn()} exiting={getZoomOut()} style={dynamicStyles.modalCard}>
                 <Text style={dynamicStyles.modalTitle}>Edit Workspace Name</Text>
                 <Text style={dynamicStyles.modalLabel}>Display Name</Text>
                 <TextInput 
@@ -1507,9 +828,9 @@ export default function ProfileScreen() {
       {/* Interactive Avatar Selector Modal */}
       <Modal visible={avatarModal} transparent animationType="none">
         <TouchableWithoutFeedback onPress={() => setAvatarModal(false)}>
-          <Animated.View entering={FadeIn} exiting={FadeOut} style={dynamicStyles.modalOverlay}>
+          <Animated.View entering={getFadeIn()} exiting={getFadeOut()} style={dynamicStyles.modalOverlay}>
             <TouchableWithoutFeedback>
-              <Animated.View entering={ZoomIn} exiting={ZoomOut} style={dynamicStyles.modalCard}>
+              <Animated.View entering={getZoomIn()} exiting={getZoomOut()} style={dynamicStyles.modalCard}>
                 <Text style={dynamicStyles.modalTitle}>Choose Profile Emoji</Text>
                 <View style={dynamicStyles.avatarGrid}>
                   {AVATAR_EMOJIS.map(emoji => (
@@ -1531,82 +852,14 @@ export default function ProfileScreen() {
         </TouchableWithoutFeedback>
       </Modal>
 
-      {/* Support Center Selection Modal (6 categories) */}
-      <Modal visible={supportModal} transparent animationType="none">
-        <TouchableWithoutFeedback onPress={() => setSupportModal(false)}>
-          <Animated.View entering={FadeIn} exiting={FadeOut} style={dynamicStyles.modalOverlay}>
-            <TouchableWithoutFeedback>
-              <Animated.View entering={ZoomIn} exiting={ZoomOut} style={dynamicStyles.modalCard}>
-                <Text style={dynamicStyles.modalTitle}>Contact Support Center</Text>
-                <Text style={dynamicStyles.supportSubtitle}>Select a category to prefill your mail template</Text>
-                
-                <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
-                  <View style={dynamicStyles.supportActionsWrapper}>
-                    <TouchableOpacity style={dynamicStyles.supportActionCard} onPress={() => handleSupportAction('Bug')}>
-                      <Ionicons name="bug-outline" size={22} color="#EF4444" style={dynamicStyles.supportCardIcon} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={[dynamicStyles.supportCardTitle, { color: theme.text }]}>Bug Report</Text>
-                        <Text style={dynamicStyles.supportCardDesc}>Report errors, UI overlap, or app crashes</Text>
-                      </View>
-                    </TouchableOpacity>
 
-                    <TouchableOpacity style={dynamicStyles.supportActionCard} onPress={() => handleSupportAction('Feature')}>
-                      <Ionicons name="bulb-outline" size={22} color="#F59E0B" style={dynamicStyles.supportCardIcon} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={[dynamicStyles.supportCardTitle, { color: theme.text }]}>Feature Request</Text>
-                        <Text style={dynamicStyles.supportCardDesc}>Request integrations or custom tabs</Text>
-                      </View>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={dynamicStyles.supportActionCard} onPress={() => handleSupportAction('Account')}>
-                      <Ionicons name="person-outline" size={22} color="#3B82F6" style={dynamicStyles.supportCardIcon} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={[dynamicStyles.supportCardTitle, { color: theme.text }]}>Account Problem</Text>
-                        <Text style={dynamicStyles.supportCardDesc}>Profile settings or backup credentials</Text>
-                      </View>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={dynamicStyles.supportActionCard} onPress={() => handleSupportAction('AI')}>
-                      <Ionicons name="sparkles-outline" size={22} color={accentColor} style={dynamicStyles.supportCardIcon} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={[dynamicStyles.supportCardTitle, { color: theme.text }]}>AI Problem</Text>
-                        <Text style={dynamicStyles.supportCardDesc}>Kogniva Second-Brain contextual issues</Text>
-                      </View>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={dynamicStyles.supportActionCard} onPress={() => handleSupportAction('Sync')}>
-                      <Ionicons name="sync-outline" size={22} color="#10B981" style={dynamicStyles.supportCardIcon} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={[dynamicStyles.supportCardTitle, { color: theme.text }]}>Sync Problem</Text>
-                        <Text style={dynamicStyles.supportCardDesc}>Issues importing JSON or cloud backups</Text>
-                      </View>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={dynamicStyles.supportActionCard} onPress={() => handleSupportAction('Security')}>
-                      <Ionicons name="key-outline" size={22} color="#EC4899" style={dynamicStyles.supportCardIcon} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={[dynamicStyles.supportCardTitle, { color: theme.text }]}>Security Concern</Text>
-                        <Text style={dynamicStyles.supportCardDesc}>Biometrics configuration or encryption</Text>
-                      </View>
-                    </TouchableOpacity>
-                  </View>
-                </ScrollView>
-
-                <TouchableOpacity style={[dynamicStyles.modalCancelBtn, { marginTop: 12 }]} onPress={() => setSupportModal(false)}>
-                  <Text style={dynamicStyles.modalCancelText}>Cancel</Text>
-                </TouchableOpacity>
-              </Animated.View>
-            </TouchableWithoutFeedback>
-          </Animated.View>
-        </TouchableWithoutFeedback>
-      </Modal>
 
       {/* Custom Sign Out Confirmation Modal */}
       <Modal visible={signOutModal} transparent animationType="none">
         <TouchableWithoutFeedback onPress={() => setSignOutModal(false)}>
-          <Animated.View entering={FadeIn} exiting={FadeOut} style={dynamicStyles.modalOverlay}>
+          <Animated.View entering={getFadeIn()} exiting={getFadeOut()} style={dynamicStyles.modalOverlay}>
             <TouchableWithoutFeedback>
-              <Animated.View entering={ZoomIn} exiting={ZoomOut} style={dynamicStyles.modalCard}>
+              <Animated.View entering={getZoomIn()} exiting={getZoomOut()} style={dynamicStyles.modalCard}>
                 <View style={dynamicStyles.signOutWarnIconBox}>
                   <Ionicons name="warning-outline" size={32} color="#EF4444" />
                 </View>
@@ -1628,13 +881,15 @@ export default function ProfileScreen() {
         </TouchableWithoutFeedback>
       </Modal>
 
-      {/* Premium Full Screen Showcase About Modal */}
+
+
+      {/* About KnoVault Modal */}
       <Modal visible={aboutModal} transparent={false} animationType="slide">
         <ScreenContainer style={[dynamicStyles.container, { backgroundColor: theme.background }]}>
           <StatusBar style={isDark ? 'light' : 'dark'} />
           
           <View style={dynamicStyles.fullModalHeader}>
-            <Text style={dynamicStyles.fullModalTitle}>Showcase & Vision</Text>
+            <Text style={dynamicStyles.fullModalTitle}>About KnoVault</Text>
             <TouchableOpacity 
               style={dynamicStyles.fullCloseBtn} 
               onPress={() => setAboutModal(false)}
@@ -1645,44 +900,126 @@ export default function ProfileScreen() {
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 25, paddingBottom: 60 }}>
-            <View style={{ alignItems: 'center', width: '100%' }}>
+            <View style={{ alignItems: 'center', width: '100%', marginBottom: 30 }}>
               <LinearGradient colors={[accentColor, `${accentColor}cc`]} style={dynamicStyles.aboutLogo}>
                 <Ionicons name="sparkles" size={36} color="#fff" />
               </LinearGradient>
-              
-              <Text style={dynamicStyles.aboutTitle}>KnoVault OS</Text>
-              <Text style={dynamicStyles.aboutVersion}>Your Intelligent Second-Brain</Text>
-              
-              {/* Detailed Showcase Cards (12 sections) */}
+              <Text style={dynamicStyles.aboutTitle}>KnoVault</Text>
+              <Text style={dynamicStyles.aboutVersion}>Version 1.2.5</Text>
+              <Text style={[dynamicStyles.aboutPrivacy, { marginTop: 10, fontStyle: 'italic' }]}>
+                "Your Personal Second Brain for Notes, Goals, Projects, Reminders and Knowledge Management."
+              </Text>
+            </View>
+
+            {/* SECTION 1: WELCOME */}
+            <View style={{ marginBottom: 25 }}>
+              <Text style={[dynamicStyles.fullCardTitle, { color: theme.text, marginBottom: 10, fontSize: 16 }]}>Welcome to KnoVault</Text>
+              <Text style={[dynamicStyles.fullCardBody, { marginBottom: 5 }]}>KnoVault is an all-in-one productivity workspace that helps users organize:</Text>
+              <Text style={dynamicStyles.fullCardBody}>• Notes</Text>
+              <Text style={dynamicStyles.fullCardBody}>• Projects</Text>
+              <Text style={dynamicStyles.fullCardBody}>• Reminders</Text>
+              <Text style={dynamicStyles.fullCardBody}>• Daily Goals</Text>
+              <Text style={dynamicStyles.fullCardBody}>• Special Days</Text>
+              <Text style={dynamicStyles.fullCardBody}>• Personal Knowledge</Text>
+              <Text style={[dynamicStyles.fullCardBody, { marginTop: 8 }]}>Designed for students, professionals and creators.</Text>
+            </View>
+
+            {/* SECTION 2: FEATURES */}
+            <View style={{ marginBottom: 25 }}>
+              <Text style={[dynamicStyles.fullCardTitle, { color: theme.text, marginBottom: 15, fontSize: 16 }]}>Features</Text>
               {[
-                { title: '1. What is KnoVault', body: 'An advanced, high-performance productivity assistant integrating goals, calendar elements, and markdown notes into a centralized personal knowledge base.', icon: 'information-circle-outline' },
-                { title: '2. Why KnoVault exists', body: 'Built to solve context scattering. By keeping notes, deadlines, and AI intelligence in one local volume, KnoVault accelerates your learning feedback loops.', icon: 'bulb-outline' },
-                { title: '3. AI productivity engine', body: 'The Kogniva AI subsystem indices secure metadata locally to generate weekly study guidance, task automation, and reminders updates.', icon: 'sparkles-outline' },
-                { title: '4. Smart Notes system', body: 'Full-featured editor backing offline files, categorizations, and rapid keyword queries with tag grouping options.', icon: 'document-text-outline' },
-                { title: '5. Secure Vault system', body: 'A hardware-encrypted container locked behind biometrics. Safeguards passwords, journals, and private study notes.', icon: 'lock-closed-outline' },
-                { title: '6. Daily Goals engine', body: 'Checklists mapping to productivity analytics, helping you visualize streak consistency and target completion rates.', icon: 'checkbox-outline' },
-                { title: '7. Smart Reminder system', body: 'Configurable notifications mapping to dates and categories to prevent schedule slips.', icon: 'alarm-outline' },
-                { title: '8. Privacy-first architecture', body: 'No marketing trackers, telemetry SDKs, or cloud indexing. Encryption keys stay on your hardware chips.', icon: 'shield-checkmark-outline' },
-                { title: '9. Offline-first support', body: 'Full database read/write capability without internet. Ideal for deep-focus offline sessions.', icon: 'wifi-outline' },
-                { title: '10. Cloud sync architecture', body: 'Underpinned by secure REST layers. Designed for end-to-end user-controlled cloud backups.', icon: 'cloud-done-outline' },
-                { title: '11. Upcoming roadmap', body: 'PostgreSQL Postgres sync, rich visual calendar views, speech-to-text dictation, and visual graphs.', icon: 'calendar-outline' },
-                { title: '12. Developer vision', body: 'To create a lightning-fast, expensive-feeling productivity application that puts user ownership at its core.', icon: 'code-working-outline' }
-              ].map(card => (
-                <View key={card.title} style={[dynamicStyles.fullModalCard, getThemedShadow(theme, 'soft')]}>
-                  <View style={dynamicStyles.fullCardHeader}>
-                    <Ionicons name={card.icon as any} size={18} color={accentColor} style={{ marginRight: 10 }} />
-                    <Text style={[dynamicStyles.fullCardTitle, { color: theme.text }]}>{card.title}</Text>
-                  </View>
-                  <Text style={dynamicStyles.fullCardBody}>{card.body}</Text>
+                { title: '📝 Smart Notes', desc: 'Create, edit, categorize and organize notes.' },
+                { title: '🎯 Daily Goals', desc: 'Track progress and stay productive.' },
+                { title: '🚀 Projects', desc: 'Manage personal and academic projects.' },
+                { title: '⏰ Reminders', desc: 'Never miss important tasks.' },
+                { title: '📅 Calendar', desc: 'View all events and schedules.' },
+                { title: '🎉 Special Days', desc: 'Store birthdays and important occasions.' },
+                { title: '☁️ Cloud Storage', desc: 'Automatic cloud sync up to 5 MB.' },
+                { title: '🔒 Privacy First', desc: 'Your data remains secure and protected.' }
+              ].map(feat => (
+                <View key={feat.title} style={[dynamicStyles.fullModalCard, getThemedShadow(theme, 'soft')]}>
+                  <Text style={[dynamicStyles.fullCardTitle, { color: theme.text }]}>{feat.title}</Text>
+                  <Text style={dynamicStyles.fullCardBody}>{feat.desc}</Text>
                 </View>
               ))}
-
-              <Text style={dynamicStyles.aboutPrivacy}>Productivity workspace built with precision. Data belongs completely to you.</Text>
-              
-              <TouchableOpacity style={[dynamicStyles.aboutActionBtn, { backgroundColor: accentColor }]} onPress={() => setAboutModal(false)}>
-                <Text style={dynamicStyles.aboutActionText}>Dismiss Showcase</Text>
-              </TouchableOpacity>
             </View>
+
+            {/* SECTION 3: HOW TO USE */}
+            <View style={{ marginBottom: 25 }}>
+              <Text style={[dynamicStyles.fullCardTitle, { color: theme.text, marginBottom: 15, fontSize: 16 }]}>How to Use</Text>
+              {[
+                { step: '1️⃣ Create Notes', desc: 'Use the Notes tab to capture ideas.' },
+                { step: '2️⃣ Set Goals', desc: 'Track your daily productivity.' },
+                { step: '3️⃣ Create Projects', desc: 'Organize long-term work.' },
+                { step: '4️⃣ Add Reminders', desc: 'Get notified on time.' },
+                { step: '5️⃣ Monitor Progress', desc: 'Review statistics and achievements.' }
+              ].map(item => (
+                <View key={item.step} style={{ marginBottom: 10 }}>
+                  <Text style={[dynamicStyles.fullCardTitle, { color: theme.text, fontSize: 13 }]}>{item.step}</Text>
+                  <Text style={dynamicStyles.fullCardBody}>{item.desc}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* SECTION 4: DATA STORAGE */}
+            <View style={{ marginBottom: 25 }}>
+              <Text style={[dynamicStyles.fullCardTitle, { color: theme.text, marginBottom: 10, fontSize: 16 }]}>Data Storage</Text>
+              <View style={[dynamicStyles.fullModalCard, getThemedShadow(theme, 'soft'), { borderColor: accentColor, borderWidth: 1 }]}>
+                <Text style={[dynamicStyles.fullCardTitle, { color: theme.text }]}>Cloud Storage Limit: 5 MB</Text>
+                <Text style={[dynamicStyles.fullCardBody, { marginTop: 8 }]}>When cloud storage reaches 5 MB:</Text>
+                <Text style={dynamicStyles.fullCardBody}>• New data automatically switches to local storage.</Text>
+                <Text style={dynamicStyles.fullCardBody}>• No data is deleted.</Text>
+              </View>
+            </View>
+
+            {/* SECTION 5: PRIVACY & SECURITY */}
+            <View style={{ marginBottom: 25 }}>
+              <Text style={[dynamicStyles.fullCardTitle, { color: theme.text, marginBottom: 10, fontSize: 16 }]}>Privacy & Security</Text>
+              <View style={[dynamicStyles.fullModalCard, getThemedShadow(theme, 'soft')]}>
+                <Text style={dynamicStyles.fullCardBody}>• Local-first architecture</Text>
+                <Text style={dynamicStyles.fullCardBody}>• Secure storage</Text>
+                <Text style={dynamicStyles.fullCardBody}>• User-controlled data</Text>
+                <Text style={dynamicStyles.fullCardBody}>• Optional cloud synchronization</Text>
+                <Text style={dynamicStyles.fullCardBody}>• Data ownership remains with the user</Text>
+              </View>
+            </View>
+
+            {/* SECTION 6: APP INFORMATION */}
+            <View style={{ marginBottom: 25 }}>
+              <Text style={[dynamicStyles.fullCardTitle, { color: theme.text, marginBottom: 10, fontSize: 16 }]}>App Information</Text>
+              <View style={[dynamicStyles.fullModalCard, getThemedShadow(theme, 'soft')]}>
+                <Text style={dynamicStyles.fullCardBody}><Text style={{ fontWeight: 'bold' }}>App Name:</Text> KnoVault</Text>
+                <Text style={dynamicStyles.fullCardBody}><Text style={{ fontWeight: 'bold' }}>Version:</Text> 1.2.5</Text>
+                <Text style={dynamicStyles.fullCardBody}><Text style={{ fontWeight: 'bold' }}>Developer:</Text> Dhuneshwaran</Text>
+                <Text style={dynamicStyles.fullCardBody}><Text style={{ fontWeight: 'bold' }}>Institution:</Text> Saveetha School of Engineering</Text>
+                <Text style={dynamicStyles.fullCardBody}><Text style={{ fontWeight: 'bold' }}>Department:</Text> Artificial Intelligence & Data Science</Text>
+                <Text style={dynamicStyles.fullCardBody}><Text style={{ fontWeight: 'bold' }}>Support Email:</Text> thinkgood24hrs@gmail.com</Text>
+              </View>
+            </View>
+
+            {/* SECTION 7: QUICK TIPS */}
+            <View style={{ marginBottom: 30 }}>
+              <Text style={[dynamicStyles.fullCardTitle, { color: theme.text, marginBottom: 10, fontSize: 16 }]}>Quick Tips</Text>
+              <Text style={dynamicStyles.fullCardBody}>💡 Use categories to organize notes.</Text>
+              <Text style={dynamicStyles.fullCardBody}>💡 Create daily goals every morning.</Text>
+              <Text style={dynamicStyles.fullCardBody}>💡 Use reminders for deadlines.</Text>
+              <Text style={dynamicStyles.fullCardBody}>💡 Review projects weekly.</Text>
+              <Text style={dynamicStyles.fullCardBody}>💡 Keep cloud usage below 5 MB.</Text>
+            </View>
+
+            {/* SECTION 8: THANK YOU */}
+            <View style={{ alignItems: 'center', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', padding: 20, borderRadius: 16 }}>
+              <Ionicons name="heart" size={32} color="#EF4444" style={{ marginBottom: 10 }} />
+              <Text style={[dynamicStyles.fullCardTitle, { color: theme.text, textAlign: 'center', marginBottom: 15 }]}>Thank you for using KnoVault ❤️</Text>
+              <Text style={[dynamicStyles.fullCardBody, { textAlign: 'center', fontStyle: 'italic', fontWeight: '600' }]}>
+                "Organize your knowledge.{'\n'}Achieve your goals.{'\n'}Build your second brain."
+              </Text>
+            </View>
+            
+            <TouchableOpacity style={[dynamicStyles.aboutActionBtn, { backgroundColor: accentColor, marginTop: 30 }]} onPress={() => setAboutModal(false)}>
+              <Text style={dynamicStyles.aboutActionText}>Close About Page</Text>
+            </TouchableOpacity>
+
           </ScrollView>
         </ScreenContainer>
       </Modal>
@@ -1716,12 +1053,9 @@ export default function ProfileScreen() {
                 { key: 'own', title: 'Your Data Ownership', content: 'KnoVault does not index your behaviors. You have 100% ownership of your documents, targets, and notes.' },
                 { key: 'local', title: 'Local-First Storage', content: 'Data is written directly to a client-side SQLite instance on your device storage. No external servers query your notes.' },
                 { key: 'enc', title: 'Encryption System', content: 'Secure notes use AES-256 local encryption. Decryption keys are unlocked only via hardware authorization passcode.' },
-                { key: 'ai', title: 'AI Privacy Explanation', content: 'AI queries are filtered on-device first. Selected context is sent through secure API channels and is never saved for model retraining.' },
                 { key: 'cloud', title: 'Cloud Sync Privacy', content: 'Optional backup files are encrypted locally before export, ensuring cloud drives only host locked volumes.' },
-                { key: 'vault', title: 'Secure Vault Explanation', content: 'Biometric authorization shields private categories from background process snooping.' },
                 { key: 'device', title: 'Device-Only Protection', content: 'Keys reside inside secure enclaves on iOS/Android chips, inaccessible to external networks.' },
-                { key: 'backup', title: 'Backup Security', content: 'Workspace exports map to standardized, parseable JSON files, allowing you to delete your workspace at any time.' },
-                { key: 'neon', title: 'Neon Cloud Architecture', content: 'Our upcoming PostgreSQL backend features end-to-end client-encrypted volumes, maintaining zero-knowledge server access.' }
+                { key: 'backup', title: 'Backup Security', content: 'Workspace exports map to standardized, parseable JSON files, allowing you to delete your workspace at any time.' }
               ].map(sec => {
                 const isExpanded = privacyExpanded[sec.key] || false;
                 return (
@@ -1735,7 +1069,7 @@ export default function ProfileScreen() {
                       <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={16} color={colors.text.tertiary} />
                     </TouchableOpacity>
                     {isExpanded && (
-                      <Animated.View entering={FadeIn.duration(200)}>
+                      <Animated.View entering={getFadeIn(0, 200)}>
                         <Text style={dynamicStyles.privacySectionBody}>{sec.content}</Text>
                       </Animated.View>
                     )}
@@ -1761,15 +1095,16 @@ export default function ProfileScreen() {
 }
 
 // Reusable Stat Card Component
-function StatCard({ label, value, icon, color, theme, isDark }: any) {
+function StatCard({ label, value, subtitle, icon, color, theme, isDark, isTextValue }: any) {
   const cardBorder = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(124, 77, 255, 0.08)';
   return (
     <View style={[statCardStyles(theme, color).statCard, { borderColor: cardBorder }]}>
       <View style={[statCardStyles(theme, color).statIcon, { backgroundColor: `${color}15` }]}>
         <Ionicons name={icon} size={18} color={color} />
       </View>
-      <Text style={statCardStyles(theme, color).statValue} numberOfLines={1}>{value}</Text>
+      <Text style={[statCardStyles(theme, color).statValue, isTextValue && { fontSize: 16 }]} numberOfLines={1}>{value}</Text>
       <Text style={statCardStyles(theme, color).statLabel}>{label}</Text>
+      {subtitle && <Text style={[statCardStyles(theme, color).statLabel, { marginTop: 2, fontSize: 10, fontWeight: '700', color: theme.text }]}>{subtitle}</Text>}
     </View>
   );
 }
@@ -1789,11 +1124,10 @@ const statCardStyles = (theme: any, color: string) => StyleSheet.create({
   statLabel: { ...typography.caption, color: theme.textSecondary },
 });
 
-const openThemePicker = () => {
-  // Overridden dynamically in theme selectors
-};
 
-const styles = (theme: any, isDark: boolean, colors: any, accentColor: string, cardRadius: number) => {
+
+const styles = (theme: any, isDark: boolean, colors: any, accentColor: string) => {
+  const cardRadius = 24;
   const transparentCard = isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.85)';
   const borderCol = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(124, 77, 255, 0.08)';
 
@@ -1933,74 +1267,7 @@ const styles = (theme: any, isDark: boolean, colors: any, accentColor: string, c
     email: { ...typography.bodyMedium, color: theme.textSecondary, marginBottom: 4 },
     joinedText: { ...typography.caption, color: colors.text.tertiary, marginBottom: 12 },
     
-    headerStatsRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      width: '100%',
-      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)',
-      borderRadius: 16,
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      marginVertical: 10,
-    },
-    headerStatItem: {
-      flex: 1,
-      alignItems: 'center',
-    },
-    headerStatDivider: {
-      width: 1,
-      height: 20,
-      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
-    },
-    headerStatLabel: {
-      fontSize: 9,
-      fontWeight: '700',
-      color: theme.textSecondary,
-      marginBottom: 2,
-      letterSpacing: 0.8,
-    },
-    headerStatVal: {
-      fontSize: 12,
-      fontWeight: '800',
-      color: theme.text,
-    },
-    badgeRow: {
-      flexDirection: 'row',
-      gap: 8,
-      marginBottom: 16,
-      flexWrap: 'wrap',
-      justifyContent: 'center',
-    },
-    levelBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 12,
-      paddingVertical: 5,
-      borderRadius: 12,
-    },
-    badgeText: {
-      ...typography.caption,
-      color: '#FFFFFF',
-      fontWeight: '700',
-      fontSize: 11,
-    },
-    streakOverviewBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 12,
-      paddingVertical: 5,
-      borderRadius: 12,
-      backgroundColor: isDark ? '#2D2D4D' : '#FEF3C7',
-      borderWidth: 1,
-      borderColor: isDark ? '#4C3B77' : '#FDE68A',
-    },
-    streakOverviewText: {
-      ...typography.caption,
-      color: '#D97706',
-      fontWeight: '700',
-      fontSize: 11,
-    },
+
     editBtn: { 
       paddingHorizontal: 20, 
       paddingVertical: 8, 

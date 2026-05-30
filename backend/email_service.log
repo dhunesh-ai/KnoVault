@@ -971,3 +971,85 @@
 2026-05-28 18:46:21,717 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
 2026-05-28 18:49:53,505 - watchfiles.main - INFO - 1 change detected
 2026-05-28 18:49:53,870 - watchfiles.main - INFO - 1 change detected
+2026-05-30 10:34:22,590 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-30 10:34:25,261 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-30 10:34:43,253 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-30 10:43:46,964 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 10:44:00,833 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 10:46:04,838 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 10:46:46,206 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 10:46:53,672 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 10:47:14,770 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 10:47:42,934 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 11:05:32,776 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-30 11:05:36,405 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-30 11:05:53,115 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-30 11:08:29,067 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 11:08:55,919 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 11:08:56,882 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 11:09:53,919 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 11:09:55,754 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 11:09:56,887 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 11:10:12,981 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 11:10:44,869 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 11:11:20,726 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 11:11:25,485 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 11:11:41,527 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 11:55:47,441 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-30 11:55:50,678 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-30 11:56:09,107 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-30 11:59:12,262 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 12:06:05,821 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-30 12:06:07,270 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-30 12:06:11,986 - watchfiles.main - INFO - 1 change detected
+2026-05-30 12:06:23,166 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-30 12:08:18,037 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 12:24:13,782 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 12:33:32,819 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 12:33:35,092 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 12:33:35,095 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 12:35:01,441 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 12:45:18,998 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 12:53:08,564 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 12:53:08,744 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 12:53:08,800 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 12:53:23,103 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 12:53:27,951 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 12:54:09,407 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 12:54:13,800 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 13:01:58,004 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 13:02:07,463 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 13:03:17,423 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 13:03:35,802 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 13:03:37,015 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 13:04:07,675 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 13:08:08,588 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 13:12:49,190 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 13:41:47,024 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 13:42:01,667 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 13:43:44,643 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 13:43:53,692 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 13:44:55,468 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 13:45:57,934 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 13:46:02,918 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 14:29:43,700 - utils.firebase - INFO - [Firebase] Token verified successfully for: thinkgood24hrs@gmail.com
+2026-05-30 14:29:52,747 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 14:45:06,667 - utils.firebase - INFO - [Firebase] Token verified successfully for: thinkgood24hrs@gmail.com
+2026-05-30 14:45:11,337 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 14:50:55,870 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 14:51:33,576 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 14:51:56,767 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 14:51:58,299 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 14:56:20,432 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 16:53:42,150 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-30 16:53:44,642 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-30 16:53:50,879 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-30 16:55:03,701 - watchfiles.main - INFO - 1 change detected
+2026-05-30 17:02:07,241 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-30 17:02:09,033 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-30 17:02:15,137 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-30 17:12:52,389 - utils.firebase - INFO - [Firebase] Token verified successfully for: thinkgood24hrs@gmail.com
+2026-05-30 17:12:56,371 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 17:13:11,353 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 17:13:13,207 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-30 17:15:07,734 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.

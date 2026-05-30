@@ -11,10 +11,15 @@ import { Ionicons } from '@expo/vector-icons';
 import Markdown from 'react-native-markdown-display';
 import { Clipboard } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import Animated, {
-  FadeInDown, FadeInUp,
-  useAnimatedStyle, useSharedValue, withRepeat, withTiming, Easing,
+import Animated, { 
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  useSharedValue,
+  Easing
 } from 'react-native-reanimated';
+import { getFadeInDown, getFadeInUp } from '../../src/utils/animations';
 import { useAuthStore } from '../../src/store/authStore';
 import { useTheme } from '../../src/hooks/useTheme';
 import { aiApi } from '../../src/api/ai';
@@ -330,7 +335,7 @@ function AIScreen() {
 
             return (
               <Animated.View
-                entering={isUser ? FadeInUp.delay(50) : FadeInDown.delay(50)}
+                entering={isUser ? getFadeInUp(0, 300) : getFadeInDown(0, 300)}
                 style={[ds.msgRow, isUser ? ds.userRow : ds.aiRow]}
               >
                 {!isUser && (
@@ -392,7 +397,7 @@ function AIScreen() {
           ListFooterComponent={
             <View>
               {isTyping && (
-                <Animated.View entering={FadeInDown} style={ds.typingIndicator}>
+                <Animated.View entering={getFadeInDown()} style={ds.typingIndicator}>
                   <ActivityIndicator size="small" color={colors.primary[300]} style={{ marginRight: 8 }} />
                   <Text style={ds.typingText}>Thinking…</Text>
                 </Animated.View>
