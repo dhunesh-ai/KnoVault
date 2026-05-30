@@ -11,10 +11,11 @@ import {
   LayoutAnimation,
   Pressable,
   Linking,
+  Modal,
 } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import ScreenContainer from '../../src/components/ScreenContainer';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -235,6 +236,7 @@ export default function NoteEditorScreen() {
   const [noteType, setNoteType] = useState<'standard' | 'checklist' | 'field'>('standard');
   const [isSecure, setIsSecure] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isCategoryModalVisible, setCategoryModalVisible] = useState(false);
   
   const [checklist, setChecklist] = useState<{ id: string, text: string, done: boolean }[]>([]);
   const [fields, setFields] = useState<{ id: string, label: string, value: string }[]>([]);
@@ -804,7 +806,7 @@ export default function NoteEditorScreen() {
   };
 
   return (
-    <SafeAreaView style={ds.container}>
+    <ScreenContainer style={ds.container}>
       <View style={ds.header}>
         <TouchableOpacity onPress={() => router.back()} style={ds.backBtn}>
           <Ionicons name="close" size={28} color={theme.text} />
@@ -975,7 +977,7 @@ export default function NoteEditorScreen() {
               {/* Category Selector */}
               <View style={ds.categorySection}>
                 <View style={ds.sectionHeader}>
-                  <Text style={[ds.sectionTitle, { color: theme.textSecondary }]}>Category</Text>
+                  <Text style={[ds.sectionTitle, { color: theme.textSecondary }]}>CATEGORY</Text>
                   {isEditing && (
                     <TouchableOpacity onPress={handleToggleSecure}>
                       <Animated.View style={[ds.lockToggle, { backgroundColor: theme.card, borderColor: theme.border }, animatedLockToggleStyle]}>
@@ -987,32 +989,17 @@ export default function NoteEditorScreen() {
                     </TouchableOpacity>
                   )}
                 </View>
-                <View style={ds.categoryGrid}>
-                  {isEditing ? (
-                    CATEGORIES.map((cat) => (
-                      <CategoryChip
-                        key={cat}
-                        cat={cat}
-                        isSelected={category === cat}
-                        onPress={() => handleCategoryChange(cat)}
-                        isDark={isDark}
-                        colors={colors}
-                        theme={theme}
-                        ds={ds}
-                      />
-                    ))
-                  ) : (
-                    <CategoryChip
-                      cat={category}
-                      isSelected={true}
-                      onPress={() => {}}
-                      isDark={isDark}
-                      colors={colors}
-                      theme={theme}
-                      ds={ds}
-                    />
-                  )}
-                </View>
+                <TouchableOpacity 
+                  style={[ds.categorySelectorBtn, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)', borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)' }]} 
+                  onPress={() => isEditing && setCategoryModalVisible(true)}
+                  activeOpacity={0.7}
+                >
+                  <View style={ds.categorySelectorContent}>
+                    <Text style={ds.categorySelectorEmoji}>{CATEGORY_ICONS[category] || '📋'}</Text>
+                    <Text style={[ds.categorySelectorText, { color: theme.text }]}>{category}</Text>
+                  </View>
+                  {isEditing && <Ionicons name="chevron-down" size={20} color={theme.textSecondary} />}
+                </TouchableOpacity>
               </View>
 
               {isEditing && isSecure && !hasContent() && (
@@ -1291,7 +1278,53 @@ export default function NoteEditorScreen() {
           </BlurView>
         </Animated.View>
       )}
-    </SafeAreaView>
+      <Modal
+        visible={isCategoryModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCategoryModalVisible(false)}
+      >
+        <View style={ds.modalOverlay}>
+          <BlurView intensity={isDark ? 80 : 90} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+          <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => setCategoryModalVisible(false)} />
+          <View style={[ds.bottomSheet, { backgroundColor: theme.background }]}>
+            <View style={ds.bottomSheetHeader}>
+              <Text style={[ds.bottomSheetTitle, { color: theme.text }]}>Select Category</Text>
+              <TouchableOpacity onPress={() => setCategoryModalVisible(false)}>
+                <Ionicons name="close" size={24} color={theme.text} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={ds.bottomSheetScroll} showsVerticalScrollIndicator={false}>
+              {CATEGORIES.map(cat => (
+                <TouchableOpacity 
+                  key={cat}
+                  style={[
+                    ds.bottomSheetItem, 
+                    category === cat && [ds.bottomSheetItemSelected, { backgroundColor: isDark ? 'rgba(124, 77, 255, 0.15)' : 'rgba(124, 77, 255, 0.1)' }]
+                  ]}
+                  onPress={() => {
+                    handleCategoryChange(cat);
+                    setCategoryModalVisible(false);
+                  }}
+                >
+                  <View style={ds.bottomSheetItemContent}>
+                    <Text style={ds.bottomSheetItemEmoji}>{CATEGORY_ICONS[cat]}</Text>
+                    <Text style={[
+                      ds.bottomSheetItemText, 
+                      { color: theme.textSecondary },
+                      category === cat && [ds.bottomSheetItemTextSelected, { color: theme.primary }]
+                    ]}>
+                      {cat}
+                    </Text>
+                  </View>
+                  {category === cat && <Ionicons name="checkmark" size={20} color={theme.primary} />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+    </ScreenContainer>
   );
 }
 
@@ -1699,5 +1732,82 @@ const styles = (theme: any, isDark: boolean, colors: any) => StyleSheet.create({
   },
   interactiveIcon: {
     marginLeft: 2,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  bottomSheet: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    maxHeight: '60%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  bottomSheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  bottomSheetTitle: {
+    ...typography.titleMedium,
+    fontWeight: '800',
+  },
+  bottomSheetScroll: {
+    marginBottom: 20,
+  },
+  bottomSheetItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    marginBottom: 8,
+  },
+  bottomSheetItemSelected: {
+    borderWidth: 1,
+    borderColor: 'rgba(124, 77, 255, 0.3)',
+  },
+  bottomSheetItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  bottomSheetItemEmoji: {
+    fontSize: 20,
+  },
+  bottomSheetItemText: {
+    ...typography.bodyLarge,
+    fontWeight: '600',
+  },
+  bottomSheetItemTextSelected: {
+    fontWeight: '800',
+  },
+  categorySelectorBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 1.2,
+  },
+  categorySelectorContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  categorySelectorEmoji: {
+    fontSize: 18,
+  },
+  categorySelectorText: {
+    ...typography.bodyMedium,
+    fontWeight: '700',
   },
 });

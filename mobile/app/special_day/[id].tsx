@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   ActivityIndicator,
   Alert,
@@ -23,6 +22,7 @@ import { calculateDaysRemaining, isImportantDayToday } from '../../src/utils/imp
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
+import ScreenContainer from '../../src/components/ScreenContainer';
 
 const { width } = Dimensions.get('window');
 
@@ -121,7 +121,7 @@ export default function SpecialDayDetailScreen() {
   };
 
   return (
-    <SafeAreaView style={ds.container}>
+    <ScreenContainer style={ds.container}>
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
         style={{ flex: 1 }}
@@ -239,7 +239,7 @@ export default function SpecialDayDetailScreen() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

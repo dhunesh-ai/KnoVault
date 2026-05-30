@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   ActivityIndicator,
   Alert,
   Dimensions,
@@ -29,6 +28,7 @@ import { useTheme } from '../../src/hooks/useTheme';
 import { typography, borderRadius } from '../../src/theme';
 import { getLocalDateString, formatTimeStringTo12Hour } from '../../src/utils/date';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
+import ScreenContainer from '../../src/components/ScreenContainer';
 
 const { width } = Dimensions.get('window');
 
@@ -308,14 +308,14 @@ export default function CreateReminderScreen() {
 
   if (isEditing && isLoadingExisting) {
     return (
-      <SafeAreaView style={[ds.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <ScreenContainer style={[ds.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={theme.primary} />
-      </SafeAreaView>
+      </ScreenContainer>
     );
   }
 
   return (
-    <SafeAreaView style={ds.container}>
+    <ScreenContainer style={ds.container}>
       {/* Header */}
       <View style={ds.header}>
         <TouchableOpacity onPress={() => router.back()} style={ds.backBtn}>
@@ -872,7 +872,7 @@ export default function CreateReminderScreen() {
           />
         )}
       </ScrollView>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

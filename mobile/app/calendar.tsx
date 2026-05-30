@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   Dimensions,
   ActivityIndicator,
   RefreshControl,
@@ -21,6 +20,7 @@ import { calendarApi } from '../src/api/calendar';
 import { getLocalDateString, formatLocalTime, formatTimeStringTo12Hour } from '../src/utils/date';
 import { getThemedShadow } from '../src/components/ThemedComponents';
 import { getReminderTitle, getReminderSubtitle, getReminderCategory, getMedicineSummary, formatMedicineSubtitle } from '../src/utils';
+import ScreenContainer from '../src/components/ScreenContainer';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = (width - 50 - 50) / 7;
@@ -221,7 +221,7 @@ export default function CalendarScreen() {
   };
 
   return (
-    <SafeAreaView style={ds.container}>
+    <ScreenContainer style={ds.container}>
       {/* Header */}
       <View style={ds.header}>
         <TouchableOpacity onPress={() => router.back()} style={ds.iconBtn}>
@@ -375,14 +375,13 @@ export default function CalendarScreen() {
           <Ionicons name="add" size={30} color="#FFFFFF" />
         </LinearGradient>
       </TouchableOpacity>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 
 const styles = (theme: any, isDark: boolean, colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.background,
   },
   header: {
     flexDirection: 'row',

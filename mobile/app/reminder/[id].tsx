@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   ActivityIndicator,
   Alert,
@@ -18,6 +17,7 @@ import { typography, spacing, borderRadius } from '../../src/theme';
 import { formatLocalDateDisplay, formatLocalTime } from '../../src/utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
+import ScreenContainer from '../../src/components/ScreenContainer';
 
 export default function ReminderDetailScreen() {
   const { colors, theme, isDark } = useTheme();
@@ -127,7 +127,7 @@ export default function ReminderDetailScreen() {
     : getCategoryColor(reminder.type, colors, theme);
 
   return (
-    <SafeAreaView style={ds.container}>
+    <ScreenContainer style={ds.container}>
       {/* Header */}
       <View style={ds.header}>
         <TouchableOpacity onPress={() => router.back()} style={ds.iconBtn}>
@@ -305,7 +305,7 @@ export default function ReminderDetailScreen() {
           </LinearGradient>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

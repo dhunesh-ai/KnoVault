@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import SwipeWrapper from '../../src/components/SwipeWrapper';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  SafeAreaView, Switch, Modal, TextInput, ActivityIndicator, Platform,
+  Switch, Modal, TextInput, ActivityIndicator, Platform,
   BackHandler, TouchableWithoutFeedback, Dimensions, Linking, Alert
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -27,6 +27,7 @@ import client from '../../src/api/client';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
 import { syncWorkspace } from '../../src/services/sync';
 import { exportLocalBackup, importLocalBackup, exportLocalBackupAsJson, importLocalBackupFromJson } from '../../src/services/backup';
+import ScreenContainer from '../../src/components/ScreenContainer';
 
 let FileSystem: any = null;
 try { FileSystem = require('expo-file-system'); } catch {}
@@ -781,7 +782,7 @@ export default function ProfileScreen() {
 
   return (
     <SwipeWrapper currentTab="profile">
-      <SafeAreaView style={dynamicStyles.container}>
+      <ScreenContainer style={dynamicStyles.container}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
 
       {/* Floating Toast Notification */}
@@ -1629,7 +1630,7 @@ export default function ProfileScreen() {
 
       {/* Premium Full Screen Showcase About Modal */}
       <Modal visible={aboutModal} transparent={false} animationType="slide">
-        <SafeAreaView style={[dynamicStyles.container, { backgroundColor: theme.background }]}>
+        <ScreenContainer style={[dynamicStyles.container, { backgroundColor: theme.background }]}>
           <StatusBar style={isDark ? 'light' : 'dark'} />
           
           <View style={dynamicStyles.fullModalHeader}>
@@ -1683,12 +1684,12 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
           </ScrollView>
-        </SafeAreaView>
+        </ScreenContainer>
       </Modal>
 
       {/* Custom Full Screen Privacy Center Modal */}
       <Modal visible={privacyModal} transparent={false} animationType="slide">
-        <SafeAreaView style={[dynamicStyles.container, { backgroundColor: theme.background }]}>
+        <ScreenContainer style={[dynamicStyles.container, { backgroundColor: theme.background }]}>
           <StatusBar style={isDark ? 'light' : 'dark'} />
           
           <View style={dynamicStyles.fullModalHeader}>
@@ -1752,9 +1753,9 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
           </ScrollView>
-        </SafeAreaView>
+        </ScreenContainer>
       </Modal>
-    </SafeAreaView>
+    </ScreenContainer>
     </SwipeWrapper>
   );
 }

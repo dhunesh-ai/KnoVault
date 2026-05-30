@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   ActivityIndicator,
   Alert,
   Platform,
@@ -22,6 +21,7 @@ import { importantDaysApi } from '../../src/api/important_days';
 import { useTheme } from '../../src/hooks/useTheme';
 import { typography } from '../../src/theme';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
+import ScreenContainer from '../../src/components/ScreenContainer';
 
 const CELEBRATION_TYPES = [
   { label: '🎂 Birthday', value: 'Birthday' },
@@ -189,7 +189,7 @@ export default function CreateSpecialDayScreen() {
   }
 
   return (
-    <SafeAreaView style={ds.container}>
+    <ScreenContainer style={ds.container}>
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
         style={{ flex: 1 }}
@@ -370,7 +370,7 @@ export default function CreateSpecialDayScreen() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

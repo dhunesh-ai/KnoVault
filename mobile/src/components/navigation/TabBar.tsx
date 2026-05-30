@@ -63,10 +63,13 @@ export const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) =>
 
           const renderIcon = () => {
             if (route.name === 'profile') {
-              const name = isFocused ? 'account-circle' : 'account-circle-outline';
-              // Fallback to Ionicons person-circle if MaterialCommunityIcons isn't imported, 
-              // but we'll import it above.
-              return <MaterialCommunityIcons name={name as any} size={24} color={color} />;
+              return (
+                <MaterialCommunityIcons
+                  name="account-circle"
+                  size={28}
+                  color={isFocused ? theme.primary : theme.textSecondary}
+                />
+              );
             }
             
             let name;

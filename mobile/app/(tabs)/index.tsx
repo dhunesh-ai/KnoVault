@@ -58,36 +58,7 @@ export default function HomeScreen() {
   const [pendingNote, setPendingNote] = React.useState<any>(null);
   const [notificationsVisible, setNotificationsVisible] = React.useState(false);
 
-  const [isFabMenuOpen, setIsFabMenuOpen] = React.useState(false);
-  const fabAnim = useSharedValue(0);
 
-  const toggleFabMenu = async () => {
-    try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    } catch (e) {}
-    
-    const nextVal = !isFabMenuOpen;
-    setIsFabMenuOpen(nextVal);
-    fabAnim.value = withSpring(nextVal ? 1 : 0, { damping: 15, stiffness: 125 });
-  };
-
-  const menuAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: fabAnim.value,
-      transform: [
-        { scale: fabAnim.value },
-        { translateY: (1 - fabAnim.value) * 50 }
-      ]
-    };
-  });
-
-  const mainFabAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { rotate: `${fabAnim.value * 135}deg` }
-      ]
-    };
-  });
 
   const reminderScale = useSharedValue(1);
   const reminderOpacity = useSharedValue(1);
@@ -830,101 +801,6 @@ export default function HomeScreen() {
           )}
         </View>
       </ScrollView>
-
-      {/* FAB Backdrop */}
-      {isFabMenuOpen && (
-        <Pressable 
-          style={ds.fabOverlay} 
-          onPress={toggleFabMenu}
-        />
-      )}
-
-      {/* FAB Menu */}
-      <View style={ds.fabWrapper}>
-        {isFabMenuOpen && (
-          <Animated.View style={[ds.fabMenu, menuAnimatedStyle]}>
-            {/* Note Submenu */}
-            <TouchableOpacity 
-              style={ds.fabMenuItem} 
-              activeOpacity={0.8}
-              onPress={() => {
-                toggleFabMenu();
-                router.push('/note/create');
-              }}
-            >
-              <View style={[ds.fabMenuLabelContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                <Text style={[ds.fabMenuLabel, { color: theme.text }]}>+ Note</Text>
-              </View>
-              <View style={[ds.fabMiniBtn, { backgroundColor: '#8B5CF6' }]}>
-                <Ionicons name="document-text-outline" size={20} color="#FFFFFF" />
-              </View>
-            </TouchableOpacity>
-
-            {/* Daily Goal Submenu */}
-            <TouchableOpacity 
-              style={ds.fabMenuItem} 
-              activeOpacity={0.8}
-              onPress={() => {
-                toggleFabMenu();
-                router.push({ pathname: '/goals', params: { tab: 'daily' } });
-              }}
-            >
-              <View style={[ds.fabMenuLabelContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                <Text style={[ds.fabMenuLabel, { color: theme.text }]}>+ Daily Goal</Text>
-              </View>
-              <View style={[ds.fabMiniBtn, { backgroundColor: '#10B981' }]}>
-                <Ionicons name="checkbox-outline" size={20} color="#FFFFFF" />
-              </View>
-            </TouchableOpacity>
-
-            {/* Project Submenu */}
-            <TouchableOpacity 
-              style={ds.fabMenuItem} 
-              activeOpacity={0.8}
-              onPress={() => {
-                toggleFabMenu();
-                router.push({ pathname: '/goals', params: { tab: 'projects', openAddProject: 'true' } });
-              }}
-            >
-              <View style={[ds.fabMenuLabelContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                <Text style={[ds.fabMenuLabel, { color: theme.text }]}>+ Project</Text>
-              </View>
-              <View style={[ds.fabMiniBtn, { backgroundColor: '#0EA5E9' }]}>
-                <Ionicons name="rocket-outline" size={20} color="#FFFFFF" />
-              </View>
-            </TouchableOpacity>
-
-            {/* Reminder Submenu */}
-            <TouchableOpacity 
-              style={ds.fabMenuItem} 
-              activeOpacity={0.8}
-              onPress={() => {
-                toggleFabMenu();
-                router.push('/calendar');
-              }}
-            >
-              <View style={[ds.fabMenuLabelContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                <Text style={[ds.fabMenuLabel, { color: theme.text }]}>+ Reminder</Text>
-              </View>
-              <View style={[ds.fabMiniBtn, { backgroundColor: '#F43F5E' }]}>
-                <Ionicons name="alarm-outline" size={20} color="#FFFFFF" />
-              </View>
-            </TouchableOpacity>
-          </Animated.View>
-        )}
-
-        {/* Main Trigger FAB */}
-        <TouchableOpacity
-          style={[ds.mainFabBtn, { backgroundColor: theme.primary }]}
-          activeOpacity={0.9}
-          onPress={toggleFabMenu}
-        >
-          <Animated.View style={mainFabAnimatedStyle}>
-            <Ionicons name="add" size={30} color="#FFFFFF" />
-          </Animated.View>
-        </TouchableOpacity>
-      </View>
-
       <SecurityOverlay 
         visible={securityVisible}
         onAuthenticate={() => handleAuthenticate()}
@@ -1012,54 +888,7 @@ const styles = (theme: any, isDark: boolean) => StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
   },
-  fabOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    zIndex: 9990,
-  },
-  fabWrapper: {
-    position: 'absolute',
-    bottom: 30,
-    right: 25,
-    alignItems: 'flex-end',
-    zIndex: 9999,
-  },
-  fabMenu: {
-    alignItems: 'flex-end',
-    marginBottom: 16,
-    gap: 12,
-  },
-  fabMenuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  fabMenuLabelContainer: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
-    borderWidth: 1.2,
-  },
-  fabMenuLabel: {
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  fabMiniBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...getThemedShadow(theme, 'soft'),
-  },
-  mainFabBtn: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...getThemedShadow(theme, 'strong'),
-  },
+
   header: { 
     paddingTop: 20, 
     paddingHorizontal: 25, 
