@@ -13,6 +13,12 @@ interface SettingsState {
   animationsEnabled: boolean;
   isOnboarded: boolean;
   isInitialized: boolean;
+  notificationsEnabled: boolean;
+  notificationReminders: boolean;
+  notificationGoals: boolean;
+  notificationDailySummary: boolean;
+  notificationSound: boolean;
+  notificationVibration: boolean;
 
   // Actions
   initializeSettings: () => Promise<void>;
@@ -22,6 +28,7 @@ interface SettingsState {
   setUnlocked: (unlocked: boolean) => void;
   setAnimationsEnabled: (enabled: boolean) => Promise<void>;
   completeOnboarding: () => Promise<void>;
+  toggleNotificationSetting: (key: keyof SettingsState, storageKey: string, value: boolean) => Promise<void>;
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -31,6 +38,12 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   animationsEnabled: true,
   isOnboarded: false,
   isInitialized: false,
+  notificationsEnabled: true,
+  notificationReminders: true,
+  notificationGoals: true,
+  notificationDailySummary: true,
+  notificationSound: true,
+  notificationVibration: true,
 
   initializeSettings: async () => {
     try {
@@ -39,12 +52,25 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       const anims = await SecureStore.getItemAsync(ANIMATIONS_ENABLED_KEY);
       const onboarded = await SecureStore.getItemAsync('knovault_onboarding_completed');
 
+      const notifsEnabled = await SecureStore.getItemAsync('knovault_notifications');
+      const notifsReminders = await SecureStore.getItemAsync('knovault_notif_reminders');
+      const notifsGoals = await SecureStore.getItemAsync('knovault_notif_goals');
+      const notifsSummary = await SecureStore.getItemAsync('knovault_notif_summary');
+      const notifsSound = await SecureStore.getItemAsync('knovault_notif_sound');
+      const notifsVibration = await SecureStore.getItemAsync('knovault_notif_vibration');
+
       set({
         passcodeEnabled: lockEnabled === 'true',
         passcodeHash: hash || null,
         animationsEnabled: anims !== 'false', // Default to true
         isOnboarded: onboarded === 'true',
         isUnlocked: lockEnabled !== 'true', // Auto-unlock if no passcode
+        notificationsEnabled: notifsEnabled !== 'false',
+        notificationReminders: notifsReminders !== 'false',
+        notificationGoals: notifsGoals !== 'false',
+        notificationDailySummary: notifsSummary !== 'false',
+        notificationSound: notifsSound !== 'false',
+        notificationVibration: notifsVibration !== 'false',
         isInitialized: true,
       });
     } catch (e) {
@@ -109,6 +135,15 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     } catch (e) {
       console.error('[SettingsStore] Failed to complete onboarding', e);
       throw e;
+    }
+  },
+  
+  toggleNotificationSetting: async (key: keyof SettingsState, storageKey: string, value: boolean) => {
+    try {
+      await SecureStore.setItemAsync(storageKey, value ? 'true' : 'false');
+      set({ [key]: value } as Partial<SettingsState>);
+    } catch (e) {
+      console.error(`[SettingsStore] Failed to set ${key}`, e);
     }
   }
 }));

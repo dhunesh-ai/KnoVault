@@ -27,6 +27,7 @@ import Animated, {
 import { getFadeInDown } from '../../src/utils/animations';
 import { remindersApi } from '../../src/api/reminders';
 import { importantDaysApi } from '../../src/api/important_days';
+import { scheduleLocalReminder } from '../../src/utils/localNotifications';
 import { useTheme } from '../../src/hooks/useTheme';
 import { typography, borderRadius } from '../../src/theme';
 import { getLocalDateString, formatTimeStringTo12Hour } from '../../src/utils/date';
@@ -248,8 +249,35 @@ export default function CreateReminderScreen() {
             notes: description,
             is_recurring: true
           });
+          
+          scheduleLocalReminder(
+            title, 
+            description || "Don't forget to celebrate! 🎉", 
+            date, 
+            { type: 'special_day' },
+            'special_days',
+            'REMINDER_ACTION',
+            'yearly'
+          ).catch(e => console.warn('Notification scheduling failed:', e));
+
         } else {
-          await remindersApi.createReminder(payload);
+          const res = await remindersApi.createReminder(payload);
+          
+          let repeatingMode: any = undefined;
+          if (type === 'Medicine') {
+             if (frequency.includes('Daily')) repeatingMode = 'daily';
+             else if (frequency.includes('Weekly')) repeatingMode = 'weekly';
+          }
+          
+          scheduleLocalReminder(
+            finalTitle, 
+            type === 'Medicine' ? medNotes : (description || "You have a scheduled reminder."), 
+            date, 
+            { type: 'reminder', id: res.id || null },
+            'reminders',
+            'REMINDER_ACTION',
+            repeatingMode
+          ).catch(e => console.warn('Notification scheduling failed:', e));
         }
       }
     },

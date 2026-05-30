@@ -18,8 +18,10 @@ import { colors, lightColors } from '../src/theme/colors';
 import { setupNotificationListeners } from '../src/utils/notifications';
 import * as BackgroundFetch from 'expo-background-fetch';
 import * as TaskManager from 'expo-task-manager';
+import * as Notifications from 'expo-notifications';
 import { syncWorkspace } from '../src/services/sync';
 import { initDB } from '../src/services/db';
+import { setupNotificationChannelsAndCategories, scheduleDailyPlanner } from '../src/utils/localNotifications';
 import LockScreen from '../src/components/LockScreen';
 
 const BACKGROUND_SYNC_TASK = 'background-sync';
@@ -44,6 +46,61 @@ async function registerBackgroundSync() {
     console.log("Task Register failed:", err);
   }
 }
+
+const BACKGROUND_NOTIFICATION_TASK = 'BACKGROUND-NOTIFICATION-TASK';
+
+TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error }) => {
+  if (error) {
+    console.error('[TaskManager] Notification Error:', error);
+    return;
+  }
+  if (data) {
+    const { actionIdentifier, notification } = data as any;
+    const reqData = notification?.request?.content?.data;
+    
+    console.log(`[TaskManager] Background action received: ${actionIdentifier}`, reqData);
+    
+    try {
+      if (actionIdentifier === 'COMPLETE') {
+        if (reqData?.id && reqData?.type === 'reminder') {
+          const { localUpdate } = await import('../src/services/db');
+          await localUpdate('Reminders', reqData.id, { is_completed: 1 });
+          
+          // Dismiss notification if it stays in tray
+          await Notifications.dismissNotificationAsync(notification.request.identifier);
+        }
+      } else if (actionIdentifier === 'SNOOZE_5' || actionIdentifier === 'SNOOZE_15') {
+        const mins = actionIdentifier === 'SNOOZE_5' ? 5 : 15;
+        const newTime = new Date(Date.now() + mins * 60 * 1000);
+        
+        const content = notification.request.content;
+        
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: content.title,
+            body: content.body,
+            data: content.data,
+            sound: true,
+            categoryIdentifier: content.categoryIdentifier,
+          } as any,
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: newTime,
+            channelId: notification.request.trigger.channelId,
+          } as any,
+        });
+        
+        await Notifications.dismissNotificationAsync(notification.request.identifier);
+      }
+    } catch (e) {
+      console.error('[TaskManager] Action handler failed:', e);
+    }
+  }
+});
+
+// Register it instantly in root scope
+Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK).catch(e => console.warn('Notification task registration failed:', e));
+
 
 
 import { ThemeProvider } from '../src/context/ThemeContext';
@@ -82,9 +139,13 @@ export default function RootLayout() {
         // Parallel initialize stores
         await Promise.all([
           initialize(),
-          initializeSettings()
+          initializeSettings(),
+          setupNotificationChannelsAndCategories()
         ]);
         
+        // Schedule daily planner once on app open
+        scheduleDailyPlanner().catch(e => console.warn('Daily planner schedule failed', e));
+
         if (isMounted) setIsAppReady(true);
       } catch (e: any) {
         console.error('[RootLayout] Fatal Boot Error:', e);
@@ -105,6 +166,65 @@ export default function RootLayout() {
       console.warn('FCM listeners failed to setup', e);
     }
   }, []);
+
+  // Initialize Local Notifications Actions Listener (Foreground)
+  useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener(async response => {
+      const actionIdentifier = response.actionIdentifier;
+      const data = response.notification.request.content.data;
+      
+      console.log(`[RootLayout] Foreground action received: ${actionIdentifier}`, data);
+      
+      if (actionIdentifier === 'COMPLETE') {
+        if (data?.id && data?.type === 'reminder') {
+          const { localUpdate } = await import('../src/services/db');
+          await localUpdate('Reminders', data.id as number, { is_completed: 1 });
+          await Notifications.dismissNotificationAsync(response.notification.request.identifier);
+        }
+      } else if (actionIdentifier === 'SNOOZE_5' || actionIdentifier === 'SNOOZE_15') {
+        const mins = actionIdentifier === 'SNOOZE_5' ? 5 : 15;
+        const newTime = new Date(Date.now() + mins * 60 * 1000);
+        
+        const content = response.notification.request.content;
+        
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: content.title,
+            body: content.body,
+            data: content.data,
+            sound: true,
+            categoryIdentifier: content.categoryIdentifier,
+          } as any,
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: newTime,
+            channelId: (response.notification.request.trigger as any).channelId,
+          } as any,
+        });
+        await Notifications.dismissNotificationAsync(response.notification.request.identifier);
+      }
+      
+      // Deep Linking (app opens)
+      if (actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER || actionIdentifier === 'OPEN') {
+        const { useNotificationStore } = await import('../src/store/notificationStore');
+        
+        let targetRoute = null;
+        if (data?.type === 'reminder' && data?.id) {
+          targetRoute = `/reminder/${data.id}`;
+        } else if (data?.type === 'goal' && data?.id) {
+          // targetRoute = `/goal/${data.id}`;
+        } else if (data?.type === 'special_day' && data?.id) {
+          targetRoute = `/special_day/${data.id}`;
+        }
+        
+        if (targetRoute) {
+          useNotificationStore.getState().setPendingRoute(targetRoute);
+        }
+      }
+    });
+
+    return () => subscription.remove();
+  }, [router]);
 
   // Listen for local DB modifications to trigger auto-sync
   useEffect(() => {
@@ -165,6 +285,24 @@ export default function RootLayout() {
       setTimeout(() => router.replace('/(tabs)'), 0);
     }
   }, [isAppReady, isLoading, isSettingsReady, isAuthenticated, user, segments, isOnboarded]);
+
+  // Handle Cold-Boot Deep Linking
+  useEffect(() => {
+    const handleDeepLink = async () => {
+      const { useNotificationStore } = await import('../src/store/notificationStore');
+      const { pendingRoute, setPendingRoute } = useNotificationStore.getState();
+      
+      // Navigate only when fully ready and unlocked
+      if (isAppReady && isAuthenticated && (!passcodeEnabled || isUnlocked) && pendingRoute) {
+        console.log('[RootLayout] Routing to pending deep link:', pendingRoute);
+        setTimeout(() => {
+          router.push(pendingRoute as any);
+          setPendingRoute(null);
+        }, 300); // Small delay to let stack mount
+      }
+    };
+    handleDeepLink();
+  }, [isAppReady, isAuthenticated, passcodeEnabled, isUnlocked]);
 
   // Handle Fatal Boot Errors
   if (bootError) {

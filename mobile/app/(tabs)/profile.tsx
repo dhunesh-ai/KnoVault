@@ -71,8 +71,15 @@ export default function ProfileScreen() {
   // Personalization settings
   const [accentColor, setAccentColor] = useState('#7C4DFF');
 
-  // Security settings
-  const { passcodeEnabled, animationsEnabled, setAnimationsEnabled, setPasscode, disablePasscode, verifyPasscode } = useSettingsStore();
+  // Security & Notification settings
+  const { 
+    passcodeEnabled, animationsEnabled, setAnimationsEnabled, 
+    setPasscode, disablePasscode, verifyPasscode,
+    notificationsEnabled, notificationReminders, notificationGoals, 
+    notificationDailySummary, notificationSound, notificationVibration,
+    toggleNotificationSetting 
+  } = useSettingsStore();
+  
   const [passcodeModal, setPasscodeModal] = useState<{ visible: boolean, mode: 'create' | 'change' | 'verify' }>({ visible: false, mode: 'create' });
   const [passcodeStep, setPasscodeStep] = useState(1);
   const [passcodeInput, setPasscodeInput] = useState('');
@@ -84,8 +91,6 @@ export default function ProfileScreen() {
     type: 'success',
   });
 
-  // Settings
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   // Random quote
   const [quote, setQuote] = useState(MOTIVATIONAL_QUOTES[0]);
@@ -583,14 +588,73 @@ export default function ProfileScreen() {
             <View style={[dynamicStyles.iconBox, { backgroundColor: '#F59E0B15' }]}>
               <Ionicons name="notifications-outline" size={20} color="#F59E0B" />
             </View>
-            <Text style={dynamicStyles.menuText}>Push Notifications</Text>
+            <Text style={dynamicStyles.menuText}>Master Notifications</Text>
             <Switch
               value={notificationsEnabled}
-              onValueChange={(val) => { triggerHaptic(); setNotificationsEnabled(val); }}
+              onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationsEnabled', 'knovault_notifications', val); }}
               trackColor={{ false: theme.border, true: accentColor }}
               thumbColor="#FFFFFF"
             />
           </View>
+          
+          {notificationsEnabled && (
+            <Animated.View entering={getFadeInDown(0, 300)}>
+              <View style={[dynamicStyles.menuItem, { paddingLeft: 40, borderTopWidth: 0, marginTop: -5 }]}>
+                <Text style={[dynamicStyles.menuText, { fontSize: 14 }]}>Reminders</Text>
+                <Switch
+                  value={notificationReminders}
+                  onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationReminders', 'knovault_notif_reminders', val); }}
+                  trackColor={{ false: theme.border, true: accentColor }}
+                  thumbColor="#FFFFFF"
+                  style={{ transform: [{ scale: 0.8 }] }}
+                />
+              </View>
+              
+              <View style={[dynamicStyles.menuItem, { paddingLeft: 40, borderTopWidth: 0, marginTop: -15 }]}>
+                <Text style={[dynamicStyles.menuText, { fontSize: 14 }]}>Goals & Projects</Text>
+                <Switch
+                  value={notificationGoals}
+                  onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationGoals', 'knovault_notif_goals', val); }}
+                  trackColor={{ false: theme.border, true: accentColor }}
+                  thumbColor="#FFFFFF"
+                  style={{ transform: [{ scale: 0.8 }] }}
+                />
+              </View>
+
+              <View style={[dynamicStyles.menuItem, { paddingLeft: 40, borderTopWidth: 0, marginTop: -15 }]}>
+                <Text style={[dynamicStyles.menuText, { fontSize: 14 }]}>Daily Summary (8 AM)</Text>
+                <Switch
+                  value={notificationDailySummary}
+                  onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationDailySummary', 'knovault_notif_summary', val); }}
+                  trackColor={{ false: theme.border, true: accentColor }}
+                  thumbColor="#FFFFFF"
+                  style={{ transform: [{ scale: 0.8 }] }}
+                />
+              </View>
+
+              <View style={[dynamicStyles.menuItem, { paddingLeft: 40, borderTopWidth: 0, marginTop: -15 }]}>
+                <Text style={[dynamicStyles.menuText, { fontSize: 14 }]}>Sound</Text>
+                <Switch
+                  value={notificationSound}
+                  onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationSound', 'knovault_notif_sound', val); }}
+                  trackColor={{ false: theme.border, true: accentColor }}
+                  thumbColor="#FFFFFF"
+                  style={{ transform: [{ scale: 0.8 }] }}
+                />
+              </View>
+
+              <View style={[dynamicStyles.menuItem, { paddingLeft: 40, borderTopWidth: 0, marginTop: -15, marginBottom: 10 }]}>
+                <Text style={[dynamicStyles.menuText, { fontSize: 14 }]}>Vibration</Text>
+                <Switch
+                  value={notificationVibration}
+                  onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationVibration', 'knovault_notif_vibration', val); }}
+                  trackColor={{ false: theme.border, true: accentColor }}
+                  thumbColor="#FFFFFF"
+                  style={{ transform: [{ scale: 0.8 }] }}
+                />
+              </View>
+            </Animated.View>
+          )}
 
           <View style={dynamicStyles.menuItem}>
             <View style={[dynamicStyles.iconBox, { backgroundColor: '#14B8A615' }]}>

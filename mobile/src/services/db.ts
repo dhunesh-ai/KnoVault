@@ -112,6 +112,19 @@ export const initDB = async () => {
     );
   `);
   
+  // Create NotificationHistory table
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS NotificationHistory (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      body TEXT,
+      category TEXT,
+      payload TEXT,
+      is_read INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
   // Initialize SyncMetadata if empty
   const meta = await db.getFirstAsync('SELECT * FROM SyncMetadata LIMIT 1');
   if (!meta) {
@@ -129,6 +142,7 @@ export const clearDB = async () => {
         DELETE FROM Reminders;
         DELETE FROM ImportantDays;
         DELETE FROM SyncQueue;
+        DELETE FROM NotificationHistory;
         UPDATE SyncMetadata SET last_sync = '1970-01-01T00:00:00Z';
     `);
 };
@@ -143,6 +157,7 @@ export const resetLocalDB = async () => {
         DROP TABLE IF EXISTS ImportantDays;
         DROP TABLE IF EXISTS SyncQueue;
         DROP TABLE IF EXISTS SyncMetadata;
+        DROP TABLE IF EXISTS NotificationHistory;
     `);
     await initDB();
 };
