@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { getFadeIn, getFadeInRight } from '../src/utils/animations';
 import {
   View,
   Text,
@@ -41,7 +42,7 @@ export default function AISuggestions({ suggestions, onSelect, disabled }: AISug
   if (!suggestions.length) return null;
 
   return (
-    <Animated.View entering={FadeIn.duration(350)} style={[styles.wrapper, { backgroundColor: theme.card, borderTopColor: theme.border }]}>
+    <Animated.View entering={getFadeIn()} style={[styles.wrapper, { backgroundColor: theme.card, borderTopColor: theme.border }]}>
       <View style={styles.labelRow}>
         <Ionicons name="sparkles" size={11} color={theme.primary} />
         <Text style={[styles.sectionLabel, { color: colors.text.tertiary }]}>Smart Suggestions</Text>
@@ -101,7 +102,7 @@ function SuggestionChip({
 
   return (
     <AnimatedTouchable
-      entering={FadeInRight.delay(index * 60).duration(280)}
+      entering={getFadeInRight(0, 280)}
       style={[
         styles.chip, 
         { 

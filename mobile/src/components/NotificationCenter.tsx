@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { getFadeIn, getFadeInRight, getFadeOut, getFadeOutRight, getLinearTransition } from '../utils/animations';
+import { useSettingsStore } from '../store/settingsStore';
 import {
   View,
   Text,
@@ -44,6 +46,7 @@ interface SwipeableItemProps {
 
 const SwipeableItem = ({ children, onDismiss, isDark }: SwipeableItemProps) => {
   const translateX = useSharedValue(0);
+  const animationsEnabled = useSettingsStore(state => state.animationsEnabled);
 
   const panGesture = Gesture.Pan()
     .activeOffsetX([10, 30])
@@ -53,11 +56,11 @@ const SwipeableItem = ({ children, onDismiss, isDark }: SwipeableItemProps) => {
     })
     .onEnd((event) => {
       if (translateX.value > 120) {
-        translateX.value = withTiming(500, { duration: 150 }, () => {
-          runOnJS(onDismiss)();
-        });
+        translateX.value = animationsEnabled
+          ? withTiming(500, { duration: 150 }, () => { runOnJS(onDismiss)(); })
+          : withTiming(500, { duration: 0 }, () => { runOnJS(onDismiss)(); });
       } else {
-        translateX.value = withSpring(0, { damping: 15 });
+        translateX.value = animationsEnabled ? withSpring(0, { damping: 15 }) : withTiming(0, { duration: 0 });
       }
     });
 
@@ -98,29 +101,34 @@ export const NotificationCenter = ({ visible, onClose }: NotificationCenterProps
     dismissNotification,
   } = useNotificationsStore();
 
+  const animationsEnabled = useSettingsStore(state => state.animationsEnabled);
   const [shouldRender, setShouldRender] = useState(visible);
   const progress = useSharedValue(0);
 
   useEffect(() => {
     if (visible) {
       setShouldRender(true);
-      // console.log('[NOTIFICATION CENTER OPENED]');
       triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-      progress.value = withTiming(1, {
+      progress.value = animationsEnabled ? withTiming(1, {
         duration: 300,
         easing: Easing.out(Easing.cubic),
-      });
+      }) : 1;
     } else {
-      progress.value = withTiming(0, {
-        duration: 250,
-        easing: Easing.in(Easing.cubic),
-      }, (finished) => {
-        if (finished) {
-          runOnJS(setShouldRender)(false);
-        }
-      });
+      if (animationsEnabled) {
+        progress.value = withTiming(0, {
+          duration: 250,
+          easing: Easing.in(Easing.cubic),
+        }, (finished?: boolean) => {
+          if (finished) {
+            runOnJS(setShouldRender)(false);
+          }
+        });
+      } else {
+        progress.value = 0;
+        setShouldRender(false);
+      }
     }
-  }, [visible]);
+  }, [visible, animationsEnabled]);
 
   const triggerHaptic = async (style = Haptics.ImpactFeedbackStyle.Light) => {
     try {
@@ -277,9 +285,9 @@ export const NotificationCenter = ({ visible, onClose }: NotificationCenterProps
                     return (
                       <Animated.View
                         key={item.id}
-                        entering={FadeInRight.duration(200)}
-                        exiting={FadeOutRight.duration(150)}
-                        layout={LinearTransition}
+                        entering={getFadeInRight(0, 200)}
+                        exiting={getFadeOutRight(150)}
+                        layout={getLinearTransition()}
                       >
                         <SwipeableItem onDismiss={() => handleDismiss(item.id)} isDark={isDark}>
                           <View style={[

@@ -126,9 +126,17 @@ export const logNotificationToHistory = async (
 ) => {
   try {
     const db = getDB();
+    const safeTitle = title ?? 'Notification';
+    const safeBody = body ?? '';
+    const safeCategory = category ?? 'system';
+    const safePayload = payload ? JSON.stringify(payload) : null;
+    
     await db.runAsync(
       'INSERT INTO NotificationHistory (title, body, category, payload) VALUES (?, ?, ?, ?)',
-      [title, body, category, payload ? JSON.stringify(payload) : null]
+      safeTitle, 
+      safeBody, 
+      safeCategory, 
+      safePayload
     );
     // Trigger UI update if needed
     useNotificationStore.getState().fetchNotifications();

@@ -36,6 +36,7 @@ import { BlurView } from 'expo-blur';
 import { notesApi } from '../../src/api/notes';
 import { useTheme } from '../../src/hooks/useTheme';
 import { typography, spacing, borderRadius } from '../../src/theme';
+import { useSettingsStore } from '../../src/store/settingsStore';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
 
 const CATEGORIES = [
@@ -175,6 +176,7 @@ export default function NoteEditorScreen() {
   const [isEditing, setIsEditing] = useState(!isExistingNote);
   const [showHint, setShowHint] = useState(isExistingNote);
   const [saveStatus, setSaveStatus] = useState<'Saving...' | 'Saved ✓' | ''>('');
+  const { animationsEnabled } = useSettingsStore();
   
   const bodyInputRef = useRef<TextInput>(null);
   const titleInputRef = useRef<TextInput>(null);
@@ -244,8 +246,8 @@ export default function NoteEditorScreen() {
   const [lastTap, setLastTap] = useState(0);
 
   useEffect(() => {
-    editProgress.value = withTiming(isEditing ? 1 : 0, { duration: 300 });
-  }, [isEditing]);
+    editProgress.value = animationsEnabled ? withTiming(isEditing ? 1 : 0, { duration: 300 }) : (isEditing ? 1 : 0);
+  }, [isEditing, animationsEnabled]);
 
   useEffect(() => {
     if (isExistingNote) {
@@ -267,7 +269,7 @@ export default function NoteEditorScreen() {
   }, [title, content, checklist, fields, isEditing]);
 
   const animatedEditBtnStyle = useAnimatedStyle(() => {
-    const glowOpacity = withTiming(isEditPressed.value ? 0.6 : 0, { duration: 150 });
+    const glowOpacity = animationsEnabled ? withTiming(isEditPressed.value ? 0.6 : 0, { duration: 150 }) : (isEditPressed.value ? 0.6 : 0);
     return {
       transform: [{ scale: editScale.value }],
       shadowColor: '#7C4DFF',
@@ -300,7 +302,9 @@ export default function NoteEditorScreen() {
 
   const handleEnableEdit = async () => {
     console.log('[EDIT MODE ENABLED]');
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (animationsEnabled) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
     setIsEditing(true);
     await triggerHaptic(Haptics.NotificationFeedbackType.Success);
     scrollToTop();
@@ -322,7 +326,9 @@ export default function NoteEditorScreen() {
     if (now - lastTap < DOUBLE_TAP_DELAY) {
       console.log('[Double Tap Detected]');
       console.log('[EDIT MODE ENABLED]');
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      if (animationsEnabled) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      }
       setIsEditing(true);
       await triggerHaptic(Haptics.NotificationFeedbackType.Success);
       scrollToTop();
@@ -343,7 +349,7 @@ export default function NoteEditorScreen() {
   const rippleOpacity = useSharedValue(0);
 
   const animatedCopyBtnStyle = useAnimatedStyle(() => {
-    const glowOpacity = withTiming(isCopyPressed.value ? 0.6 : 0, { duration: 150 });
+    const glowOpacity = animationsEnabled ? withTiming(isCopyPressed.value ? 0.6 : 0, { duration: 150 }) : (isCopyPressed.value ? 0.6 : 0);
     return {
       transform: [{ scale: copyScale.value }],
       shadowColor: '#7C4DFF',
@@ -424,10 +430,12 @@ export default function NoteEditorScreen() {
     }
 
     // Trigger ripple animation
-    rippleScale.value = 0.8;
-    rippleOpacity.value = 0.6;
-    rippleScale.value = withTiming(1.6, { duration: 450 });
-    rippleOpacity.value = withTiming(0, { duration: 450 });
+    if (animationsEnabled) {
+      rippleScale.value = 0.8;
+      rippleOpacity.value = 0.6;
+      rippleScale.value = withTiming(1.6, { duration: 450 });
+      rippleOpacity.value = withTiming(0, { duration: 450 });
+    }
 
     try {
       await Clipboard.setStringAsync(textToCopy);
@@ -477,26 +485,32 @@ export default function NoteEditorScreen() {
   const lockRotate = useSharedValue(0);
 
   useEffect(() => {
-    secureProgress.value = withTiming(isSecure ? 1 : 0, { duration: 300 });
-    
-    if (isSecure) {
-      lockScale.value = withSequence(
-        withTiming(1.3, { duration: 120 }),
-        withSpring(1, { damping: 8 })
-      );
-      lockRotate.value = withSequence(
-        withTiming(-15, { duration: 80 }),
-        withTiming(15, { duration: 80 }),
-        withSpring(0, { damping: 6 })
-      );
+    if (animationsEnabled) {
+      secureProgress.value = withTiming(isSecure ? 1 : 0, { duration: 300 });
+      
+      if (isSecure) {
+        lockScale.value = withSequence(
+          withTiming(1.3, { duration: 120 }),
+          withSpring(1, { damping: 8 })
+        );
+        lockRotate.value = withSequence(
+          withTiming(-15, { duration: 80 }),
+          withTiming(15, { duration: 80 }),
+          withSpring(0, { damping: 6 })
+        );
+      } else {
+        lockScale.value = withSequence(
+          withTiming(0.8, { duration: 120 }),
+          withSpring(1, { damping: 8 })
+        );
+        lockRotate.value = withSpring(0);
+      }
     } else {
-      lockScale.value = withSequence(
-        withTiming(0.8, { duration: 120 }),
-        withSpring(1, { damping: 8 })
-      );
-      lockRotate.value = withSpring(0);
+      secureProgress.value = isSecure ? 1 : 0;
+      lockScale.value = 1;
+      lockRotate.value = 0;
     }
-  }, [isSecure]);
+  }, [isSecure, animationsEnabled]);
 
   const animatedInputsStyle = useAnimatedStyle(() => {
     const editBorderColor = interpolateColor(
@@ -606,7 +620,9 @@ export default function NoteEditorScreen() {
   // ── Sync Handlers ──────────────────────────────────────────────
   const handleToggleSecure = async () => {
     const nextSecure = !isSecure;
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (animationsEnabled) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
     if (nextSecure) {
       console.log('[SECURE MODE ENABLED]');
       console.log('[SECURE CATEGORY AUTO-SELECTED]');
@@ -622,7 +638,9 @@ export default function NoteEditorScreen() {
   };
 
   const handleCategoryChange = async (cat: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (animationsEnabled) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
     if (cat === 'Secure') {
       if (!isSecure) {
         console.log('[SECURE MODE ENABLED]');
@@ -829,11 +847,11 @@ export default function NoteEditorScreen() {
             onPress={handleCopy}
             onPressIn={() => {
               isCopyPressed.value = true;
-              copyScale.value = withTiming(0.92, { duration: 100 });
+              if (animationsEnabled) copyScale.value = withTiming(0.92, { duration: 100 });
             }}
             onPressOut={() => {
               isCopyPressed.value = false;
-              copyScale.value = withTiming(1, { duration: 100 });
+              if (animationsEnabled) copyScale.value = withTiming(1, { duration: 100 });
             }}
             hitSlop={10}
             accessibilityLabel="Copy note content"
@@ -866,11 +884,11 @@ export default function NoteEditorScreen() {
               <Pressable
                 onPress={handleEnableEdit}
                 onPressIn={() => {
-                  editScale.value = withTiming(0.92, { duration: 100 });
+                  if (animationsEnabled) editScale.value = withTiming(0.92, { duration: 100 });
                   isEditPressed.value = true;
                 }}
                 onPressOut={() => {
-                  editScale.value = withTiming(1, { duration: 100 });
+                  if (animationsEnabled) editScale.value = withTiming(1, { duration: 100 });
                   isEditPressed.value = false;
                 }}
                 hitSlop={10}
@@ -1198,7 +1216,7 @@ export default function NoteEditorScreen() {
 
       {toast && (
         <Animated.View
-          entering={getFadeInDown(0, 350).springify()}
+          entering={getFadeInDown(0, 350)?.springify()}
           exiting={getFadeOutUp(250)}
           style={[
             ds.toastWrapper,
@@ -1250,7 +1268,7 @@ export default function NoteEditorScreen() {
 
       {showHint && !isEditing && (
         <Animated.View
-          entering={getFadeInDown(0, 400).springify()}
+          entering={getFadeInDown(0, 400)?.springify()}
           exiting={getFadeOut(300)}
           style={[
             ds.hintWrapper,
@@ -1295,7 +1313,7 @@ export default function NoteEditorScreen() {
           <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => setCategoryModalVisible(false)} />
           
           <Animated.View 
-            entering={getFadeInDown(0, 300).springify()}
+            entering={getFadeInDown(0, 300)?.springify()}
             style={[ds.bottomSheet, { backgroundColor: theme.background, maxHeight: '80%' }]}
           >
             <View style={ds.bottomSheetHeader}>

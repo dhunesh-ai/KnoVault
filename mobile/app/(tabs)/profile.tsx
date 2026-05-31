@@ -14,9 +14,10 @@ import * as SecureStore from 'expo-secure-store';
 import * as Haptics from 'expo-haptics';
 import * as LocalAuthentication from 'expo-local-authentication';
 import Animated, { 
-  useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSpring, cancelAnimation
+  useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSpring, cancelAnimation, LinearTransition
 } from 'react-native-reanimated';
-import { getFadeIn, getFadeInUp, getFadeOutUp, getFadeInDown, getFadeOut, getZoomIn, getZoomOut } from '../../src/utils/animations';
+import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
+import { getFadeIn, getFadeInUp, getFadeOutUp, getFadeInDown, getFadeOut, getZoomIn, getZoomOut, getLinearTransition } from '../../src/utils/animations';
 import { LineChart } from 'react-native-chart-kit';
 import { useAuthStore } from '../../src/store/authStore';
 import { useSettingsStore } from '../../src/store/settingsStore';
@@ -67,17 +68,18 @@ export default function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [isNotifExpanded, setIsNotifExpanded] = useState(false);
 
   // Personalization settings
   const [accentColor, setAccentColor] = useState('#7C4DFF');
 
   // Security & Notification settings
   const { 
-    passcodeEnabled, animationsEnabled, setAnimationsEnabled, 
-    setPasscode, disablePasscode, verifyPasscode,
+    animationsEnabled, setAnimationsEnabled, 
+    
     notificationsEnabled, notificationReminders, notificationGoals, 
     notificationDailySummary, notificationSound, notificationVibration,
-    toggleNotificationSetting 
+    toggleNotificationSetting, microphoneEnabled, setMicrophoneEnabled
   } = useSettingsStore();
   
   const [passcodeModal, setPasscodeModal] = useState<{ visible: boolean, mode: 'create' | 'change' | 'verify' }>({ visible: false, mode: 'create' });
@@ -249,6 +251,15 @@ export default function ProfileScreen() {
   const avatarScale = useSharedValue(1);
   const skeletonOpacity = useSharedValue(0.4);
   const orbTranslateY = useSharedValue(0);
+  const arrowRotation = useSharedValue(0);
+
+  useEffect(() => {
+    arrowRotation.value = animationsEnabled ? withTiming(isNotifExpanded ? 180 : 0, { duration: 300 }) : (isNotifExpanded ? 180 : 0);
+  }, [isNotifExpanded, animationsEnabled]);
+
+  const animatedArrowStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${arrowRotation.value}deg` }]
+  }));
 
   useEffect(() => {
     if (animationsEnabled) {
@@ -358,36 +369,39 @@ export default function ProfileScreen() {
   };
 
   // App lock toggle
-  const handleAppLockToggle = async (val: boolean) => {
-    triggerHaptic();
-    if (val) {
-      setPasscodeModal({ visible: true, mode: 'create' });
-      setPasscodeStep(1);
-      setPasscodeInput('');
-    } else {
-      Alert.alert(
-        'Disable Passcode',
-        'Are you sure you want to disable the app lock?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Disable', 
-            style: 'destructive',
-            onPress: async () => {
-              await disablePasscode();
-              showToast('App lock disabled', 'success');
-            }
-          }
-        ]
-      );
-    }
-  };
+  
 
   // Animations toggle
   const handleAnimationsToggle = async (val: boolean) => {
     triggerHaptic();
     await setAnimationsEnabled(val);
     showToast(val ? 'Animation Effects Enabled' : 'Animation Effects Disabled', 'info');
+  };
+
+  // Microphone toggle
+  const handleMicrophoneToggle = async (val: boolean) => {
+    triggerHaptic();
+    if (val) {
+      try {
+        const isAvailable = ExpoSpeechRecognitionModule.isRecognitionAvailable();
+        if (!isAvailable) {
+          showToast('Speech recognition not available on this device', 'error');
+          return;
+        }
+        const permission = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+        if (permission.granted) {
+          await setMicrophoneEnabled(true);
+          showToast('Microphone access granted', 'success');
+        } else {
+          showToast('Microphone permission denied', 'error');
+        }
+      } catch (e) {
+        showToast('Failed to request microphone permission', 'error');
+      }
+    } else {
+      await setMicrophoneEnabled(false);
+      showToast('Microphone access disabled', 'info');
+    }
   };
 
   const handleContactSupport = () => {
@@ -431,13 +445,7 @@ export default function ProfileScreen() {
   const dynamicStyles = styles(theme, isDark, colors, accentColor);
 
   // Loading skeleton card
-  const SkeletonCard = () => (
-    <Animated.View style={[dynamicStyles.statCard, animatedSkeletonStyle]}>
-      <View style={dynamicStyles.skeletonIcon} />
-      <View style={dynamicStyles.skeletonTitle} />
-      <View style={dynamicStyles.skeletonLabel} />
-    </Animated.View>
-  );
+
 
   return (
     <SwipeWrapper currentTab="profile">
@@ -447,7 +455,7 @@ export default function ProfileScreen() {
       {/* Floating Toast Notification */}
       {toast.visible && (
         <Animated.View entering={getFadeInUp(0, 300)} exiting={getFadeOutUp(300)} style={dynamicStyles.toast}>
-          <View style={[dynamicStyles.toastContent, getThemedShadow(theme, 'medium')]}>
+          <View style={[dynamicStyles.toastContent]}>
             <Ionicons 
               name={toast.type === 'success' ? 'checkmark-circle-outline' : toast.type === 'error' ? 'alert-circle-outline' : 'information-circle-outline'} 
               size={20} 
@@ -462,7 +470,7 @@ export default function ProfileScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={dynamicStyles.scroll}>
         
         {/* ── 1. HERO PROFILE CARD ─────────────────────────────────── */}
-        <Animated.View entering={getFadeInUp(0, 600)} style={[dynamicStyles.overviewCard, getThemedShadow(theme, 'medium')]}>
+        <Animated.View entering={getFadeInUp(0, 600)} style={[dynamicStyles.overviewCard]}>
           
           {/* Animated Background Shapes */}
           <Animated.View style={[dynamicStyles.orbDecorRight, animatedOrbStyle]} />
@@ -508,12 +516,13 @@ export default function ProfileScreen() {
           <Text style={dynamicStyles.sectionTitle}>Productivity metrics</Text>
           {loadingNotes || loadingStats || loadingProjects || loadingDays ? (
             <View style={dynamicStyles.statsGrid}>
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
+              {[1, 2, 3, 4, 5, 6].map((key) => (
+                <Animated.View key={key} style={[dynamicStyles.statCard, animatedSkeletonStyle]}>
+                  <View style={dynamicStyles.skeletonIcon} />
+                  <View style={dynamicStyles.skeletonTitle} />
+                  <View style={dynamicStyles.skeletonLabel} />
+                </Animated.View>
+              ))}
             </View>
           ) : (
             <Animated.View entering={getFadeInDown(100, 600)} style={dynamicStyles.statsGrid}>
@@ -584,79 +593,7 @@ export default function ProfileScreen() {
           </View>
 
 
-          <View style={dynamicStyles.menuItem}>
-            <View style={[dynamicStyles.iconBox, { backgroundColor: '#F59E0B15' }]}>
-              <Ionicons name="notifications-outline" size={20} color="#F59E0B" />
-            </View>
-            <Text style={dynamicStyles.menuText}>Master Notifications</Text>
-            <Switch
-              value={notificationsEnabled}
-              onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationsEnabled', 'knovault_notifications', val); }}
-              trackColor={{ false: theme.border, true: accentColor }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-          
-          {notificationsEnabled && (
-            <Animated.View entering={getFadeInDown(0, 300)}>
-              <View style={[dynamicStyles.menuItem, { paddingLeft: 40, borderTopWidth: 0, marginTop: -5 }]}>
-                <Text style={[dynamicStyles.menuText, { fontSize: 14 }]}>Reminders</Text>
-                <Switch
-                  value={notificationReminders}
-                  onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationReminders', 'knovault_notif_reminders', val); }}
-                  trackColor={{ false: theme.border, true: accentColor }}
-                  thumbColor="#FFFFFF"
-                  style={{ transform: [{ scale: 0.8 }] }}
-                />
-              </View>
-              
-              <View style={[dynamicStyles.menuItem, { paddingLeft: 40, borderTopWidth: 0, marginTop: -15 }]}>
-                <Text style={[dynamicStyles.menuText, { fontSize: 14 }]}>Goals & Projects</Text>
-                <Switch
-                  value={notificationGoals}
-                  onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationGoals', 'knovault_notif_goals', val); }}
-                  trackColor={{ false: theme.border, true: accentColor }}
-                  thumbColor="#FFFFFF"
-                  style={{ transform: [{ scale: 0.8 }] }}
-                />
-              </View>
-
-              <View style={[dynamicStyles.menuItem, { paddingLeft: 40, borderTopWidth: 0, marginTop: -15 }]}>
-                <Text style={[dynamicStyles.menuText, { fontSize: 14 }]}>Daily Summary (8 AM)</Text>
-                <Switch
-                  value={notificationDailySummary}
-                  onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationDailySummary', 'knovault_notif_summary', val); }}
-                  trackColor={{ false: theme.border, true: accentColor }}
-                  thumbColor="#FFFFFF"
-                  style={{ transform: [{ scale: 0.8 }] }}
-                />
-              </View>
-
-              <View style={[dynamicStyles.menuItem, { paddingLeft: 40, borderTopWidth: 0, marginTop: -15 }]}>
-                <Text style={[dynamicStyles.menuText, { fontSize: 14 }]}>Sound</Text>
-                <Switch
-                  value={notificationSound}
-                  onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationSound', 'knovault_notif_sound', val); }}
-                  trackColor={{ false: theme.border, true: accentColor }}
-                  thumbColor="#FFFFFF"
-                  style={{ transform: [{ scale: 0.8 }] }}
-                />
-              </View>
-
-              <View style={[dynamicStyles.menuItem, { paddingLeft: 40, borderTopWidth: 0, marginTop: -15, marginBottom: 10 }]}>
-                <Text style={[dynamicStyles.menuText, { fontSize: 14 }]}>Vibration</Text>
-                <Switch
-                  value={notificationVibration}
-                  onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationVibration', 'knovault_notif_vibration', val); }}
-                  trackColor={{ false: theme.border, true: accentColor }}
-                  thumbColor="#FFFFFF"
-                  style={{ transform: [{ scale: 0.8 }] }}
-                />
-              </View>
-            </Animated.View>
-          )}
-
-          <View style={dynamicStyles.menuItem}>
+                    <View style={dynamicStyles.menuItem}>
             <View style={[dynamicStyles.iconBox, { backgroundColor: '#14B8A615' }]}>
               <Ionicons name="color-wand-outline" size={20} color="#14B8A6" />
             </View>
@@ -671,63 +608,134 @@ export default function ProfileScreen() {
               thumbColor="#FFFFFF"
             />
           </View>
+
+          <View style={dynamicStyles.menuItem}>
+            <View style={[dynamicStyles.iconBox, { backgroundColor: '#EF444415' }]}>
+              <Ionicons name="mic-outline" size={20} color="#EF4444" />
+            </View>
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={dynamicStyles.menuText}>Microphone Access</Text>
+              <Text style={[typography.caption, { color: theme.textSecondary }]}>Required for Voice Notes and Speech-to-Text</Text>
+              <Text style={[typography.caption, { color: theme.textSecondary, marginTop: 2, fontWeight: '600' }]}>{microphoneEnabled ? 'Enabled' : 'Disabled'}</Text>
+            </View>
+            <Switch
+              value={microphoneEnabled}
+              onValueChange={handleMicrophoneToggle}
+              trackColor={{ false: theme.border, true: accentColor }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+        </View>
+
+        {/* ── NOTIFICATION CENTER ──────────────────────────────────── */}
+        <View style={dynamicStyles.section}>
+          <Text style={dynamicStyles.sectionTitle}>Notification Center</Text>
+          
+          <Animated.View layout={getLinearTransition()} style={dynamicStyles.notificationCard}>
+            <TouchableOpacity 
+              style={[dynamicStyles.notificationHeaderRow, { paddingVertical: 12, paddingHorizontal: 16 }]} 
+              onPress={() => { triggerHaptic(); setIsNotifExpanded(!isNotifExpanded); }}
+              activeOpacity={0.7}
+            >
+              <View style={[dynamicStyles.iconBox, { backgroundColor: '#F59E0B15' }]}>
+                <Ionicons name="notifications-outline" size={20} color="#F59E0B" />
+              </View>
+              <Text style={[dynamicStyles.menuText, { marginLeft: 10, flex: 1 }]}>Master Notifications</Text>
+              
+              <Switch
+                value={notificationsEnabled}
+                onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationsEnabled', 'knovault_notifications', val); }}
+                trackColor={{ false: theme.border, true: accentColor }}
+                thumbColor="#FFFFFF"
+                style={{ marginRight: 15 }}
+              />
+
+              <Animated.View style={animatedArrowStyle}>
+                <Ionicons name="chevron-down-outline" size={20} color={theme.textSecondary} />
+              </Animated.View>
+            </TouchableOpacity>
+
+            {isNotifExpanded && (
+              <Animated.View entering={getFadeInDown(0, 300)} exiting={getFadeOutUp(300)}>
+                <View style={[dynamicStyles.notificationDivider, { marginLeft: 16 }]} />
+                <View style={{ opacity: notificationsEnabled ? 1 : 0.5, paddingLeft: 16 }}>
+                  <View style={dynamicStyles.notificationChildRow}>
+                    <Text style={[dynamicStyles.menuText, { fontSize: 14 }]}>Reminder Alerts</Text>
+                    <Switch
+                      value={notificationReminders}
+                      onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationReminders', 'knovault_notif_reminders', val); }}
+                      trackColor={{ false: theme.border, true: accentColor }}
+                      thumbColor="#FFFFFF"
+                      style={{ transform: [{ scale: 0.8 }] }}
+                      disabled={!notificationsEnabled}
+                    />
+                  </View>
+                  
+                  <View style={dynamicStyles.notificationChildRow}>
+                    <Text style={[dynamicStyles.menuText, { fontSize: 14 }]}>Goals & Projects</Text>
+                    <Switch
+                      value={notificationGoals}
+                      onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationGoals', 'knovault_notif_goals', val); }}
+                      trackColor={{ false: theme.border, true: accentColor }}
+                      thumbColor="#FFFFFF"
+                      style={{ transform: [{ scale: 0.8 }] }}
+                      disabled={!notificationsEnabled}
+                    />
+                  </View>
+
+                  <View style={dynamicStyles.notificationChildRow}>
+                    <Text style={[dynamicStyles.menuText, { fontSize: 14 }]}>Daily Summary (8 AM)</Text>
+                    <Switch
+                      value={notificationDailySummary}
+                      onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationDailySummary', 'knovault_notif_summary', val); }}
+                      trackColor={{ false: theme.border, true: accentColor }}
+                      thumbColor="#FFFFFF"
+                      style={{ transform: [{ scale: 0.8 }] }}
+                      disabled={!notificationsEnabled}
+                    />
+                  </View>
+
+                  <View style={dynamicStyles.notificationChildRow}>
+                    <Text style={[dynamicStyles.menuText, { fontSize: 14 }]}>Sound</Text>
+                    <Switch
+                      value={notificationSound}
+                      onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationSound', 'knovault_notif_sound', val); }}
+                      trackColor={{ false: theme.border, true: accentColor }}
+                      thumbColor="#FFFFFF"
+                      style={{ transform: [{ scale: 0.8 }] }}
+                      disabled={!notificationsEnabled}
+                    />
+                  </View>
+
+                  <View style={dynamicStyles.notificationChildRowLast}>
+                    <Text style={[dynamicStyles.menuText, { fontSize: 14 }]}>Vibration</Text>
+                    <Switch
+                      value={notificationVibration}
+                      onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationVibration', 'knovault_notif_vibration', val); }}
+                      trackColor={{ false: theme.border, true: accentColor }}
+                      thumbColor="#FFFFFF"
+                      style={{ transform: [{ scale: 0.8 }] }}
+                      disabled={!notificationsEnabled}
+                    />
+                  </View>
+                </View>
+              </Animated.View>
+            )}
+          </Animated.View>
         </View>
 
         {/* ── 9. SECURITY CENTER ───────────────────────────────────── */}
         <View style={dynamicStyles.section}>
           <Text style={dynamicStyles.sectionTitle}>Security Center</Text>
           
-          <View style={dynamicStyles.menuItem}>
-            <View style={[dynamicStyles.iconBox, { backgroundColor: '#10B98115' }]}>
-              <Ionicons name="lock-closed-outline" size={20} color="#10B981" />
-            </View>
-            <View style={{ flex: 1, marginLeft: 10 }}>
-              <Text style={dynamicStyles.menuText}>App Passcode Lock</Text>
-              <Text style={[typography.caption, { color: theme.textSecondary }]}>{passcodeEnabled ? 'Enabled' : 'Disabled'}</Text>
-            </View>
-            <Switch
-              value={passcodeEnabled}
-              onValueChange={handleAppLockToggle}
-              trackColor={{ false: theme.border, true: accentColor }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-          
-          {passcodeEnabled && (
-            <>
-              <TouchableOpacity style={dynamicStyles.menuItem} onPress={() => { setPasscodeModal({ visible: true, mode: 'change' }); setPasscodeStep(1); setPasscodeInput(''); }}>
-                <View style={[dynamicStyles.iconBox, { backgroundColor: '#3B82F615' }]}>
-                  <Ionicons name="keypad-outline" size={20} color="#3B82F6" />
-                </View>
-                <View style={{ flex: 1, marginLeft: 10 }}>
-                  <Text style={dynamicStyles.menuText}>Change Passcode</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={theme.textSecondary} />
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={dynamicStyles.menuItem} onPress={() => {
-                Alert.alert('Reset Passcode', 'Resetting your passcode requires signing out. Do you want to proceed?', [
-                  { text: 'Cancel', style: 'cancel' },
-                  { text: 'Sign Out & Reset', style: 'destructive', onPress: async () => { await disablePasscode(); await logout(); } }
-                ]);
-              }}>
-                <View style={[dynamicStyles.iconBox, { backgroundColor: '#EF444415' }]}>
-                  <Ionicons name="refresh-circle-outline" size={20} color="#EF4444" />
-                </View>
-                <View style={{ flex: 1, marginLeft: 10 }}>
-                  <Text style={dynamicStyles.menuText}>Reset Passcode</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={theme.textSecondary} />
-              </TouchableOpacity>
-            </>
-          )}
+          {/* Passcode lock removed as per user requirement */}
 
         </View>
 
         {/* ── 10. CLOUD STORAGE ─────────────────────────────────────── */}
         <View style={dynamicStyles.section}>
           <Text style={dynamicStyles.sectionTitle}>Cloud Storage</Text>
-          <View style={[dynamicStyles.dataManagementCard, getThemedShadow(theme, 'soft')]}>
+          <View style={[dynamicStyles.dataManagementCard]}>
             
             <View style={{ marginBottom: 15 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -794,7 +802,7 @@ export default function ProfileScreen() {
         {/* ── 11. RECENT ACTIVITY TIMELINE ──────────────────────────── */}
         <View style={dynamicStyles.section}>
           <Text style={dynamicStyles.sectionTitle}>Recent Activity Timeline</Text>
-          <View style={[dynamicStyles.timelineCard, getThemedShadow(theme, 'soft')]}>
+          <View style={[dynamicStyles.timelineCard]}>
             {recentActivities.length === 0 ? (
               <Text style={dynamicStyles.emptyTimelineText}>No activity logged in this workspace session</Text>
             ) : (
@@ -1001,7 +1009,7 @@ export default function ProfileScreen() {
                 { title: '☁️ Cloud Storage', desc: 'Automatic cloud sync up to 5 MB.' },
                 { title: '🔒 Privacy First', desc: 'Your data remains secure and protected.' }
               ].map(feat => (
-                <View key={feat.title} style={[dynamicStyles.fullModalCard, getThemedShadow(theme, 'soft')]}>
+                <View key={feat.title} style={[dynamicStyles.fullModalCard]}>
                   <Text style={[dynamicStyles.fullCardTitle, { color: theme.text }]}>{feat.title}</Text>
                   <Text style={dynamicStyles.fullCardBody}>{feat.desc}</Text>
                 </View>
@@ -1028,7 +1036,7 @@ export default function ProfileScreen() {
             {/* SECTION 4: DATA STORAGE */}
             <View style={{ marginBottom: 25 }}>
               <Text style={[dynamicStyles.fullCardTitle, { color: theme.text, marginBottom: 10, fontSize: 16 }]}>Data Storage</Text>
-              <View style={[dynamicStyles.fullModalCard, getThemedShadow(theme, 'soft'), { borderColor: accentColor, borderWidth: 1 }]}>
+              <View style={[dynamicStyles.fullModalCard, { borderColor: accentColor, borderWidth: 1 }]}>
                 <Text style={[dynamicStyles.fullCardTitle, { color: theme.text }]}>Cloud Storage Limit: 5 MB</Text>
                 <Text style={[dynamicStyles.fullCardBody, { marginTop: 8 }]}>When cloud storage reaches 5 MB:</Text>
                 <Text style={dynamicStyles.fullCardBody}>• New data automatically switches to local storage.</Text>
@@ -1039,7 +1047,7 @@ export default function ProfileScreen() {
             {/* SECTION 5: PRIVACY & SECURITY */}
             <View style={{ marginBottom: 25 }}>
               <Text style={[dynamicStyles.fullCardTitle, { color: theme.text, marginBottom: 10, fontSize: 16 }]}>Privacy & Security</Text>
-              <View style={[dynamicStyles.fullModalCard, getThemedShadow(theme, 'soft')]}>
+              <View style={[dynamicStyles.fullModalCard]}>
                 <Text style={dynamicStyles.fullCardBody}>• Local-first architecture</Text>
                 <Text style={dynamicStyles.fullCardBody}>• Secure storage</Text>
                 <Text style={dynamicStyles.fullCardBody}>• User-controlled data</Text>
@@ -1051,7 +1059,7 @@ export default function ProfileScreen() {
             {/* SECTION 6: APP INFORMATION */}
             <View style={{ marginBottom: 25 }}>
               <Text style={[dynamicStyles.fullCardTitle, { color: theme.text, marginBottom: 10, fontSize: 16 }]}>App Information</Text>
-              <View style={[dynamicStyles.fullModalCard, getThemedShadow(theme, 'soft')]}>
+              <View style={[dynamicStyles.fullModalCard]}>
                 <Text style={dynamicStyles.fullCardBody}><Text style={{ fontWeight: 'bold' }}>App Name:</Text> KnoVault</Text>
                 <Text style={dynamicStyles.fullCardBody}><Text style={{ fontWeight: 'bold' }}>Version:</Text> 1.2.5</Text>
                 <Text style={dynamicStyles.fullCardBody}><Text style={{ fontWeight: 'bold' }}>Developer:</Text> Dhuneshwaran</Text>
@@ -1180,7 +1188,6 @@ const statCardStyles = (theme: any, color: string) => StyleSheet.create({
     backgroundColor: theme.card, 
     borderRadius: 18, 
     padding: 16, 
-    ...getThemedShadow(theme, 'soft'), 
     borderWidth: 1.2, 
   },
   statIcon: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
@@ -1193,7 +1200,16 @@ const statCardStyles = (theme: any, color: string) => StyleSheet.create({
 const styles = (theme: any, isDark: boolean, colors: any, accentColor: string) => {
   const cardRadius = 24;
   const transparentCard = isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.85)';
-  const borderCol = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(124, 77, 255, 0.08)';
+  const borderCol = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+
+  const cardFlat = {
+    backgroundColor: theme.card || transparentCard,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: borderCol,
+    shadowOpacity: 0,
+    elevation: 0,
+  } as const;
 
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.background },
@@ -1227,14 +1243,12 @@ const styles = (theme: any, isDark: boolean, colors: any, accentColor: string) =
     
     // Overview Card (Hero)
     overviewCard: {
+      ...cardFlat,
       marginHorizontal: 25,
       marginTop: 20,
       marginBottom: 25,
       padding: 24,
       borderRadius: cardRadius + 6,
-      backgroundColor: transparentCard,
-      borderWidth: 1.2,
-      borderColor: borderCol,
       alignItems: 'center',
       overflow: 'hidden',
       position: 'relative',
@@ -1280,7 +1294,6 @@ const styles = (theme: any, isDark: boolean, colors: any, accentColor: string) =
       borderRadius: 34, 
       justifyContent: 'center', 
       alignItems: 'center', 
-      ...getThemedShadow(theme, 'medium') 
     },
     avatarText: { fontSize: 36, color: '#FFFFFF', fontWeight: '800' },
     editAvatarBadge: {
@@ -1389,10 +1402,7 @@ const styles = (theme: any, isDark: boolean, colors: any, accentColor: string) =
 
     // Weekly Chart Card
     chartCard: {
-      backgroundColor: transparentCard,
-      borderRadius: cardRadius,
-      borderWidth: 1.2,
-      borderColor: borderCol,
+      ...cardFlat,
       padding: 16,
     },
     chartKPIsRow: {
@@ -1442,7 +1452,6 @@ const styles = (theme: any, isDark: boolean, colors: any, accentColor: string) =
       paddingVertical: 6,
       alignSelf: 'center',
       marginBottom: 6,
-      ...getThemedShadow(theme, 'soft'),
     },
     tooltipText: {
       fontSize: 11,
@@ -1474,10 +1483,7 @@ const styles = (theme: any, isDark: boolean, colors: any, accentColor: string) =
     
     // GitHub contribution heatmap styles
     heatmapCard: {
-      backgroundColor: transparentCard,
-      borderRadius: cardRadius,
-      borderWidth: 1.2,
-      borderColor: borderCol,
+      ...cardFlat,
       padding: 16,
     },
     heatmapSubtitle: {
@@ -1537,10 +1543,7 @@ const styles = (theme: any, isDark: boolean, colors: any, accentColor: string) =
       gap: 12,
     },
     intelligenceCard: {
-      backgroundColor: transparentCard,
-      borderRadius: cardRadius,
-      borderWidth: 1.2,
-      borderColor: borderCol,
+      ...cardFlat,
       padding: 18,
     },
     intelHeader: {
@@ -1651,10 +1654,7 @@ const styles = (theme: any, isDark: boolean, colors: any, accentColor: string) =
 
     // Feedback & Suggestions System Card
     feedbackCard: {
-      backgroundColor: transparentCard,
-      borderRadius: cardRadius,
-      borderWidth: 1.2,
-      borderColor: borderCol,
+      ...cardFlat,
       padding: 18,
     },
     feedbackLabel: {
@@ -1765,26 +1765,20 @@ const styles = (theme: any, isDark: boolean, colors: any, accentColor: string) =
     },
 
     // Menu Item & Selectors
-    menuItem: { 
-      flexDirection: 'row', 
-      alignItems: 'center', 
-      backgroundColor: transparentCard, 
-      borderRadius: cardRadius + 4, 
-      padding: 14, 
-      marginBottom: 8, 
-      ...getThemedShadow(theme, 'soft'), 
-      borderWidth: 1.2, 
-      borderColor: borderCol 
-    },
+    menuItem: {
+      ...cardFlat,
+      borderRadius: cardRadius + 4,
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 14,
+      marginBottom: 8,
+},
     menuItemCol: {
-      backgroundColor: transparentCard,
+      ...cardFlat,
       borderRadius: cardRadius + 4,
       padding: 14,
       marginBottom: 8,
-      ...getThemedShadow(theme, 'soft'),
-      borderWidth: 1.2,
-      borderColor: borderCol,
-    },
+},
     menuItemRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -1866,10 +1860,7 @@ const styles = (theme: any, isDark: boolean, colors: any, accentColor: string) =
 
     // Data Management & Quick Actions
     dataManagementCard: {
-      backgroundColor: transparentCard,
-      borderRadius: cardRadius,
-      borderWidth: 1.2,
-      borderColor: borderCol,
+      ...cardFlat,
       padding: 18,
     },
     backupStatusRow: {
@@ -1971,10 +1962,7 @@ const styles = (theme: any, isDark: boolean, colors: any, accentColor: string) =
 
     // Recent Activity Timeline Card
     timelineCard: {
-      backgroundColor: transparentCard,
-      borderRadius: cardRadius,
-      borderWidth: 1.2,
-      borderColor: borderCol,
+      ...cardFlat,
       padding: 18,
     },
     emptyTimelineText: {
@@ -2037,7 +2025,6 @@ const styles = (theme: any, isDark: boolean, colors: any, accentColor: string) =
       borderRadius: 22,
       overflow: 'hidden',
       marginTop: 20,
-      ...getThemedShadow(theme, 'medium'),
     },
     logoutGradientBtn: {
       flexDirection: 'row',
@@ -2050,7 +2037,7 @@ const styles = (theme: any, isDark: boolean, colors: any, accentColor: string) =
 
     // Modals
     modalOverlay: { flex: 1, backgroundColor: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)', justifyContent: 'center', paddingHorizontal: 24 },
-    modalCard: { backgroundColor: theme.card, borderRadius: 32, padding: 24, borderWidth: 1.2, borderColor: theme.border, ...getThemedShadow(theme, 'medium') },
+    modalCard: { backgroundColor: theme.card, borderRadius: 32, padding: 24, borderWidth: 1.2, borderColor: theme.border, },
     modalTitle: { ...typography.titleMedium, fontWeight: '800', color: theme.text, marginBottom: 18, textAlign: 'center' },
     modalLabel: { ...typography.bodySmall, color: theme.textSecondary, fontWeight: '700', marginBottom: 5, marginLeft: 4 },
     modalInput: { 
@@ -2217,12 +2204,12 @@ const styles = (theme: any, isDark: boolean, colors: any, accentColor: string) =
     },
 
     // Premium About Modal
-    aboutLogo: { width: 72, height: 72, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginBottom: 16, ...getThemedShadow(theme, 'medium') },
+    aboutLogo: { width: 72, height: 72, borderRadius: 24, justifyContent: 'center', alignItems: 'center', marginBottom: 16, },
     aboutTitle: { ...typography.displaySmall, fontWeight: '800', color: theme.text, fontSize: 24 },
     aboutVersion: { fontSize: 13, color: theme.textSecondary, marginBottom: 16 },
     aboutDesc: { ...typography.bodyMedium, color: theme.textSecondary, textAlign: 'center', marginBottom: 20, lineHeight: 22, paddingHorizontal: 10 },
     aboutPrivacy: { fontSize: 10, color: theme.textSecondary, textAlign: 'center', marginBottom: 24, marginTop: 14 },
-    aboutActionBtn: { width: '100%', height: 52, borderRadius: 16, justifyContent: 'center', alignItems: 'center', ...getThemedShadow(theme, 'soft'), marginTop: 8 },
+    aboutActionBtn: { width: '100%', height: 52, borderRadius: 16, justifyContent: 'center', alignItems: 'center', marginTop: 8 },
     aboutActionText: { ...typography.bodyMedium, color: '#FFFFFF', fontWeight: '800' },
 
     // Privacy shield header
@@ -2274,6 +2261,41 @@ const styles = (theme: any, isDark: boolean, colors: any, accentColor: string) =
     privacyBottomTagText: {
       fontSize: 11,
       fontWeight: '700',
+    },
+    notificationCard: {
+      backgroundColor: theme.card,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: theme.border,
+      overflow: 'hidden',
+    },
+    notificationHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+    },
+    notificationDivider: {
+      height: 1,
+      backgroundColor: theme.border,
+      marginLeft: 46,
+    },
+    notificationChildRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 12,
+      paddingRight: 16,
+      marginLeft: 46,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    notificationChildRowLast: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 12,
+      paddingRight: 16,
+      marginLeft: 46,
     }
   });
 };

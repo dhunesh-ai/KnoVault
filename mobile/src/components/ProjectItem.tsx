@@ -17,6 +17,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useTheme } from '../hooks/useTheme';
+import { useSettingsStore } from '../store/settingsStore';
 import { getThemedShadow } from './ThemedComponents';
 import { typography, spacing, borderRadius } from '../theme';
 import { ProjectTask, SubTask } from '../types/projects';
@@ -39,12 +40,13 @@ export const ProjectItem: React.FC<ProjectItemProps> = ({ project, onUpdate, onD
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(project.title);
   const [editedDesc, setEditedDesc] = useState(project.description || '');
+  const { animationsEnabled } = useSettingsStore();
 
   const progressAnim = useSharedValue(project.progress / 100);
 
   useEffect(() => {
-    progressAnim.value = withTiming(project.progress / 100, { duration: 300 });
-  }, [project.progress]);
+    progressAnim.value = animationsEnabled ? withTiming(project.progress / 100, { duration: 300 }) : project.progress / 100;
+  }, [project.progress, animationsEnabled]);
 
   const safeHaptic = async (type: 'success' | 'light' | 'medium') => {
     try {
@@ -61,7 +63,9 @@ export const ProjectItem: React.FC<ProjectItemProps> = ({ project, onUpdate, onD
   };
 
   const toggleExpand = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (animationsEnabled) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
     setIsExpanded(!isExpanded);
   };
 

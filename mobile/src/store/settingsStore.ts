@@ -1,15 +1,9 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
-import CryptoJS from 'crypto-js';
 
-const PASSCODE_KEY = 'knovault_passcode_hash';
-const PASSCODE_ENABLED_KEY = 'knovault_app_lock';
 const ANIMATIONS_ENABLED_KEY = 'knovault_animations';
 
 interface SettingsState {
-  passcodeEnabled: boolean;
-  passcodeHash: string | null;
-  isUnlocked: boolean;
   animationsEnabled: boolean;
   isOnboarded: boolean;
   isInitialized: boolean;
@@ -19,23 +13,18 @@ interface SettingsState {
   notificationDailySummary: boolean;
   notificationSound: boolean;
   notificationVibration: boolean;
+  microphoneEnabled: boolean;
 
   // Actions
   initializeSettings: () => Promise<void>;
-  setPasscode: (passcode: string) => Promise<void>;
-  disablePasscode: () => Promise<void>;
-  verifyPasscode: (passcode: string) => boolean;
-  setUnlocked: (unlocked: boolean) => void;
   setAnimationsEnabled: (enabled: boolean) => Promise<void>;
   completeOnboarding: () => Promise<void>;
   toggleNotificationSetting: (key: keyof SettingsState, storageKey: string, value: boolean) => Promise<void>;
+  setMicrophoneEnabled: (enabled: boolean) => Promise<void>;
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
-  passcodeEnabled: false,
-  passcodeHash: null,
-  isUnlocked: false,
-  animationsEnabled: true,
+  animationsEnabled: false,
   isOnboarded: false,
   isInitialized: false,
   notificationsEnabled: true,
@@ -44,11 +33,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   notificationDailySummary: true,
   notificationSound: true,
   notificationVibration: true,
+  microphoneEnabled: false,
 
   initializeSettings: async () => {
     try {
-      const lockEnabled = await SecureStore.getItemAsync(PASSCODE_ENABLED_KEY);
-      const hash = await SecureStore.getItemAsync(PASSCODE_KEY);
       const anims = await SecureStore.getItemAsync(ANIMATIONS_ENABLED_KEY);
       const onboarded = await SecureStore.getItemAsync('knovault_onboarding_completed');
 
@@ -58,64 +46,24 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       const notifsSummary = await SecureStore.getItemAsync('knovault_notif_summary');
       const notifsSound = await SecureStore.getItemAsync('knovault_notif_sound');
       const notifsVibration = await SecureStore.getItemAsync('knovault_notif_vibration');
+      const micEnabled = await SecureStore.getItemAsync('knovault_mic_enabled');
 
       set({
-        passcodeEnabled: lockEnabled === 'true',
-        passcodeHash: hash || null,
-        animationsEnabled: anims !== 'false', // Default to true
+        animationsEnabled: anims === 'true', // Default to false
         isOnboarded: onboarded === 'true',
-        isUnlocked: lockEnabled !== 'true', // Auto-unlock if no passcode
         notificationsEnabled: notifsEnabled !== 'false',
         notificationReminders: notifsReminders !== 'false',
         notificationGoals: notifsGoals !== 'false',
         notificationDailySummary: notifsSummary !== 'false',
         notificationSound: notifsSound !== 'false',
         notificationVibration: notifsVibration !== 'false',
+        microphoneEnabled: micEnabled === 'true', // Default to false
         isInitialized: true,
       });
     } catch (e) {
       console.error('[SettingsStore] Failed to initialize', e);
       set({ isInitialized: true });
     }
-  },
-
-  setPasscode: async (passcode: string) => {
-    try {
-      const hash = CryptoJS.SHA256(passcode).toString();
-      await SecureStore.setItemAsync(PASSCODE_KEY, hash);
-      await SecureStore.setItemAsync(PASSCODE_ENABLED_KEY, 'true');
-      set({ passcodeEnabled: true, passcodeHash: hash, isUnlocked: true });
-    } catch (e) {
-      console.error('[SettingsStore] Failed to set passcode', e);
-      throw e;
-    }
-  },
-
-  disablePasscode: async () => {
-    try {
-      await SecureStore.deleteItemAsync(PASSCODE_KEY);
-      await SecureStore.setItemAsync(PASSCODE_ENABLED_KEY, 'false');
-      set({ passcodeEnabled: false, passcodeHash: null, isUnlocked: true });
-    } catch (e) {
-      console.error('[SettingsStore] Failed to disable passcode', e);
-      throw e;
-    }
-  },
-
-  verifyPasscode: (passcode: string) => {
-    const { passcodeHash } = get();
-    if (!passcodeHash) return false;
-    
-    const inputHash = CryptoJS.SHA256(passcode).toString();
-    const isValid = inputHash === passcodeHash;
-    if (isValid) {
-      set({ isUnlocked: true });
-    }
-    return isValid;
-  },
-
-  setUnlocked: (unlocked: boolean) => {
-    set({ isUnlocked: unlocked });
   },
 
   setAnimationsEnabled: async (enabled: boolean) => {
@@ -144,6 +92,16 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       set({ [key]: value } as Partial<SettingsState>);
     } catch (e) {
       console.error(`[SettingsStore] Failed to set ${key}`, e);
+    }
+  },
+
+  setMicrophoneEnabled: async (enabled: boolean) => {
+    try {
+      await SecureStore.setItemAsync('knovault_mic_enabled', enabled ? 'true' : 'false');
+      set({ microphoneEnabled: enabled });
+    } catch (e) {
+      console.error('[SettingsStore] Failed to set microphone', e);
+      throw e;
     }
   }
 }));

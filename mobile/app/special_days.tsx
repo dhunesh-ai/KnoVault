@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { getFadeIn, getFadeInDown } from '../src/utils/animations';
 import { 
   View, 
   Text, 
@@ -99,7 +100,7 @@ export default function SpecialDaysScreen() {
 
     return (
       <Animated.View 
-        entering={FadeInDown.delay(index * 80)} 
+        entering={getFadeInDown(index * 80)} 
       >
         <TouchableOpacity 
           style={[

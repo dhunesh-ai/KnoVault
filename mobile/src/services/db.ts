@@ -2,8 +2,13 @@ import * as SQLite from 'expo-sqlite';
 import { DeviceEventEmitter } from 'react-native';
 import { logger } from '../utils/logger';
 
+let dbInstance: SQLite.SQLiteDatabase | null = null;
+
 export const getDB = () => {
-  return SQLite.openDatabaseSync('knovault.db');
+  if (!dbInstance) {
+    dbInstance = SQLite.openDatabaseSync('knovault.db');
+  }
+  return dbInstance;
 };
 
 export const initDB = async () => {
@@ -170,7 +175,7 @@ export const queueSyncAction = async (action: 'INSERT' | 'UPDATE' | 'DELETE', en
   const db = getDB();
   await db.runAsync(
     'INSERT INTO SyncQueue (action, entity, record_id, temp_id) VALUES (?, ?, ?, ?)',
-    [action, entity, recordId, tempId]
+    action, entity, recordId, tempId
   );
 };
 
@@ -183,7 +188,7 @@ export const localInsert = async (table: string, data: any) => {
   const tempId = generateTempId();
   
   const query = `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders})`;
-  const result = await db.runAsync(query, values as any[]);
+  const result = await db.runAsync(query, ...(values as any[]));
   
   await queueSyncAction('INSERT', table, result.lastInsertRowId, tempId);
   
@@ -202,7 +207,7 @@ export const localUpdate = async (table: string, id: number, data: any) => {
   const setString = keys.map(k => `${k} = ?`).join(', ');
   
   const query = `UPDATE ${table} SET ${setString} WHERE id = ?`;
-  await db.runAsync(query, [...values, id] as any[]);
+  await db.runAsync(query, ...[...values, id] as any[]);
   
   await queueSyncAction('UPDATE', table, id);
 
@@ -215,7 +220,7 @@ export const localDelete = async (table: string, id: number) => {
   const now = new Date().toISOString();
   
   // Soft delete
-  await db.runAsync(`UPDATE ${table} SET is_deleted = 1, updated_at = ? WHERE id = ?`, [now, id]);
+  await db.runAsync(`UPDATE ${table} SET is_deleted = 1, updated_at = ? WHERE id = ?`, now, id);
   
   await queueSyncAction('DELETE', table, id);
 
@@ -232,6 +237,6 @@ export const clearSyncQueue = async (ids: number[]) => {
     if (ids.length === 0) return;
     const db = getDB();
     const placeholders = ids.map(() => '?').join(',');
-    await db.runAsync(`DELETE FROM SyncQueue WHERE id IN (${placeholders})`, ids);
+    await db.runAsync(`DELETE FROM SyncQueue WHERE id IN (${placeholders})`, ...ids);
 };
 

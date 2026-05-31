@@ -12,9 +12,10 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { useTheme } from '../hooks/useTheme';
-import { getThemedShadow } from './ThemedComponents';
 import { typography, spacing, borderRadius } from '../theme';
 import { Goal } from '../types/goals';
+import { useSettingsStore } from '../store/settingsStore';
+import { getThemedShadow } from './ThemedComponents';
 
 interface GoalItemProps {
   goal: Goal;
@@ -30,10 +31,11 @@ export const GoalItem: React.FC<GoalItemProps> = ({ goal, onToggle, onDelete, on
 
   const progress = useSharedValue(goal.completed ? 1 : 0);
   const checkboxScale = useSharedValue(1);
+  const { animationsEnabled } = useSettingsStore();
 
   useEffect(() => {
-    progress.value = withTiming(goal.completed ? 1 : 0, { duration: 250 });
-  }, [goal.completed]);
+    progress.value = animationsEnabled ? withTiming(goal.completed ? 1 : 0, { duration: 250 }) : (goal.completed ? 1 : 0);
+  }, [goal.completed, animationsEnabled]);
 
   const triggerHaptic = async (isCompleted: boolean) => {
     try {
@@ -49,11 +51,11 @@ export const GoalItem: React.FC<GoalItemProps> = ({ goal, onToggle, onDelete, on
 
   const handleToggle = () => {
     const nextCompleted = !goal.completed;
-    checkboxScale.value = withSequence(
+    checkboxScale.value = animationsEnabled ? withSequence(
       withTiming(0.85, { duration: 100 }),
       withTiming(1.1, { duration: 100 }),
       withTiming(1, { duration: 100 })
-    );
+    ) : 1;
     
     // console.log(`[GOAL TOGGLED] GoalId: ${goal.id}, Title: "${goal.title}", nextCompletedState: ${nextCompleted}`);
     triggerHaptic(nextCompleted);

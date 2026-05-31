@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSettingsStore } from '../store/settingsStore';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import Animated, { 
@@ -30,8 +31,10 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   
+  const { animationsEnabled } = useSettingsStore();
+
   const strokeOffset = useDerivedValue(() => {
-    return withTiming(circumference * (1 - progress), { duration: 1000 });
+    return animationsEnabled ? withTiming(circumference * (1 - progress), { duration: 1000 }) : circumference * (1 - progress);
   });
 
   const animatedProps = useAnimatedProps(() => ({

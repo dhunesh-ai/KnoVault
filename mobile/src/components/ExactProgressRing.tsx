@@ -8,6 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useTheme } from '../hooks/useTheme';
 import { typography } from '../theme';
+import { useSettingsStore } from '../store/settingsStore';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -32,11 +33,12 @@ export const ExactProgressRing: React.FC<ProgressRingProps> = ({
   const targetProgress = total > 0 ? completed / total : 0;
   
   const animatedProgress = useSharedValue(0);
+  const { animationsEnabled } = useSettingsStore();
 
   useEffect(() => {
     // console.log(`[RING UPDATED] Target: ${Math.round(targetProgress * 100)}% (${completed}/${total})`);
-    animatedProgress.value = withTiming(targetProgress, { duration: 1000 });
-  }, [completed, total]);
+    animatedProgress.value = animationsEnabled ? withTiming(targetProgress, { duration: 1000 }) : targetProgress;
+  }, [completed, total, animationsEnabled]);
 
   const animatedProps = useAnimatedProps(() => {
     const strokeOffset = circumference * (1 - animatedProgress.value);

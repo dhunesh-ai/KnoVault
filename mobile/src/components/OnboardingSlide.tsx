@@ -4,6 +4,7 @@ import Animated, { useAnimatedStyle, withRepeat, withSequence, withTiming, Easin
 import { useTheme } from '../hooks/useTheme';
 import { typography } from '../theme/typography';
 import { getFadeInDown, getFadeInUp } from '../utils/animations';
+import { useSettingsStore } from '../store/settingsStore';
 
 const { width } = Dimensions.get('window');
 
@@ -23,24 +24,29 @@ interface Props {
 
 export const OnboardingSlide: React.FC<Props> = ({ data, isActive }) => {
   const { theme, isDark } = useTheme();
+  const { animationsEnabled } = useSettingsStore();
 
   // Floating animation for mascot
   const floatAnim = useSharedValue(0);
 
   React.useEffect(() => {
     if (isActive && data.showMascot) {
-      floatAnim.value = withRepeat(
-        withSequence(
-          withTiming(-10, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
-          withTiming(0, { duration: 1500, easing: Easing.inOut(Easing.ease) })
-        ),
-        -1,
-        true
-      );
+      if (animationsEnabled) {
+        floatAnim.value = withRepeat(
+          withSequence(
+            withTiming(-10, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+            withTiming(0, { duration: 1500, easing: Easing.inOut(Easing.ease) })
+          ),
+          -1,
+          true
+        );
+      } else {
+        floatAnim.value = 0;
+      }
     } else {
-      floatAnim.value = withTiming(0);
+      floatAnim.value = animationsEnabled ? withTiming(0) : 0;
     }
-  }, [isActive, data.showMascot]);
+  }, [isActive, data.showMascot, animationsEnabled]);
 
   const floatStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: floatAnim.value }]

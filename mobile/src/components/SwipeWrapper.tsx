@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useSettingsStore } from '../store/settingsStore';
 import { Dimensions } from 'react-native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
@@ -37,6 +38,7 @@ export default function SwipeWrapper({ children, currentTab }: SwipeWrapperProps
   const currentIndex = TABS.indexOf(currentTab);
 
   const [swipeEnabled, setSwipeEnabled] = useState(true);
+  const { animationsEnabled } = useSettingsStore();
 
   // Reanimated values for tab transition animations
   const translateX = useSharedValue(0);
@@ -63,10 +65,10 @@ export default function SwipeWrapper({ children, currentTab }: SwipeWrapperProps
         opacity.value = 1;
       }
 
-      translateX.value = withSpring(0, { damping: 22, stiffness: 160 });
-      opacity.value = withTiming(1, { duration: 250 });
+      translateX.value = animationsEnabled ? withSpring(0, { damping: 22, stiffness: 160 }) : 0;
+      opacity.value = animationsEnabled ? withTiming(1, { duration: 250 }) : 1;
     }
-  }, [isFocused, currentIndex]);
+  }, [isFocused, currentIndex, animationsEnabled]);
 
   const handleSwipeLeft = () => {
     if (currentIndex < TABS.length - 1) {
@@ -94,7 +96,7 @@ export default function SwipeWrapper({ children, currentTab }: SwipeWrapperProps
       } else if (event.translationX > SWIPE_THRESHOLD) {
         runOnJS(handleSwipeRight)();
       }
-      dragX.value = withSpring(0);
+      dragX.value = animationsEnabled ? withSpring(0) : withTiming(0, { duration: 0 });
     });
 
   const animatedStyle = useAnimatedStyle(() => {

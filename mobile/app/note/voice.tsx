@@ -16,11 +16,13 @@ import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-spe
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notesApi } from '../../src/api/notes';
 import { useTheme } from '../../src/hooks/useTheme';
+import { useSettingsStore } from '../../src/store/settingsStore';
 import { typography, spacing, borderRadius } from '../../src/theme';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
 
 export default function VoiceNoteScreen() {
   const { colors, theme, isDark } = useTheme();
+  const { microphoneEnabled } = useSettingsStore();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [title, setTitle] = useState('');
@@ -82,6 +84,11 @@ export default function VoiceNoteScreen() {
   }, []);
 
   const toggleRecording = async () => {
+    if (!microphoneEnabled) {
+      Alert.alert("Microphone Disabled", "Please enable Microphone Access in your Profile Settings to use Voice Notes.");
+      return;
+    }
+
     try {
       const isAvailable = ExpoSpeechRecognitionModule.isRecognitionAvailable();
       
@@ -267,12 +274,12 @@ export default function VoiceNoteScreen() {
           )}
           
           <TouchableOpacity 
-            style={[ds.micBtn, { backgroundColor: theme.primary }, isRecording && ds.micBtnActive]}
+            style={[ds.micBtn, { backgroundColor: theme.primary }, isRecording && ds.micBtnActive, !microphoneEnabled && { opacity: 0.5 }]}
             onPress={toggleRecording}
             activeOpacity={0.8}
           >
             <Ionicons 
-              name={isRecording ? "stop" : "mic"} 
+              name={isRecording ? "stop" : microphoneEnabled ? "mic" : "mic-off"} 
               size={28} 
               color="#FFFFFF" 
             />

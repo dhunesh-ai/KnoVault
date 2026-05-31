@@ -1,4 +1,6 @@
 import React, { useEffect } from 'react';
+import { getFadeIn } from '../../utils/animations';
+import { useSettingsStore } from '../../store/settingsStore';
 import { View, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -19,8 +21,10 @@ export const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) =>
   const { colors, theme, isDark } = useTheme();
   const translateX = useSharedValue(0);
 
+  const { animationsEnabled } = useSettingsStore();
+
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: withSpring(translateX.value, { damping: 15, stiffness: 120 }) }],
+    transform: [{ translateX: animationsEnabled ? withSpring(translateX.value, { damping: 15, stiffness: 120 }) : translateX.value }],
   }));
 
   useEffect(() => {
@@ -93,7 +97,7 @@ export const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) =>
               {renderIcon()}
               {isFocused && (
                 <Animated.View 
-                  entering={FadeIn.duration(200)}
+                  entering={getFadeIn()}
                   style={[
                     styles.activeDot, 
                     { 

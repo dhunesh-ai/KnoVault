@@ -1,4 +1,5 @@
 import React from 'react';
+import { getFadeIn, getFadeInDown, getFadeInUp } from '../../src/utils/animations';
 import {
   View,
   Text,
@@ -108,7 +109,7 @@ export default function SpecialDayDetailScreen() {
   const InfoCard = ({ icon, title, value, color }: { icon: string; title: string; value: string | null; color: string }) => {
     if (!value) return null;
     return (
-      <Animated.View entering={FadeInDown.delay(100)} style={[ds.infoCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+      <Animated.View entering={getFadeInDown()} style={[ds.infoCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
         <View style={[ds.infoIconBox, { backgroundColor: color + '15' }]}>
           <Ionicons name={icon as any} size={22} color={color} />
         </View>
@@ -143,7 +144,7 @@ export default function SpecialDayDetailScreen() {
 
         <ScrollView contentContainerStyle={ds.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Profile Section */}
-          <Animated.View entering={FadeInUp} style={ds.profileSection}>
+          <Animated.View entering={getFadeInUp()} style={ds.profileSection}>
             <View style={ds.avatarWrapper}>
               <LinearGradient
                 colors={colors.gradient.primary}

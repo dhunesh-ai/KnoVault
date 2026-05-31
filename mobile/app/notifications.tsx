@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
+import { getFadeIn, getFadeInDown } from '../src/utils/animations';
 import {
   View,
   Text,
@@ -132,7 +133,7 @@ export default function NotificationsScreen() {
         )}
 
         {notifications.length === 0 ? (
-          <Animated.View entering={FadeInDown.delay(100)} style={ds.emptyState}>
+          <Animated.View entering={getFadeInDown()} style={ds.emptyState}>
             <View style={[ds.emptyIconContainer, { backgroundColor: theme.card, borderColor: theme.border }]}>
               <Ionicons name="notifications-off-outline" size={60} color={theme.textSecondary} />
             </View>
@@ -144,7 +145,7 @@ export default function NotificationsScreen() {
             {notifications.map((n, index) => {
               const iconInfo = getIconForCategory(n.category);
               return (
-                <Animated.View key={n.id} entering={FadeInDown.delay(index * 50)}>
+                <Animated.View key={n.id} entering={getFadeInDown(index * 50)}>
                   <TouchableOpacity
                     style={[
                       ds.notificationCard, 

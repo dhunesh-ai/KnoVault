@@ -22,7 +22,6 @@ import * as Notifications from 'expo-notifications';
 import { syncWorkspace } from '../src/services/sync';
 import { initDB } from '../src/services/db';
 import { setupNotificationChannelsAndCategories, scheduleDailyPlanner } from '../src/utils/localNotifications';
-import LockScreen from '../src/components/LockScreen';
 
 const BACKGROUND_SYNC_TASK = 'background-sync';
 
@@ -116,7 +115,7 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   const { isLoading, isAuthenticated, user, initialize } = useAuthStore();
-  const { isInitialized: isSettingsReady, passcodeEnabled, isUnlocked, isOnboarded, initializeSettings, setUnlocked } = useSettingsStore();
+  const { isInitialized: isSettingsReady, isOnboarded, initializeSettings } = useSettingsStore();
   const segments = useSegments();
   const router = useRouter();
 
@@ -235,27 +234,6 @@ export default function RootLayout() {
     return () => sub.remove();
   }, []);
 
-  // Handle AppState for auto-lock
-  useEffect(() => {
-    let backgroundTime: number | null = null;
-    const LOCK_TIMEOUT = 30 * 1000; // 30 seconds
-
-    const subscription = AppState.addEventListener('change', nextAppState => {
-      if (nextAppState.match(/inactive|background/)) {
-        backgroundTime = Date.now();
-      } else if (nextAppState === 'active' && backgroundTime) {
-        const timeAway = Date.now() - backgroundTime;
-        if (timeAway > LOCK_TIMEOUT) {
-          console.log('[RootLayout] App was in background for >30s, locking...');
-          useSettingsStore.getState().setUnlocked(false);
-        }
-        backgroundTime = null;
-      }
-    });
-
-    return () => subscription.remove();
-  }, []);
-
   // Handle SplashScreen and Auth redirection
   useEffect(() => {
     if (!isAppReady || isLoading || !isSettingsReady) return;
@@ -293,7 +271,7 @@ export default function RootLayout() {
       const { pendingRoute, setPendingRoute } = useNotificationStore.getState();
       
       // Navigate only when fully ready and unlocked
-      if (isAppReady && isAuthenticated && (!passcodeEnabled || isUnlocked) && pendingRoute) {
+      if (isAppReady && isAuthenticated && pendingRoute) {
         console.log('[RootLayout] Routing to pending deep link:', pendingRoute);
         setTimeout(() => {
           router.push(pendingRoute as any);
@@ -302,7 +280,7 @@ export default function RootLayout() {
       }
     };
     handleDeepLink();
-  }, [isAppReady, isAuthenticated, passcodeEnabled, isUnlocked]);
+  }, [isAppReady, isAuthenticated]);
 
   // Handle Fatal Boot Errors
   if (bootError) {
@@ -347,14 +325,10 @@ export default function RootLayout() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <QueryClientProvider client={queryClient}>
           <OfflineBanner />
-          {passcodeEnabled && !isUnlocked && isAuthenticated ? (
-            <LockScreen />
-          ) : (
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            </Stack>
-          )}
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          </Stack>
         </QueryClientProvider>
       </GestureHandlerRootView>
     </ThemeProvider>
