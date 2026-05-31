@@ -153,36 +153,46 @@ async def pull_sync(
 ):
     since_dt = datetime.fromisoformat(since.replace("Z", "+00:00"))
 
-    # Pull Notes
-    notes_res = await db.execute(
-        select(Note)
-        .where(Note.user_id == current_user.id, Note.updated_at > since_dt)
-        .options(selectinload(Note.checklist_items), selectinload(Note.field_notes))
-    )
-    notes = [NoteResponse.model_validate(n).model_dump(mode="json") for n in notes_res.scalars().unique().all()]
+    try:
+        # Pull Notes
+        notes_res = await db.execute(
+            select(Note)
+            .where(Note.user_id == current_user.id, Note.updated_at > since_dt)
+            .options(
+                selectinload(Note.checklist_items), 
+                selectinload(Note.field_notes),
+                selectinload(Note.voice_note)
+            )
+        )
+        notes = [NoteResponse.model_validate(n).model_dump(mode="json") for n in notes_res.scalars().unique().all()]
 
-    # Pull Goals
-    goals_res = await db.execute(
-        select(Goal).where(Goal.user_id == current_user.id, Goal.updated_at > since_dt)
-    )
-    goals = [GoalResponse.model_validate(g).model_dump(mode="json") for g in goals_res.scalars().all()]
+        # Pull Goals
+        goals_res = await db.execute(
+            select(Goal).where(Goal.user_id == current_user.id, Goal.updated_at > since_dt)
+        )
+        goals = [GoalResponse.model_validate(g).model_dump(mode="json") for g in goals_res.scalars().all()]
 
-    # Pull Reminders
-    rems_res = await db.execute(
-        select(Reminder).where(Reminder.user_id == current_user.id, Reminder.updated_at > since_dt)
-    )
-    rems = [ReminderResponse.model_validate(r).model_dump(mode="json") for r in rems_res.scalars().all()]
+        # Pull Reminders
+        rems_res = await db.execute(
+            select(Reminder).where(Reminder.user_id == current_user.id, Reminder.updated_at > since_dt)
+        )
+        rems = [ReminderResponse.model_validate(r).model_dump(mode="json") for r in rems_res.scalars().all()]
 
-    # Pull Important Days
-    idays_res = await db.execute(
-        select(ImportantDay).where(ImportantDay.user_id == current_user.id, ImportantDay.updated_at > since_dt)
-    )
-    idays = [ImportantDayResponse.model_validate(i).model_dump(mode="json") for i in idays_res.scalars().all()]
+        # Pull Important Days
+        idays_res = await db.execute(
+            select(ImportantDay).where(ImportantDay.user_id == current_user.id, ImportantDay.updated_at > since_dt)
+        )
+        idays = [ImportantDayResponse.model_validate(i).model_dump(mode="json") for i in idays_res.scalars().all()]
 
-    return {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "notes": notes,
-        "goals": goals,
-        "reminders": rems,
-        "important_days": idays,
-    }
+        return {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "notes": notes,
+            "goals": goals,
+            "reminders": rems,
+            "important_days": idays,
+        }
+    except Exception as e:
+        import traceback
+        print(f"[Sync Pull Error] {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))

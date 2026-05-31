@@ -50,6 +50,7 @@ import { getThemedShadow } from '../../src/components/ThemedComponents';
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
+  console.log('[HomeScreen] Rendering...');
   const { user } = useAuthStore();
   const { colors, theme, isDark, setMode } = useTheme();
   const { setSwipeEnabled } = useSwipe();

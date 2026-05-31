@@ -17,6 +17,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '../src/hooks/useTheme';
 import { typography, spacing, borderRadius } from '../src/theme';
 import { importantDaysApi, ImportantDay } from '../src/api/important_days';
+import { getAgeInfo } from '../src/utils/important_day';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { calculateDaysRemaining, sortImportantDaysByUpcoming } from '../src/utils/important_day';
@@ -98,6 +99,8 @@ export default function SpecialDaysScreen() {
       return [theme.primary, theme.primary];
     };
 
+    const ageInfo = item.type.toLowerCase() === 'birthday' ? getAgeInfo(eventDateStr, item.type) : null;
+    
     return (
       <Animated.View 
         entering={getFadeInDown(index * 80)} 
@@ -125,16 +128,18 @@ export default function SpecialDaysScreen() {
           </View>
           
           <View style={ds.info}>
-            <Text style={[ds.name, { color: theme.text }]} numberOfLines={1}>{item.title || item.person_name}</Text>
+            <Text style={[ds.name, { color: theme.text }]} numberOfLines={1} ellipsizeMode="tail">{item.title || item.person_name}</Text>
             <View style={ds.dateRow}>
               <Ionicons name="calendar-outline" size={12} color={theme.textSecondary} style={{ marginRight: 4 }} />
-              <Text style={[ds.dateText, { color: theme.textSecondary }]}>
-                {new Date(eventDateStr).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: isRecurring ? undefined : 'numeric' })}
+              <Text style={[ds.dateText, { color: theme.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+                {new Date(eventDateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: isRecurring ? undefined : 'numeric' }).toUpperCase()} • {item.type}
               </Text>
-              <View style={[ds.typeBadge, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6' }]}>
-                <Text style={[ds.typeBadgeText, { color: theme.textSecondary }]}>{item.type}</Text>
-              </View>
             </View>
+            {ageInfo && !isPassed && (
+              <Text style={[ds.ageText, { color: isToday ? colors.accent.rose : theme.textSecondary }]} numberOfLines={1} ellipsizeMode="tail">
+                {isToday ? `🎉 Turning ${ageInfo.upcomingAge} Today!` : `🎂 Turning ${ageInfo.upcomingAge}`}
+              </Text>
+            )}
           </View>
 
           <View style={ds.statusContainer}>
@@ -360,13 +365,19 @@ const styles = (theme: any, isDark: boolean, colors: any) => StyleSheet.create({
   dateRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: 4,
     flexWrap: 'wrap',
   },
   dateText: {
     ...typography.caption,
     fontWeight: '700',
     fontSize: 11,
+  },
+  ageText: {
+    ...typography.caption,
+    fontWeight: '700',
+    fontSize: 12,
+    marginTop: 4,
   },
   typeBadge: {
     paddingHorizontal: 6,

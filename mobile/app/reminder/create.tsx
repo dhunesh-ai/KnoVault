@@ -267,17 +267,73 @@ export default function CreateReminderScreen() {
           if (type === 'Medicine') {
              if (frequency.includes('Daily')) repeatingMode = 'daily';
              else if (frequency.includes('Weekly')) repeatingMode = 'weekly';
+             
+             console.log("[MEDICINE REMINDER SAVE] Initializing notifications...");
+             
+             for (const timing of selectedTimings) {
+                const timeStr = timingTimes[timing] || '08:00';
+                const [hrStr, minStr] = timeStr.split(':');
+                const triggerDate = new Date(date);
+                triggerDate.setHours(parseInt(hrStr, 10));
+                triggerDate.setMinutes(parseInt(minStr, 10));
+                triggerDate.setSeconds(0);
+                triggerDate.setMilliseconds(0);
+                
+                const now = new Date();
+                
+                console.log("[MEDICINE NOTIFICATION SCHEDULE START] Timing:", timing);
+                console.log("Current Time:", now.toISOString());
+                console.log("Reminder Time:", timeStr);
+                console.log("Computed Trigger:", triggerDate.toISOString());
+                console.log("Difference In Minutes:", (triggerDate.getTime() - now.getTime()) / 60000);
+                
+                if (triggerDate.getTime() <= now.getTime()) {
+                  if (repeatingMode === 'daily') {
+                    // It's a daily alarm, but today's time passed. Roll over to tomorrow for initial trigger.
+                    triggerDate.setDate(triggerDate.getDate() + 1);
+                    console.log("[TRIGGER FUTURE CHECK] Rolled over to tomorrow:", triggerDate.toISOString());
+                  } else {
+                    console.log("[TRIGGER FUTURE CHECK] Rejected: Date is in the past and not daily.", triggerDate.getTime(), now.getTime());
+                  }
+                } else {
+                  console.log("[TRIGGER FUTURE CHECK] Valid future date:", triggerDate.toISOString());
+                }
+                
+                try {
+                  await scheduleLocalReminder(
+                    finalTitle, 
+                    type === 'Medicine' ? medNotes : (description || "You have a scheduled reminder."), 
+                    triggerDate, 
+                    { type: 'reminder', id: res.id || null },
+                    'reminders',
+                    'REMINDER_ACTION',
+                    repeatingMode
+                  );
+                  console.log("[MEDICINE NOTIFICATION CREATED]");
+                  console.log("Title:", finalTitle);
+                  console.log("Trigger ISO:", triggerDate.toISOString());
+                } catch (e) {
+                  console.error("[MEDICINE NOTIFICATION ERROR]", e);
+                }
+             }
+          } else {
+            await scheduleLocalReminder(
+              finalTitle, 
+              description || "You have a scheduled reminder.", 
+              date, 
+              { type: 'reminder', id: res.id || null },
+              'reminders',
+              'REMINDER_ACTION',
+              repeatingMode
+            ).catch(e => console.warn('Notification scheduling failed:', e));
           }
           
-          scheduleLocalReminder(
-            finalTitle, 
-            type === 'Medicine' ? medNotes : (description || "You have a scheduled reminder."), 
-            date, 
-            { type: 'reminder', id: res.id || null },
-            'reminders',
-            'REMINDER_ACTION',
-            repeatingMode
-          ).catch(e => console.warn('Notification scheduling failed:', e));
+          const Notifications = require('expo-notifications');
+          const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+          console.log(
+            '[ALL SCHEDULED MEDICINE NOTIFICATIONS]',
+            JSON.stringify(scheduled.filter((n: any) => n.content.data?.type === 'reminder'), null, 2)
+          );
         }
       }
     },

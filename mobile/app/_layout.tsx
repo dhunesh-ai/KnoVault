@@ -12,6 +12,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import OfflineBanner from '../src/components/OfflineBanner';
 import * as SplashScreen from 'expo-splash-screen';
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
 import { useAuthStore } from '../src/store/authStore';
 import { useSettingsStore } from '../src/store/settingsStore';
 import { colors, lightColors } from '../src/theme/colors';
@@ -21,7 +23,9 @@ import * as TaskManager from 'expo-task-manager';
 import * as Notifications from 'expo-notifications';
 import { syncWorkspace } from '../src/services/sync';
 import { initDB } from '../src/services/db';
-import { setupNotificationChannelsAndCategories, scheduleDailyPlanner } from '../src/utils/localNotifications';
+import { setupNotificationChannelsAndCategories, scheduleDailyPlanner, scheduleSpecialDaysReminders } from '../src/utils/localNotifications';
+import NetInfo from '@react-native-community/netinfo';
+import { useAppStore } from '../src/store/appStore';
 
 const BACKGROUND_SYNC_TASK = 'background-sync';
 
@@ -60,15 +64,7 @@ TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error }) => 
     console.log(`[TaskManager] Background action received: ${actionIdentifier}`, reqData);
     
     try {
-      if (actionIdentifier === 'COMPLETE') {
-        if (reqData?.id && reqData?.type === 'reminder') {
-          const { localUpdate } = await import('../src/services/db');
-          await localUpdate('Reminders', reqData.id, { is_completed: 1 });
-          
-          // Dismiss notification if it stays in tray
-          await Notifications.dismissNotificationAsync(notification.request.identifier);
-        }
-      } else if (actionIdentifier === 'SNOOZE_5' || actionIdentifier === 'SNOOZE_15') {
+      if (actionIdentifier === 'SNOOZE_5' || actionIdentifier === 'SNOOZE_15') {
         const mins = actionIdentifier === 'SNOOZE_5' ? 5 : 15;
         const newTime = new Date(Date.now() + mins * 60 * 1000);
         
@@ -104,16 +100,10 @@ Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK).catch(e => console
 
 import { ThemeProvider } from '../src/context/ThemeContext';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 1000 * 60 * 5, // 5 minutes
-    },
-  },
-});
+// QueryClient is initialized inside RootLayout to survive fast refresh
 
-export default function RootLayout() {
+function RootLayoutContent() {
+  console.log('[RootLayoutContent] Rendering...');
   const { isLoading, isAuthenticated, user, initialize } = useAuthStore();
   const { isInitialized: isSettingsReady, isOnboarded, initializeSettings } = useSettingsStore();
   const segments = useSegments();
@@ -144,6 +134,9 @@ export default function RootLayout() {
         
         // Schedule daily planner once on app open
         scheduleDailyPlanner().catch(e => console.warn('Daily planner schedule failed', e));
+        
+        // Schedule special days reminders
+        scheduleSpecialDaysReminders().catch(e => console.warn('Special days schedule failed', e));
 
         if (isMounted) setIsAppReady(true);
       } catch (e: any) {
@@ -153,6 +146,28 @@ export default function RootLayout() {
     };
     bootstrap();
     return () => { isMounted = false; };
+  }, []);
+
+  // Network Detection
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      console.log("NetInfo:", {
+        isConnected: state.isConnected,
+        isInternetReachable: state.isInternetReachable,
+        type: state.type,
+      });
+
+      // Avoid marking offline if values are null (startup phase)
+      if (state.isConnected !== null && state.isInternetReachable !== null) {
+        const offline = state.isConnected === false || state.isInternetReachable === false;
+        console.log("Offline Decision:", offline);
+        
+        useAppStore.getState().setOfflineStatus(offline);
+        useAppStore.getState().setNetworkReady(true);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   // Initialize FCM notifications
@@ -174,13 +189,7 @@ export default function RootLayout() {
       
       console.log(`[RootLayout] Foreground action received: ${actionIdentifier}`, data);
       
-      if (actionIdentifier === 'COMPLETE') {
-        if (data?.id && data?.type === 'reminder') {
-          const { localUpdate } = await import('../src/services/db');
-          await localUpdate('Reminders', data.id as number, { is_completed: 1 });
-          await Notifications.dismissNotificationAsync(response.notification.request.identifier);
-        }
-      } else if (actionIdentifier === 'SNOOZE_5' || actionIdentifier === 'SNOOZE_15') {
+      if (actionIdentifier === 'SNOOZE_5' || actionIdentifier === 'SNOOZE_15') {
         const mins = actionIdentifier === 'SNOOZE_5' ? 5 : 15;
         const newTime = new Date(Date.now() + mins * 60 * 1000);
         
@@ -282,53 +291,60 @@ export default function RootLayout() {
     handleDeepLink();
   }, [isAppReady, isAuthenticated]);
 
-  // Handle Fatal Boot Errors
-  if (bootError) {
-    return (
-      <View style={styles.errorContainer}>
-        <ActivityIndicator size="large" color="#EF4444" style={{ marginBottom: 20 }} />
-        <Text style={styles.errorTitle}>App Initialization Failed</Text>
-        <Text style={styles.errorDesc}>{bootError}</Text>
-        <Text style={styles.errorHelp}>If this issue persists, your local database may be corrupted.</Text>
-        
-        <TouchableOpacity 
-          style={styles.resetButton}
-          onPress={async () => {
-            try {
-              const { resetLocalDB } = await import('../src/services/db');
-              await resetLocalDB();
-              setBootError(null);
-              setIsAppReady(true);
-            } catch (e) {
-              console.error(e);
-              setBootError('Reset failed. Please reinstall the app.');
-            }
-          }}
-        >
-          <Text style={styles.resetButtonText}>Reset Local Database</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  return (
+    <View style={{ flex: 1 }}>
+      <OfflineBanner />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+      
+      {bootError && (
+        <View style={[StyleSheet.absoluteFill, styles.errorContainer]}>
+          <ActivityIndicator size="large" color="#EF4444" style={{ marginBottom: 20 }} />
+          <Text style={styles.errorTitle}>App Initialization Failed</Text>
+          <Text style={styles.errorDesc}>{bootError}</Text>
+          <Text style={styles.errorHelp}>If this issue persists, your local database may be corrupted.</Text>
+          
+          <TouchableOpacity 
+            style={styles.resetButton}
+            onPress={async () => {
+              try {
+                const { resetLocalDB } = await import('../src/services/db');
+                await resetLocalDB();
+                setBootError(null);
+                setIsAppReady(true);
+              } catch (e) {
+                console.error(e);
+                setBootError('Reset failed. Please reinstall the app.');
+              }
+            }}
+          >
+            <Text style={styles.resetButtonText}>Reset Local Database</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+}
 
-  // Show loading indicator while restoring auth
-  if (!isAppReady || isLoading || !isSettingsReady) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6C63FF" />
-      </View>
-    );
-  }
+export default function RootLayout() {
+  console.log('[RootLayout] Rendering QueryClientProvider tree...');
+  
+  const [queryClient] = React.useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: 1,
+        staleTime: 1000 * 60 * 5, // 5 minutes
+      },
+    },
+  }));
 
   return (
     <ThemeProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <QueryClientProvider client={queryClient}>
-          <OfflineBanner />
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          </Stack>
+          <RootLayoutContent />
         </QueryClientProvider>
       </GestureHandlerRootView>
     </ThemeProvider>

@@ -11,6 +11,7 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Platform,
+  ToastAndroid,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,7 +20,7 @@ import { importantDaysApi } from '../../src/api/important_days';
 import { useTheme } from '../../src/hooks/useTheme';
 import { typography, spacing, borderRadius } from '../../src/theme';
 import { formatLocalDateDisplay } from '../../src/utils/date';
-import { calculateDaysRemaining, isImportantDayToday } from '../../src/utils/important_day';
+import { calculateDaysRemaining, isImportantDayToday, getAgeInfo } from '../../src/utils/important_day';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
@@ -105,8 +106,27 @@ export default function SpecialDayDetailScreen() {
   };
   const eventTypeLower = (importantDay.type || 'birthday').toLowerCase();
   const mainEmoji = emojiMap[eventTypeLower] || '✨';
+  
+  const ageInfo = eventTypeLower === 'birthday' ? getAgeInfo(importantDay.date, importantDay.type) : null;
+  
+  let reminderText = null;
+  if (importantDay.reminder_enabled && importantDay.reminder_type) {
+    if (importantDay.reminder_type === 'custom') {
+      reminderText = `${importantDay.reminder_value} ${importantDay.reminder_unit} Before • ${importantDay.reminder_time || '09:00'}`;
+    } else {
+      const typeLabels: Record<string, string> = {
+        'on_day': 'On Event Day',
+        '1_day': '1 Day Before',
+        '3_days': '3 Days Before',
+        '1_week': '1 Week Before',
+        '2_weeks': '2 Weeks Before',
+        '1_month': '1 Month Before',
+      };
+      reminderText = `${typeLabels[importantDay.reminder_type] || importantDay.reminder_type} • ${importantDay.reminder_time || '09:00'}`;
+    }
+  }
 
-  const InfoCard = ({ icon, title, value, color }: { icon: string; title: string; value: string | null; color: string }) => {
+  const InfoCard = ({ icon, title, value, color, copyable }: { icon: string; title: string; value: string | null; color: string, copyable?: boolean }) => {
     if (!value) return null;
     return (
       <Animated.View entering={getFadeInDown()} style={[ds.infoCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
@@ -114,8 +134,40 @@ export default function SpecialDayDetailScreen() {
           <Ionicons name={icon as any} size={22} color={color} />
         </View>
         <View style={ds.infoContent}>
-          <Text style={[ds.infoTitle, { color: theme.textSecondary }]}>{title}</Text>
-          <Text style={[ds.infoValue, { color: theme.text }]}>{value}</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={[ds.infoTitle, { color: theme.textSecondary, flex: 1 }]}>{title}</Text>
+            {copyable && (
+              <TouchableOpacity
+                onPress={async () => {
+                  try {
+                    const Clipboard = require('expo-clipboard');
+                    if (value.trim().length === 0) {
+                      if (Platform.OS === 'android') {
+                        ToastAndroid.show("Nothing to copy", ToastAndroid.SHORT);
+                      } else {
+                        Alert.alert("Notice", "Nothing to copy");
+                      }
+                      return;
+                    }
+                    await Clipboard.setStringAsync(value);
+                    const isDraft = title.toLowerCase().includes('message draft');
+                    const toastMsg = isDraft ? "Message copied successfully ✅" : "Notes copied successfully ✅";
+                    if (Platform.OS === 'android') {
+                      ToastAndroid.show(toastMsg, ToastAndroid.SHORT);
+                    } else {
+                      Alert.alert("Success", toastMsg);
+                    }
+                  } catch (err) {
+                    console.warn(err);
+                  }
+                }}
+                style={{ padding: 4 }}
+              >
+                <Ionicons name="copy-outline" size={16} color={theme.textSecondary} />
+              </TouchableOpacity>
+            )}
+          </View>
+          <Text style={[ds.infoValue, { color: theme.text, marginTop: 4 }]}>{value}</Text>
         </View>
       </Animated.View>
     );
@@ -168,20 +220,54 @@ export default function SpecialDayDetailScreen() {
               </View>
             )}
             
-            <View style={ds.countdownContainer}>
-              <View style={[ds.countdownBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                <Text style={[ds.countdownNumber, { color: colors.accent.violet }]}>
-                  {isToday ? '🎉' : daysRemaining < 0 ? 'Passed' : daysRemaining}
-                </Text>
-                <Text style={[ds.countdownLabel, { color: theme.textSecondary }]}>
-                  {isToday ? "It's Celebration Time!" : daysRemaining < 0 ? 'Event Date Passed' : 'Days Remaining'}
-                </Text>
+            {ageInfo ? (
+              <>
+                <View style={ds.countdownContainer}>
+                  <View style={[ds.countdownBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                    <Text style={[ds.countdownLabel, { color: theme.textSecondary, marginBottom: 5, marginTop: 0 }]}>
+                      🎂 AGE
+                    </Text>
+                    <Text style={[ds.countdownNumber, { color: colors.accent.amber, fontSize: 26 }]}>
+                      {ageInfo.currentAge} Years Old
+                    </Text>
+                  </View>
+                </View>
+                
+                <View style={[ds.countdownContainer, { marginTop: 15 }]}>
+                  <View style={[ds.countdownBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                    <Text style={[ds.countdownLabel, { color: theme.textSecondary, marginBottom: 5, marginTop: 0 }]}>
+                      🎉 NEXT BIRTHDAY
+                    </Text>
+                    <Text style={[ds.countdownNumber, { color: colors.accent.violet, fontSize: 24 }]}>
+                      {isToday ? `Turning ${ageInfo.upcomingAge} Today!` : `Turning ${ageInfo.upcomingAge} in ${daysRemaining} Days`}
+                    </Text>
+                  </View>
+                </View>
+              </>
+            ) : (
+              <View style={ds.countdownContainer}>
+                <View style={[ds.countdownBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                  <Text style={[ds.countdownNumber, { color: colors.accent.violet }]}>
+                    {isToday ? '🎉' : daysRemaining < 0 ? 'Passed' : daysRemaining}
+                  </Text>
+                  <Text style={[ds.countdownLabel, { color: theme.textSecondary }]}>
+                    {isToday ? "It's Celebration Time!" : daysRemaining < 0 ? 'Event Date Passed' : 'Days Remaining'}
+                  </Text>
+                </View>
               </View>
-            </View>
+            )}
           </Animated.View>
 
           {/* Planning Sections */}
           <View style={ds.planningGrid}>
+            {reminderText && (
+              <InfoCard 
+                icon="alarm-outline" 
+                title="Reminder Scheduled" 
+                value={reminderText} 
+                color={colors.accent.rose} 
+              />
+            )}
             <InfoCard 
               icon="gift-outline" 
               title="Gift / Idea Notes" 
@@ -205,12 +291,14 @@ export default function SpecialDayDetailScreen() {
               title="Message Draft / Congratulation text" 
               value={importantDay.message_draft || null} 
               color={colors.accent.emerald} 
+              copyable={true}
             />
             <InfoCard 
               icon="document-text-outline" 
               title="Additional Notes" 
               value={importantDay.notes || null} 
               color={colors.accent.violet} 
+              copyable={true}
             />
           </View>
 

@@ -1134,3 +1134,144 @@
 2026-05-31 08:48:11,331 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
 2026-05-31 08:48:17,798 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
 2026-05-31 08:50:25,932 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 08:51:35,151 - watchfiles.main - INFO - 1 change detected
+2026-05-31 08:55:12,986 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 08:55:55,563 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 09:04:16,598 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 09:05:20,322 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 09:05:25,031 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 09:05:48,670 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 09:05:50,053 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 09:06:17,547 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 09:06:25,211 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 09:06:42,369 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 09:15:19,319 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 09:19:41,289 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 09:20:44,825 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 09:20:57,460 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 09:21:06,136 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 09:21:08,528 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 09:39:44,560 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 10:08:50,360 - watchfiles.main - INFO - 1 change detected
+2026-05-31 10:10:45,827 - watchfiles.main - INFO - 1 change detected
+2026-05-31 10:15:22,131 - watchfiles.main - INFO - 1 change detected
+2026-05-31 10:15:23,964 - watchfiles.main - INFO - 1 change detected
+2026-05-31 10:15:25,277 - watchfiles.main - INFO - 5 changes detected
+2026-05-31 10:15:26,067 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 10:15:31,716 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 10:15:40,365 - watchfiles.main - INFO - 1 change detected
+2026-05-31 10:15:41,688 - watchfiles.main - INFO - 1 change detected
+2026-05-31 10:15:42,600 - watchfiles.main - INFO - 5 changes detected
+2026-05-31 10:15:43,169 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 10:15:48,836 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 10:16:03,317 - watchfiles.main - INFO - 1 change detected
+2026-05-31 10:16:04,599 - watchfiles.main - INFO - 1 change detected
+2026-05-31 10:16:06,022 - watchfiles.main - INFO - 5 changes detected
+2026-05-31 10:16:06,174 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 10:16:12,292 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 10:35:32,328 - watchfiles.main - INFO - 1 change detected
+2026-05-31 10:35:33,751 - watchfiles.main - INFO - 1 change detected
+2026-05-31 10:35:34,826 - watchfiles.main - INFO - 5 changes detected
+2026-05-31 10:35:35,770 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 10:35:41,656 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 10:35:49,321 - watchfiles.main - INFO - 1 change detected
+2026-05-31 10:35:50,593 - watchfiles.main - INFO - 1 change detected
+2026-05-31 10:35:51,616 - watchfiles.main - INFO - 5 changes detected
+2026-05-31 10:54:45,840 - watchfiles.main - INFO - 1 change detected
+2026-05-31 11:21:45,208 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 13:10:07,557 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 13:10:10,843 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 13:10:18,388 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 13:12:36,321 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 13:33:02,032 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 13:33:04,072 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 13:33:10,249 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 13:35:11,586 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 13:41:51,149 - watchfiles.main - INFO - 1 change detected
+2026-05-31 13:41:52,522 - watchfiles.main - INFO - 1 change detected
+2026-05-31 13:41:54,237 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 13:42:01,067 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 13:42:14,871 - watchfiles.main - INFO - 1 change detected
+2026-05-31 13:42:16,175 - watchfiles.main - INFO - 1 change detected
+2026-05-31 13:42:17,550 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 13:42:23,193 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 13:44:17,870 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 13:44:19,573 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 13:44:25,027 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 13:46:30,140 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 13:58:58,448 - watchfiles.main - INFO - 1 change detected
+2026-05-31 13:58:59,840 - watchfiles.main - INFO - 1 change detected
+2026-05-31 13:59:00,852 - watchfiles.main - INFO - 5 changes detected
+2026-05-31 13:59:01,595 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 13:59:07,032 - watchfiles.main - INFO - 1 change detected
+2026-05-31 13:59:07,906 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 13:59:09,154 - watchfiles.main - INFO - 1 change detected
+2026-05-31 13:59:10,682 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 13:59:16,879 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 13:59:27,231 - watchfiles.main - INFO - 1 change detected
+2026-05-31 13:59:28,570 - watchfiles.main - INFO - 1 change detected
+2026-05-31 13:59:29,528 - watchfiles.main - INFO - 5 changes detected
+2026-05-31 13:59:30,163 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 13:59:35,995 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 13:59:43,044 - watchfiles.main - INFO - 1 change detected
+2026-05-31 13:59:44,414 - watchfiles.main - INFO - 1 change detected
+2026-05-31 13:59:45,837 - watchfiles.main - INFO - 5 changes detected
+2026-05-31 13:59:45,974 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 13:59:51,508 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 14:05:48,308 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 14:08:25,801 - watchfiles.main - INFO - 1 change detected
+2026-05-31 14:08:27,216 - watchfiles.main - INFO - 1 change detected
+2026-05-31 14:08:28,904 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 14:08:28,989 - watchfiles.main - INFO - 5 changes detected
+2026-05-31 14:08:34,686 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 14:10:16,408 - watchfiles.main - INFO - 1 change detected
+2026-05-31 14:10:17,740 - watchfiles.main - INFO - 1 change detected
+2026-05-31 14:10:19,242 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 14:10:19,366 - watchfiles.main - INFO - 5 changes detected
+2026-05-31 14:10:24,804 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 14:12:45,504 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 14:12:47,320 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 14:12:53,046 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 14:15:03,728 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 14:21:33,945 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 14:24:00,484 - watchfiles.main - INFO - 1 change detected
+2026-05-31 14:24:01,922 - watchfiles.main - INFO - 1 change detected
+2026-05-31 14:24:03,713 - watchfiles.main - INFO - 5 changes detected
+2026-05-31 14:24:03,878 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 14:24:09,555 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 14:24:47,673 - watchfiles.main - INFO - 1 change detected
+2026-05-31 14:24:48,919 - watchfiles.main - INFO - 1 change detected
+2026-05-31 14:24:50,187 - watchfiles.main - INFO - 5 changes detected
+2026-05-31 14:24:50,330 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 14:24:56,150 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 14:28:24,241 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 14:45:12,931 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 14:57:50,490 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 15:03:08,529 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 15:03:29,868 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 15:09:14,652 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 15:11:06,303 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 15:11:09,092 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 15:11:14,694 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 15:13:59,780 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 17:25:03,269 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 17:25:06,461 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 17:25:13,194 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 17:27:22,241 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 17:42:09,977 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 17:47:34,993 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 17:47:36,875 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 17:47:42,762 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 17:50:01,643 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 18:05:49,169 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 18:06:54,947 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 18:07:14,059 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 18:07:15,276 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'What medicine I want to take today...' | max_tokens=600
+2026-05-31 18:07:15,277 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-31 18:07:16,299 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-31 18:07:16,347 - KnoVaultAI - INFO - [GROQ CALL] Response received (170 chars)
+2026-05-31 18:07:16,349 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 170 chars
+2026-05-31 18:11:22,633 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 18:11:22,638 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 18:11:28,744 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 18:12:46,188 - utils.firebase - WARNING - [Firebase] Invalid token: Firebase ID token has no "kid" claim.

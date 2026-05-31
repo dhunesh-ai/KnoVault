@@ -20,6 +20,28 @@ class ImportantDay(Base):
     celebration_plans: Mapped[str | None] = mapped_column(Text, nullable=True)
     reminder_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     message_draft: Mapped[str | None] = mapped_column(Text, nullable=True)
+    
+    # Email wish fields
+    recipient_email: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    phone_number: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    contact_relationship: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    email_subject: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    email_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    email_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    delivery_type: Mapped[str] = mapped_column(String(20), nullable=False, default="notification")  # notification, email, both
+    send_time: Mapped[str | None] = mapped_column(String(10), nullable=True, default="09:00")  # HH:MM format
+    
+    # Reminders JSON (stored as serialized JSON array)
+    reminders_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    
+    # Smart Reminder System fields
+    reminder_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    reminder_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    reminder_value: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    reminder_unit: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    reminder_time: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    notification_ids: Mapped[str | None] = mapped_column(Text, nullable=True) # Stored as JSON array
+    
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

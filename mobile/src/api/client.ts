@@ -78,11 +78,12 @@ client.interceptors.response.use(
       await logout();
     }
     
-    // Detect Offline / Network Errors
+    // Detect Backend / Network Errors
     if (error.message === 'Network Error' || error.code === 'ECONNABORTED') {
-      useAppStore.getState().setOfflineStatus(true);
+      console.log("[API Client] Backend unreachable:", error.message);
+      useAppStore.getState().setBackendDown(true);
     } else {
-      useAppStore.getState().setOfflineStatus(false);
+      useAppStore.getState().setBackendDown(false);
     }
 
     return Promise.reject(error);

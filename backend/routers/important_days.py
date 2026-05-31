@@ -7,6 +7,7 @@ from models.important_day import ImportantDay
 from schemas.important_day import ImportantDayCreate, ImportantDayUpdate, ImportantDayResponse
 from middleware.auth import get_current_user
 from datetime import date
+import json
 
 router = APIRouter(tags=["Important Days"])
 
@@ -68,23 +69,46 @@ async def create_important_day(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    important_day = ImportantDay(
-        title=data.title or "Untitled Important Day", 
-        date=data.date or date.today(),
-        type=data.type,
-        is_recurring=data.is_recurring,
-        custom_type=data.custom_type,
-        notes=data.notes,
-        gift_ideas=data.gift_ideas,
-        celebration_plans=data.celebration_plans,
-        reminder_notes=data.reminder_notes,
-        message_draft=data.message_draft,
-        user_id=current_user.id,
-    )
-    db.add(important_day)
-    await db.flush()
-    await db.refresh(important_day)
-    return ImportantDayResponse.model_validate(important_day)
+    try:
+        important_day = ImportantDay(
+            title=data.title or "Untitled Important Day", 
+            date=data.date or date.today(),
+            type=data.type,
+            is_recurring=data.is_recurring,
+            custom_type=data.custom_type,
+            notes=data.notes,
+            gift_ideas=data.gift_ideas,
+            celebration_plans=data.celebration_plans,
+            reminder_notes=data.reminder_notes,
+            message_draft=data.message_draft,
+            recipient_email=data.recipient_email,
+            email_subject=data.email_subject,
+            email_message=data.email_message,
+            email_enabled=data.email_enabled,
+            delivery_type=data.delivery_type,
+            send_time=data.send_time,
+            reminders_json=None,  # Legacy field removed from schema
+            reminder_enabled=data.reminder_enabled,
+            reminder_type=data.reminder_type,
+            reminder_value=data.reminder_value,
+            reminder_unit=data.reminder_unit,
+            reminder_time=data.reminder_time,
+            notification_ids=data.notification_ids,
+            user_id=current_user.id,
+        )
+        print("[DEBUG] Important Day created model instance:", important_day.__dict__)
+        db.add(important_day)
+        print("[DEBUG] db.add() success")
+        await db.flush()
+        print("[DEBUG] db.flush() success")
+        await db.refresh(important_day)
+        print("[DEBUG] db.refresh() success")
+        return ImportantDayResponse.model_validate(important_day)
+    except Exception as e:
+        import traceback
+        print(f"[Create Important Day Error] {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.put("/{important_day_id}", response_model=ImportantDayResponse)
@@ -99,8 +123,17 @@ async def update_important_day(
     important_day = result.scalar_one_or_none()
     if not important_day:
         raise HTTPException(status_code=404, detail="Important Day not found")
-    for key, value in data.model_dump(exclude_unset=True).items():
+    
+    update_data = data.model_dump(exclude_unset=True)
+    
+    # Handle reminders separately
+    if 'reminders' in update_data:
+        reminders = update_data.pop('reminders')
+        important_day.reminders_json = json.dumps(reminders) if reminders else None
+    
+    for key, value in update_data.items():
         setattr(important_day, key, value)
+    
     await db.flush()
     await db.refresh(important_day)
     return ImportantDayResponse.model_validate(important_day)

@@ -63,7 +63,14 @@
       "./plugins/withDependencyFix",
       "./plugins/withPackagingFix",
       "./plugins/withGradlePropertiesFix",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#7C3AED"
+        }
+      ]
     ],
     "extra": {
       "router": {

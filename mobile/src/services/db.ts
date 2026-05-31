@@ -102,12 +102,49 @@ export const initDB = async () => {
       celebration_plans TEXT,
       reminder_notes TEXT,
       message_draft TEXT,
+      recipient_email TEXT,
+      phone_number TEXT,
+      relationship TEXT,
+      email_subject TEXT,
+      email_message TEXT,
+      email_enabled INTEGER DEFAULT 0,
+      delivery_type TEXT DEFAULT 'notification',
+      send_time TEXT DEFAULT '09:00',
+      reminders_json TEXT,
+      reminder_enabled INTEGER DEFAULT 0,
+      reminder_type TEXT,
+      reminder_value INTEGER,
+      reminder_unit TEXT,
+      reminder_time TEXT,
+      notification_ids TEXT,
       user_id INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       is_deleted INTEGER DEFAULT 0
     );
   `);
+
+  // Migrate existing ImportantDays table: add new columns if missing
+  const importantDaysMigrations = [
+    'ALTER TABLE ImportantDays ADD COLUMN recipient_email TEXT',
+    'ALTER TABLE ImportantDays ADD COLUMN phone_number TEXT',
+    'ALTER TABLE ImportantDays ADD COLUMN relationship TEXT',
+    'ALTER TABLE ImportantDays ADD COLUMN email_subject TEXT',
+    'ALTER TABLE ImportantDays ADD COLUMN email_message TEXT',
+    'ALTER TABLE ImportantDays ADD COLUMN email_enabled INTEGER DEFAULT 0',
+    'ALTER TABLE ImportantDays ADD COLUMN delivery_type TEXT DEFAULT \'notification\'',
+    'ALTER TABLE ImportantDays ADD COLUMN send_time TEXT DEFAULT \'09:00\'',
+    'ALTER TABLE ImportantDays ADD COLUMN reminders_json TEXT',
+    'ALTER TABLE ImportantDays ADD COLUMN reminder_enabled INTEGER DEFAULT 0',
+    'ALTER TABLE ImportantDays ADD COLUMN reminder_type TEXT',
+    'ALTER TABLE ImportantDays ADD COLUMN reminder_value INTEGER',
+    'ALTER TABLE ImportantDays ADD COLUMN reminder_unit TEXT',
+    'ALTER TABLE ImportantDays ADD COLUMN reminder_time TEXT',
+    'ALTER TABLE ImportantDays ADD COLUMN notification_ids TEXT',
+  ];
+  for (const migration of importantDaysMigrations) {
+    try { await db.execAsync(migration); } catch (_e) { /* column already exists */ }
+  }
 
   // Create SyncMetadata table to store last_sync
   await db.execAsync(`

@@ -18,6 +18,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { importantDaysApi } from '../../src/api/important_days';
+import { REMINDER_OPTIONS } from '../../src/utils/important_day';
+import { scheduleSpecialDaysReminders } from '../../src/utils/localNotifications';
 import { useTheme } from '../../src/hooks/useTheme';
 import { typography } from '../../src/theme';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
@@ -53,6 +55,14 @@ export default function CreateSpecialDayScreen() {
   const [type, setType] = useState('Birthday');
   const [customType, setCustomType] = useState('');
   const [isRecurring, setIsRecurring] = useState(true);
+
+  // Reminder State
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderType, setReminderType] = useState('1_day');
+  const [reminderValue, setReminderValue] = useState('1');
+  const [reminderUnit, setReminderUnit] = useState('days');
+  const [reminderTime, setReminderTime] = useState(new Date(new Date().setHours(9, 0, 0, 0)));
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   const getPlaceholdersForType = (currentType: string) => {
     const t = currentType.toLowerCase();
@@ -124,6 +134,17 @@ export default function CreateSpecialDayScreen() {
       setType(existingDay.type || 'Birthday');
       setCustomType(existingDay.custom_type || '');
       setIsRecurring(existingDay.is_recurring !== undefined ? existingDay.is_recurring : true);
+
+      setReminderEnabled(existingDay.reminder_enabled === true || (existingDay as any).reminder_enabled === 1);
+      setReminderType(existingDay.reminder_type || '1_day');
+      setReminderValue(existingDay.reminder_value ? existingDay.reminder_value.toString() : '1');
+      setReminderUnit(existingDay.reminder_unit || 'days');
+      if (existingDay.reminder_time) {
+        const [hours, minutes] = existingDay.reminder_time.split(':').map(Number);
+        const t = new Date();
+        t.setHours(hours, minutes, 0, 0);
+        setReminderTime(t);
+      }
     }
   }, [existingDay]);
 
@@ -140,6 +161,11 @@ export default function CreateSpecialDayScreen() {
         celebration_plans: celebrationPlans,
         reminder_notes: reminderNotes,
         message_draft: messageDraft,
+        reminder_enabled: reminderEnabled,
+        reminder_type: reminderType,
+        reminder_value: reminderType === 'custom' ? parseInt(reminderValue) || 1 : null,
+        reminder_unit: reminderType === 'custom' ? reminderUnit : null,
+        reminder_time: `${reminderTime.getHours().toString().padStart(2, '0')}:${reminderTime.getMinutes().toString().padStart(2, '0')}`,
       };
 
       if (isEditing) {
@@ -150,7 +176,7 @@ export default function CreateSpecialDayScreen() {
         await importantDaysApi.createImportantDay(importantDayData);
       }
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['important-days'] });
       queryClient.invalidateQueries({ queryKey: ['important-days', editId] });
       queryClient.invalidateQueries({ queryKey: ['today-important-days'] });
@@ -158,6 +184,11 @@ export default function CreateSpecialDayScreen() {
       queryClient.invalidateQueries({ queryKey: ['today-special-days'] });
       queryClient.invalidateQueries({ queryKey: ['upcoming-reminders'] });
       queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
+      
+      const { syncWorkspace } = require('../../src/services/sync');
+      await syncWorkspace();
+      
+      scheduleSpecialDaysReminders();
       router.back();
     },
     onError: (error) => {
@@ -296,7 +327,78 @@ export default function CreateSpecialDayScreen() {
             </View>
           </TouchableOpacity>
 
-          <Text style={ds.label}>Gift/Idea Notes</Text>
+          <View style={[ds.switchRow, { marginTop: 30 }]}>
+            <View>
+              <Text style={ds.switchLabel}>Enable Reminder</Text>
+              <Text style={ds.switchSubLabel}>Get notified before the event</Text>
+            </View>
+            <Switch
+              value={reminderEnabled}
+              onValueChange={setReminderEnabled}
+              trackColor={{ false: theme.border, true: theme.primary }}
+              thumbColor={reminderEnabled ? '#7C3AED' : '#F3F4F6'}
+            />
+          </View>
+
+          {reminderEnabled && (
+            <View style={ds.reminderCard}>
+              <Text style={[ds.label, { marginTop: 15 }]}>Reminder Timing</Text>
+              <View style={ds.chipsContainer}>
+                {REMINDER_OPTIONS.map((item) => {
+                  const isSelected = reminderType === item.value;
+                  return (
+                    <TouchableOpacity
+                      key={item.value}
+                      style={[ds.chip, isSelected && ds.chipSelected]}
+                      onPress={() => setReminderType(item.value)}
+                    >
+                      <Text style={[ds.chipText, isSelected && ds.chipTextSelected]}>
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {reminderType === 'custom' && (
+                <View style={{ flexDirection: 'row', marginTop: 10, alignItems: 'center' }}>
+                  <TextInput
+                    style={[ds.inputField, { flex: 1, marginRight: 10 }]}
+                    keyboardType="numeric"
+                    value={reminderValue}
+                    onChangeText={setReminderValue}
+                    placeholderTextColor={colors.text.tertiary}
+                  />
+                  <View style={{ flex: 2, flexDirection: 'row' }}>
+                    {['days', 'weeks', 'months'].map(unit => (
+                      <TouchableOpacity
+                        key={unit}
+                        style={[ds.chip, reminderUnit === unit && ds.chipSelected, { marginBottom: 0, paddingHorizontal: 12, marginRight: 5 }]}
+                        onPress={() => setReminderUnit(unit)}
+                      >
+                        <Text style={[ds.chipText, reminderUnit === unit && ds.chipTextSelected, { fontSize: 12 }]}>{unit}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              <Text style={[ds.label, { marginTop: 15 }]}>Time</Text>
+              <TouchableOpacity 
+                style={[ds.datePickerBtn, { marginTop: 0, padding: 15 }]} 
+                onPress={() => setShowTimePicker(true)}
+              >
+                <View style={[ds.dateIconBox, { width: 36, height: 36 }]}>
+                   <Ionicons name="time-outline" size={18} color={theme.primary} />
+                </View>
+                <Text style={ds.dateValue}>
+                  {reminderTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <Text style={[ds.label, { marginTop: 30 }]}>Gift/Idea Notes</Text>
           <TextInput
             style={ds.inputField}
             placeholder={placeholders.gift}
@@ -365,6 +467,18 @@ export default function CreateSpecialDayScreen() {
               onChange={(event, selected) => {
                 setShowDatePicker(false);
                 if (selected) setDate(selected);
+              }}
+            />
+          )}
+
+          {showTimePicker && (
+            <DateTimePicker
+              value={reminderTime}
+              mode="time"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(event, selected) => {
+                setShowTimePicker(false);
+                if (selected) setReminderTime(selected);
               }}
             />
           )}
@@ -521,5 +635,14 @@ const styles = (theme: any, isDark: boolean, colors: any) => StyleSheet.create({
     marginTop: 5,
     borderWidth: 1.2,
     borderColor: theme.border,
+  },
+  reminderCard: {
+    backgroundColor: theme.card,
+    borderRadius: 22,
+    padding: 20,
+    marginTop: 10,
+    borderWidth: 1.2,
+    borderColor: theme.border,
+    ...getThemedShadow(theme, 'soft'),
   },
 });

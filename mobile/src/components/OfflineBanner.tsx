@@ -6,20 +6,23 @@ import { useTheme } from '../hooks/useTheme';
 import { typography, spacing } from '../theme';
 
 export default function OfflineBanner() {
-  const { isOffline } = useAppStore();
+  const { isOffline, isBackendDown, networkReady } = useAppStore();
   const { theme } = useTheme();
   const slideAnim = React.useRef(new Animated.Value(-100)).current;
 
+  // We show the banner if EITHER the user is offline or the backend is down
+  const showBanner = (isOffline || isBackendDown) && networkReady;
+
   useEffect(() => {
     Animated.spring(slideAnim, {
-      toValue: isOffline ? 0 : -100,
+      toValue: showBanner ? 0 : -100,
       useNativeDriver: true,
       tension: 50,
       friction: 8,
     }).start();
-  }, [isOffline, slideAnim]);
+  }, [showBanner, slideAnim]);
 
-  if (!isOffline) return null;
+  if (!networkReady) return null;
 
   return (
     <Animated.View style={[
@@ -29,8 +32,10 @@ export default function OfflineBanner() {
         transform: [{ translateY: slideAnim }] 
       }
     ]}>
-      <Ionicons name="cloud-offline" size={20} color="#FFFFFF" />
-      <Text style={styles.text}>You are currently offline.</Text>
+      <Ionicons name={isOffline ? "cloud-offline" : "server"} size={20} color="#FFFFFF" />
+      <Text style={styles.text}>
+        {isOffline ? "You are currently offline." : "Server unavailable."}
+      </Text>
     </Animated.View>
   );
 }

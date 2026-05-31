@@ -1,6 +1,7 @@
 from datetime import date as dt_date, datetime
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, Field
 from typing import Any
+import json
 
 class ImportantDayCreate(BaseModel):
     title: str | None = None
@@ -13,7 +14,23 @@ class ImportantDayCreate(BaseModel):
     celebration_plans: str | None = None
     reminder_notes: str | None = None
     message_draft: str | None = None
-
+    # Email wish fields
+    recipient_email: str | None = None
+    phone_number: str | None = None
+    contact_relationship: str | None = Field(default=None, alias="relationship")
+    email_subject: str | None = None
+    email_message: str | None = None
+    email_enabled: bool = False
+    delivery_type: str = "notification"
+    send_time: str | None = "09:00"
+    # Reminders (stored as JSON array)
+    # Smart Reminder System
+    reminder_enabled: bool = False
+    reminder_type: str | None = None
+    reminder_value: int | None = None
+    reminder_unit: str | None = None
+    reminder_time: str | None = None
+    notification_ids: str | None = None
     @model_validator(mode='before')
     @classmethod
     def handle_legacy_fields(cls, data: Any) -> Any:
@@ -35,7 +52,23 @@ class ImportantDayUpdate(BaseModel):
     celebration_plans: str | None = None
     reminder_notes: str | None = None
     message_draft: str | None = None
-
+    # Email wish fields
+    recipient_email: str | None = None
+    phone_number: str | None = None
+    contact_relationship: str | None = Field(default=None, alias="relationship")
+    email_subject: str | None = None
+    email_message: str | None = None
+    email_enabled: bool | None = None
+    delivery_type: str | None = None
+    send_time: str | None = None
+    # Reminders
+    # Smart Reminder System
+    reminder_enabled: bool | None = None
+    reminder_type: str | None = None
+    reminder_value: int | None = None
+    reminder_unit: str | None = None
+    reminder_time: str | None = None
+    notification_ids: str | None = None
     @model_validator(mode='before')
     @classmethod
     def handle_legacy_fields(cls, data: Any) -> Any:
@@ -58,6 +91,23 @@ class ImportantDayResponse(BaseModel):
     celebration_plans: str | None = None
     reminder_notes: str | None = None
     message_draft: str | None = None
+    # Email wish fields
+    recipient_email: str | None = None
+    phone_number: str | None = None
+    contact_relationship: str | None = Field(default=None, alias="relationship")
+    email_subject: str | None = None
+    email_message: str | None = None
+    email_enabled: bool = False
+    delivery_type: str = "notification"
+    send_time: str | None = "09:00"
+    # Reminders
+    # Smart Reminder System
+    reminder_enabled: bool = False
+    reminder_type: str | None = None
+    reminder_value: int | None = None
+    reminder_unit: str | None = None
+    reminder_time: str | None = None
+    notification_ids: str | None = None    
     user_id: int
     created_at: datetime
     updated_at: datetime | None = None
@@ -68,7 +118,21 @@ class ImportantDayResponse(BaseModel):
 
     @classmethod
     def model_validate(cls, obj: Any, *args, **kwargs):
-        validated = super().model_validate(obj, *args, **kwargs)
+        # Parse reminders_json from model if present
+        if hasattr(obj, 'reminders_json') and obj.reminders_json:
+            try:
+                obj_dict = {c.key: getattr(obj, c.key) for c in obj.__table__.columns}
+                obj_dict['reminders'] = json.loads(obj.reminders_json)
+            except (json.JSONDecodeError, AttributeError):
+                obj_dict = {c.key: getattr(obj, c.key) for c in obj.__table__.columns}
+                obj_dict['reminders'] = None
+        elif hasattr(obj, '__table__'):
+            obj_dict = {c.key: getattr(obj, c.key) for c in obj.__table__.columns}
+            obj_dict['reminders'] = None
+        else:
+            obj_dict = obj
+            
+        validated = super().model_validate(obj_dict, *args, **kwargs)
         validated.person_name = validated.title
         validated.birth_date = validated.date
         return validated

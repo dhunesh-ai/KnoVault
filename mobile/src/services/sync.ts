@@ -85,21 +85,46 @@ export const syncWorkspace = async () => {
             for (const record of records) {
                 const existing: any = await db.getFirstAsync(`SELECT id FROM ${table} WHERE remote_id = ?`, [record.id]);
                 
-                const { id: remoteId, created_at, updated_at, ...rest } = record;
-                const dbObj = { ...rest, remote_id: remoteId, created_at, updated_at };
+                const { id: remoteId, created_at, updated_at, contact_relationship, person_name, birth_date, ...rest } = record as any;
+                const dbObj: any = { ...rest, remote_id: remoteId, created_at, updated_at };
+                
+                if (contact_relationship !== undefined) {
+                    dbObj.relationship = contact_relationship;
+                }
+                
+                // Convert booleans to integers for SQLite
+                for (const key of Object.keys(dbObj)) {
+                    if (typeof dbObj[key] === 'boolean') {
+                        dbObj[key] = dbObj[key] ? 1 : 0;
+                    }
+                }
 
                 if (existing) {
                     // Update existing
                     const keys = Object.keys(dbObj);
                     const values = Object.values(dbObj);
                     const setString = keys.map(k => `${k} = ?`).join(', ');
-                    await db.runAsync(`UPDATE ${table} SET ${setString} WHERE remote_id = ?`, [...values, remoteId]);
+                    try {
+                        await db.runAsync(`UPDATE ${table} SET ${setString} WHERE remote_id = ?`, [...values, remoteId]);
+                    } catch (err) {
+                        console.error(`[SYNC PULL ERROR] Failed to update ${table}`, err);
+                    }
                 } else {
                     // Insert new
                     const keys = Object.keys(dbObj);
                     const values = Object.values(dbObj);
                     const placeholders = keys.map(() => '?').join(', ');
-                    await db.runAsync(`INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders})`, values as any[]);
+                    try {
+                        if (table === 'ImportantDays') {
+                            console.log(`[SYNC IMPORTANT DAYS RECEIVED] ID: ${remoteId}, Keys:`, keys);
+                        }
+                        await db.runAsync(`INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders})`, values as any[]);
+                        if (table === 'ImportantDays') {
+                            console.log(`[SYNC IMPORTANT DAYS INSERTED] Remote ID: ${remoteId}`);
+                        }
+                    } catch (err) {
+                        console.error(`[SYNC PULL ERROR] Failed to insert ${table}`, err);
+                    }
                 }
             }
         };
