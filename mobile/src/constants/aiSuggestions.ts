@@ -26,16 +26,17 @@ export const CHIP_ICONS: Record<string, string> = {
 export interface AISuggestion {
   id: string;
   label: string;
+  description?: string;
   icon: string;
   /** Category used for deduplication */
   category: string;
 }
 
 export const BASE_SUGGESTIONS: AISuggestion[] = [
-  { id: 'favorites',    label: 'Show my favorites',             icon: CHIP_ICONS.notes,        category: 'favorites' },
-  { id: 'productivity', label: 'Analyze my productivity',       icon: CHIP_ICONS.productivity, category: 'productivity' },
-  { id: 'deadlines',    label: 'Upcoming deadlines',            icon: CHIP_ICONS.deadlines,    category: 'deadlines' },
-  { id: 'focus',        label: 'Today\'s focus',                icon: CHIP_ICONS.focus,        category: 'focus' },
+  { id: 'favorites',    label: 'Show my favorites',       description: 'Quick access to favorites',      icon: CHIP_ICONS.notes,        category: 'favorites' },
+  { id: 'productivity', label: 'Analyze my productivity', description: 'Review your task progress',      icon: CHIP_ICONS.productivity, category: 'productivity' },
+  { id: 'deadlines',    label: 'Upcoming deadlines',      description: 'Check tasks due soon',           icon: CHIP_ICONS.deadlines,    category: 'deadlines' },
+  { id: 'focus',        label: 'Today\'s focus',          description: 'What to concentrate on today',   icon: CHIP_ICONS.focus,        category: 'focus' },
 ];
 
 // ── Dynamic chip generators ─────────────────────────────────────────
@@ -57,20 +58,23 @@ export function buildDynamicSuggestions(ctx: AppContextCounts): AISuggestion[] {
   if (ctx.pendingGoals > 0) {
     dynamic.push({
       id: 'goals',
-      label: 'Help me finish my pending goals',
+      label: 'Pending goals',
+      description: `Help me finish my ${ctx.pendingGoals} pending goals`,
       icon: CHIP_ICONS.goals,
       category: 'goals',
     });
     dynamic.push({
       id: 'priority',
-      label: 'Which task is highest priority?',
+      label: 'Highest priority',
+      description: 'Which task is highest priority?',
       icon: CHIP_ICONS.priority,
       category: 'priority',
     });
   } else {
     dynamic.push({
       id: 'plan',
-      label: 'Help me plan my day',
+      label: 'Plan My Day',
+      description: 'Generate today\'s schedule',
       icon: CHIP_ICONS.plan,
       category: 'plan',
     });
@@ -80,13 +84,15 @@ export function buildDynamicSuggestions(ctx: AppContextCounts): AISuggestion[] {
   if (ctx.upcomingReminders > 0) {
     dynamic.push({
       id: 'reminders',
-      label: 'What reminders are upcoming?',
+      label: 'Upcoming Reminders',
+      description: `View ${ctx.upcomingReminders} next reminders`,
       icon: CHIP_ICONS.reminders,
       category: 'reminders',
     });
     dynamic.push({
       id: 'schedule',
-      label: 'Organize my schedule',
+      label: 'Organize schedule',
+      description: 'Sort out my upcoming tasks',
       icon: CHIP_ICONS.schedule,
       category: 'schedule',
     });
@@ -96,7 +102,8 @@ export function buildDynamicSuggestions(ctx: AppContextCounts): AISuggestion[] {
   if (ctx.upcomingBirthdays > 0) {
     dynamic.push({
       id: 'birthdays',
-      label: 'Who has birthdays coming up?',
+      label: 'Special Days Today',
+      description: 'Check birthdays and events',
       icon: CHIP_ICONS.birthdays,
       category: 'birthdays',
     });
@@ -106,7 +113,8 @@ export function buildDynamicSuggestions(ctx: AppContextCounts): AISuggestion[] {
   if (ctx.recentNotes > 3) {
     dynamic.push({
       id: 'ideas',
-      label: 'Find important ideas from my notes',
+      label: 'Important ideas',
+      description: 'Find important ideas from notes',
       icon: CHIP_ICONS.ideas,
       category: 'ideas',
     });

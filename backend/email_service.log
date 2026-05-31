@@ -1275,3 +1275,18 @@
 2026-05-31 18:11:22,638 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
 2026-05-31 18:11:28,744 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
 2026-05-31 18:12:46,188 - utils.firebase - WARNING - [Firebase] Invalid token: Firebase ID token has no "kid" claim.
+2026-05-31 18:18:25,986 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 18:18:27,967 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 18:18:33,646 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 18:20:45,115 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 18:31:04,644 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 18:42:49,759 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 18:48:54,922 - watchfiles.main - INFO - 1 change detected
+2026-05-31 18:51:31,622 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 18:52:04,130 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 18:52:05,391 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Is there any special day today...' | max_tokens=400
+2026-05-31 18:52:05,395 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-31 18:52:10,967 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-31 18:52:11,012 - KnoVaultAI - INFO - [GROQ CALL] Response received (106 chars)
+2026-05-31 18:52:11,013 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 106 chars
+2026-05-31 18:53:42,415 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.

@@ -8,8 +8,6 @@ import {
   ScrollView,
 } from 'react-native';
 import Animated, {
-  FadeIn,
-  FadeInRight,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -35,17 +33,17 @@ export default function AISuggestions({ suggestions, onSelect, disabled }: AISug
 
   useEffect(() => {
     if (suggestions.length > 0) {
-      console.log('[AI SUGGESTIONS RENDERED]', suggestions.length, 'chips');
+      console.log('[AI SUGGESTIONS RENDERED]', suggestions.length, 'cards');
     }
   }, [suggestions]);
 
   if (!suggestions.length) return null;
 
   return (
-    <Animated.View entering={getFadeIn()} style={[styles.wrapper, { backgroundColor: theme.card, borderTopColor: theme.border }]}>
+    <Animated.View entering={getFadeIn()} style={[styles.wrapper]}>
       <View style={styles.labelRow}>
-        <Ionicons name="sparkles" size={11} color={theme.primary} />
-        <Text style={[styles.sectionLabel, { color: colors.text.tertiary }]}>Smart Suggestions</Text>
+        <Ionicons name="sparkles" size={14} color={theme.primary} />
+        <Text style={[styles.sectionLabel, { color: colors.text.tertiary }]}>What can I help with?</Text>
       </View>
       <ScrollView
         horizontal
@@ -56,15 +54,17 @@ export default function AISuggestions({ suggestions, onSelect, disabled }: AISug
         onTouchEnd={() => setSwipeEnabled(true)}
         onTouchCancel={() => setSwipeEnabled(true)}
         onMomentumScrollEnd={() => setSwipeEnabled(true)}
+        decelerationRate="fast"
+        snapToInterval={210}
       >
         {suggestions.map((chip, idx) => (
-          <SuggestionChip
+          <SuggestionCard
             key={chip.id}
             chip={chip}
             index={idx}
             disabled={disabled}
             onPress={() => {
-              console.log('[AI CHIP PRESSED]', chip.label);
+              console.log('[AI CARD PRESSED]', chip.label);
               onSelect(chip.label);
             }}
           />
@@ -74,7 +74,7 @@ export default function AISuggestions({ suggestions, onSelect, disabled }: AISug
   );
 }
 
-function SuggestionChip({
+function SuggestionCard({
   chip,
   index,
   onPress,
@@ -93,7 +93,7 @@ function SuggestionChip({
   }));
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.93, { damping: 15, stiffness: 200 });
+    scale.value = withSpring(0.96, { damping: 15, stiffness: 200 });
   };
 
   const handlePressOut = () => {
@@ -102,81 +102,96 @@ function SuggestionChip({
 
   return (
     <AnimatedTouchable
-      entering={getFadeInRight(0, 280)}
+      entering={getFadeInRight(index * 50, 400)}
       style={[
-        styles.chip, 
-        { 
-          backgroundColor: theme.background, 
-          borderColor: isDark ? 'rgba(124, 77, 255, 0.25)' : colors.primary[100],
+        styles.card,
+        {
+          backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : theme.card,
+          borderColor: isDark ? 'rgba(255,255,255,0.1)' : theme.border,
           ...getThemedShadow(theme, 'soft')
-        }, 
-        animatedStyle, 
-        disabled && styles.chipDisabled
+        },
+        animatedStyle,
+        disabled && styles.cardDisabled
       ]}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      activeOpacity={0.8}
+      activeOpacity={0.9}
       disabled={disabled}
-      hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
       accessibilityLabel={chip.label}
       accessibilityRole="button"
     >
-      <View style={[styles.chipIcon, { backgroundColor: isDark ? '#1C2638' : colors.primary[50] }]}>
-        <Ionicons name={chip.icon as any} size={12} color={theme.primary} />
+      <View style={[styles.cardHeader]}>
+        <View style={[styles.cardIconBox, { backgroundColor: theme.primary + '15' }]}>
+          <Ionicons name={chip.icon as any} size={14} color={theme.primary} />
+        </View>
+        <Text style={[styles.cardTitle, { color: theme.text }]} numberOfLines={1}>
+          {chip.label}
+        </Text>
       </View>
-      <Text style={[styles.chipLabel, { color: isDark ? '#C4B5FD' : colors.primary[600] }]} numberOfLines={1}>
-        {chip.label}
-      </Text>
+      {chip.description && (
+        <Text style={[styles.cardDesc, { color: theme.textSecondary }]} numberOfLines={1}>
+          {chip.description}
+        </Text>
+      )}
     </AnimatedTouchable>
   );
 }
 
 const styles = StyleSheet.create({
   wrapper: {
-    paddingTop: 6,
-    paddingBottom: 8,
-    borderTopWidth: 1.2,
+    paddingTop: 8,
+    paddingBottom: 10,
   },
   labelRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingBottom: 6,
-    gap: 5,
+    paddingBottom: 8,
+    gap: 6,
   },
   sectionLabel: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '700',
-    textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   scrollContent: {
-    paddingHorizontal: 12,
-    gap: 8,
+    paddingHorizontal: 16,
+    gap: 10,
   },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 13,
-    paddingVertical: 9,
-    borderRadius: 20,
+  card: {
+    width: 170,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 16,
     borderWidth: 1.2,
+    justifyContent: 'center',
   },
-  chipDisabled: {
+  cardDisabled: {
     opacity: 0.5,
   },
-  chipIcon: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+    gap: 8,
+  },
+  cardIconBox: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 7,
   },
-  chipLabel: {
+  cardTitle: {
     ...typography.bodySmall,
-    fontWeight: '700',
-    flexShrink: 1,
+    fontWeight: '800',
+    flex: 1,
+  },
+  cardDesc: {
+    ...typography.caption,
+    fontSize: 11,
+    lineHeight: 14,
+    paddingLeft: 34,
   },
 });

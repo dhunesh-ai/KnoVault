@@ -6,6 +6,7 @@ import {
   Keyboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Markdown from 'react-native-markdown-display';
@@ -31,6 +32,7 @@ import { typography } from '../../src/theme';
 import { useSpeech } from '../../src/hooks/useSpeech';
 import { getMergedSuggestions, type AppContextCounts } from '../../src/constants/aiSuggestions';
 import AISuggestions from '../../components/AISuggestions';
+import KnoMascot from '../../src/components/KnoMascot';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
 import { buildAIContext } from '../../src/ai/buildAIContext';
 import { generateSystemPrompt } from '../../src/ai/systemPrompt';
@@ -81,6 +83,12 @@ function AIScreen() {
   const { user } = useAuthStore();
   const { colors, theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  let tabBarHeight = 0;
+  try {
+    tabBarHeight = useBottomTabBarHeight();
+  } catch (e) {
+    tabBarHeight = 60; // fallback if not in tab context
+  }
   const { speak, stop: stopSpeech, isSpeaking, activeMessageId } = useSpeech();
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -148,7 +156,7 @@ function AIScreen() {
       if (formattedHistory.length === 0) {
         setMessages([{
           id: 'welcome', sender: 'assistant',
-          content: `Hi ${user?.full_name?.split(' ')[0] || 'there'}! I'm KnoVault AI, your productivity partner. How can I help you organize your life today?`,
+          content: `Hello, I'm Kno 👋\n\nYour personal productivity assistant.\n\nI can help with:\n📅 Special Days\n💊 Medicine Reminders\n📝 Notes\n🚀 Projects\n⏰ Upcoming Tasks\n🎯 Daily Planning`,
           timestamp: new Date(),
         }]);
       } else {
@@ -273,6 +281,47 @@ function AIScreen() {
     }
   };
 
+  const renderContextualCard = (content: string) => {
+    const text = content.toLowerCase();
+    if (text.includes('medicine') || text.includes('paracetamol') || text.includes('pill')) {
+      return (
+        <View style={ds.contextCard}>
+          <Text style={[ds.contextCardTitle, { color: theme.text }]}>💊 Medicine Summary</Text>
+          <View style={[ds.contextCardDivider, { backgroundColor: theme.border }]} />
+          <Text style={[ds.contextCardText, { color: theme.textSecondary }]}>Check your active medicine schedule</Text>
+        </View>
+      );
+    }
+    if (text.includes('birthday') || text.includes('special day') || text.includes('anniversary')) {
+      return (
+        <View style={ds.contextCard}>
+          <Text style={[ds.contextCardTitle, { color: theme.text }]}>🎂 Special Days</Text>
+          <View style={[ds.contextCardDivider, { backgroundColor: theme.border }]} />
+          <Text style={[ds.contextCardText, { color: theme.textSecondary }]}>View upcoming birthdays and events</Text>
+        </View>
+      );
+    }
+    if (text.includes('project') || text.includes('task') || text.includes('goal')) {
+      return (
+        <View style={ds.contextCard}>
+          <Text style={[ds.contextCardTitle, { color: theme.text }]}>🚀 Project Status</Text>
+          <View style={[ds.contextCardDivider, { backgroundColor: theme.border }]} />
+          <Text style={[ds.contextCardText, { color: theme.textSecondary }]}>Track your progress</Text>
+        </View>
+      );
+    }
+    if (text.includes('note')) {
+      return (
+        <View style={ds.contextCard}>
+          <Text style={[ds.contextCardTitle, { color: theme.text }]}>📝 Recent Notes</Text>
+          <View style={[ds.contextCardDivider, { backgroundColor: theme.border }]} />
+          <Text style={[ds.contextCardText, { color: theme.textSecondary }]}>Review your captured ideas</Text>
+        </View>
+      );
+    }
+    return null;
+  };
+
   const ds = dsFunc(theme, colors, isDark);
   const mdStyles = markdownStyles(theme, colors, isDark);
 
@@ -293,11 +342,11 @@ function AIScreen() {
       {/* ── Header ────────────────────────────────────────────────── */}
       <View style={[ds.header, { paddingTop: Math.max(insets.top, 10) + 10 }]}>
         <View style={ds.headerLeft}>
-          <LinearGradient colors={colors.gradient.primary} style={ds.aiAvatar}>
-            <Ionicons name="sparkles" size={14} color="#FFFFFF" />
-          </LinearGradient>
+          <View style={{ marginRight: 10 }}>
+            <KnoMascot state="idle" size={34} />
+          </View>
           <View style={ds.headerTitleContainer}>
-            <Text style={ds.headerTitle}>KnoVault AI</Text>
+            <Text style={ds.headerTitle}>✨ KnoVault AI</Text>
             <View style={ds.onlineBadge}>
               <View style={ds.onlineDot} />
               <Text style={ds.onlineText}>Intelligence Active</Text>
@@ -314,24 +363,29 @@ function AIScreen() {
         style={{ flex: 1 }} keyboardVerticalOffset={0}
       >
         <FlatList
+          style={{ flex: 1 }}
           ref={flatListRef}
           data={messages}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={ds.chatList}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={
-            <View style={ds.welcomeInfo}>
-              <Ionicons name="shield-checkmark" size={13} color="#10B981" />
-              <Text style={ds.securityText}>Secure notes are always protected and private</Text>
-            </View>
-          }
+          contentContainerStyle={[
+            ds.chatList,
+            { paddingBottom: 16 }
+          ]}
           renderItem={({ item }) => {
             const isUser = item.sender === 'user';
             const isActive = activeMessageId === item.id && isSpeaking;
             const canSpeak = !isUser && !item.isStreaming && item.content.length > 0;
+
+            if (item.id === 'welcome') {
+              return (
+                <Animated.View entering={getFadeInDown()} style={ds.heroContainer}>
+                  <KnoMascot state="happy" size={70} />
+                  <View style={[ds.heroCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : theme.card, borderColor: isDark ? 'rgba(255,255,255,0.1)' : theme.border }]}>
+                    <Markdown style={mdStyles}>{item.content}</Markdown>
+                  </View>
+                </Animated.View>
+              );
+            }
 
             return (
               <Animated.View
@@ -339,8 +393,8 @@ function AIScreen() {
                 style={[ds.msgRow, isUser ? ds.userRow : ds.aiRow]}
               >
                 {!isUser && (
-                  <View style={[ds.aiBubbleAvatar, isActive && ds.aiBubbleAvatarActive]}>
-                    <Ionicons name="flash" size={11} color={isActive ? "#FFFFFF" : theme.primary} />
+                  <View style={{ marginRight: 8, marginBottom: 4 }}>
+                    <KnoMascot state={item.isStreaming ? 'thinking' : (item.isError ? 'alert' : 'idle')} size={26} />
                   </View>
                 )}
                 <View style={[
@@ -352,7 +406,10 @@ function AIScreen() {
                   {isUser ? (
                     <Text style={ds.userText}>{item.content}</Text>
                   ) : (
-                    <Markdown style={mdStyles}>{item.content || "…"}</Markdown>
+                    <>
+                      <Markdown style={mdStyles}>{item.content || "…"}</Markdown>
+                      {!item.isStreaming && renderContextualCard(item.content)}
+                    </>
                   )}
 
                   {isActive && <SpeakingPulse colors={colors} isDark={isDark} theme={theme} />}
@@ -365,24 +422,14 @@ function AIScreen() {
                   )}
 
                   {canSpeak && !item.isError && (
-                    <View style={ds.actionRow}>
-                      <TouchableOpacity
-                        style={[ds.actionBtn, isActive && ds.actionBtnActive]}
-                        onPress={() => speak(item.content, item.id)}
-                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                      >
-                        <Ionicons
-                          name={isActive ? "stop-circle" : "volume-medium-outline"}
-                          size={14}
-                          color={isActive ? "#FFFFFF" : colors.text.tertiary}
-                        />
+                    <View style={ds.quickActionsRow}>
+                      <TouchableOpacity style={ds.quickActionBtn} onPress={() => copyText(item.content)}>
+                        <Ionicons name="copy-outline" size={12} color={colors.text.tertiary} />
+                        <Text style={[ds.quickActionText, { color: colors.text.tertiary }]}>Copy</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity
-                        style={ds.actionBtn}
-                        onPress={() => copyText(item.content)}
-                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                      >
-                        <Ionicons name="copy-outline" size={13} color={colors.text.tertiary} />
+                      <TouchableOpacity style={[ds.quickActionBtn, isActive && { backgroundColor: theme.primary, borderColor: theme.primary }]} onPress={() => speak(item.content, item.id)}>
+                        <Ionicons name={isActive ? "stop-circle" : "volume-medium-outline"} size={12} color={isActive ? "#FFFFFF" : colors.text.tertiary} />
+                        <Text style={[ds.quickActionText, { color: isActive ? "#FFFFFF" : colors.text.tertiary }]}>Listen</Text>
                       </TouchableOpacity>
                     </View>
                   )}
@@ -398,29 +445,28 @@ function AIScreen() {
             <View>
               {isTyping && (
                 <Animated.View entering={getFadeInDown()} style={ds.typingIndicator}>
-                  <ActivityIndicator size="small" color={colors.primary[300]} style={{ marginRight: 8 }} />
-                  <Text style={ds.typingText}>Thinking…</Text>
+                  <KnoMascot state="thinking" size={32} />
+                  <Text style={[ds.typingText, { marginLeft: 10 }]}>Kno is thinking...</Text>
                 </Animated.View>
               )}
               <View style={{ height: 12 }} />
+              <AISuggestions
+                suggestions={suggestions}
+                onSelect={sendMessage}
+                disabled={isTyping}
+              />
             </View>
           }
         />
 
-        <AISuggestions
-          suggestions={suggestions}
-          onSelect={sendMessage}
-          disabled={isTyping}
-        />
-
         <View style={[
-          ds.inputArea,
-          !isKeyboardVisible && { paddingBottom: Math.max(insets.bottom, 15) + 85 },
+          ds.inputContainer,
+          { paddingBottom: isKeyboardVisible ? 16 : (tabBarHeight + 12) }
         ]}>
           <View style={ds.inputWrapper}>
             <TextInput
               style={ds.input}
-              placeholder="Message KnoVault AI…"
+              placeholder="Ask Kno anything..."
               placeholderTextColor={colors.text.tertiary}
               value={inputText}
               onChangeText={setInputText}
@@ -441,7 +487,7 @@ function AIScreen() {
                 {isTyping ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Ionicons name="arrow-up" size={20} color={isDark && !inputText.trim() ? '#64748B' : '#FFFFFF'} />
+                  <Ionicons name="sparkles" size={18} color={isDark && !inputText.trim() ? '#64748B' : '#FFFFFF'} />
                 )}
               </LinearGradient>
             </TouchableOpacity>
@@ -498,13 +544,13 @@ const dsFunc = (theme: any, colors: any, isDark: boolean) => StyleSheet.create({
   clearBtn: { padding: 10, backgroundColor: theme.surface, borderRadius: 12 },
   welcomeInfo: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', backgroundColor: isDark ? '#1C2638' : '#F5F3FF', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, marginBottom: 18 },
   securityText: { fontSize: 10, color: isDark ? '#C4B5FD' : colors.primary[700], fontWeight: '600', marginLeft: 5 },
-  chatList: { paddingHorizontal: 16, paddingVertical: 16 },
+  chatList: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 4 },
   msgRow: { marginBottom: 16, flexDirection: 'row', alignItems: 'flex-end' },
   userRow: { justifyContent: 'flex-end' },
   aiRow: { justifyContent: 'flex-start' },
   aiBubbleAvatar: { width: 22, height: 22, borderRadius: 7, backgroundColor: isDark ? '#1C2638' : '#F5F3FF', justifyContent: 'center', alignItems: 'center', marginRight: 7, marginBottom: 5 },
   aiBubbleAvatarActive: { backgroundColor: theme.primary },
-  bubble: { paddingHorizontal: 15, paddingVertical: 11, borderRadius: 20, maxWidth: '88%', ...getThemedShadow(theme, 'soft') },
+  bubble: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16, maxWidth: '88%', ...getThemedShadow(theme, 'soft') },
   userBubble: { backgroundColor: theme.primary, borderBottomRightRadius: 4 },
   aiBubble: { backgroundColor: theme.card, borderBottomLeftRadius: 4, borderWidth: 1.2, borderColor: theme.border },
   errorBubble: { backgroundColor: isDark ? '#451225' : '#FEF2F2', borderColor: '#FCA5A5' },
@@ -518,14 +564,23 @@ const dsFunc = (theme: any, colors: any, isDark: boolean) => StyleSheet.create({
   actionBtnActive: { backgroundColor: theme.primary },
   retryBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F43F5E', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 12, alignSelf: 'flex-start', marginTop: 10 },
   retryText: { color: '#FFFFFF', fontSize: 11, fontWeight: '700', marginLeft: 4 },
-  typingIndicator: { flexDirection: 'row', alignItems: 'center', marginLeft: 30, marginBottom: 16 },
+  typingIndicator: { flexDirection: 'row', alignItems: 'center', marginLeft: 30, marginBottom: 8 },
   typingText: { ...typography.caption, color: colors.text.tertiary, fontWeight: '700' },
-  inputArea: { paddingHorizontal: 14, paddingTop: 10, paddingBottom: 14, backgroundColor: theme.card, borderTopWidth: 1.2, borderTopColor: theme.border, ...getThemedShadow(theme, 'medium') },
-  inputWrapper: { flexDirection: 'row', alignItems: 'flex-end', backgroundColor: theme.surface, borderRadius: 24, paddingHorizontal: 14, paddingVertical: 6, borderWidth: 1.2, borderColor: theme.border, minHeight: 48 },
+  inputContainer: { paddingHorizontal: 16, paddingTop: 8 },
+  inputWrapper: { flexDirection: 'row', alignItems: 'flex-end', backgroundColor: theme.card, borderRadius: 24, paddingHorizontal: 10, paddingVertical: 4, minHeight: 52, borderWidth: 1, borderColor: theme.border, ...getThemedShadow(theme, 'soft') },
   input: { flex: 1, ...typography.bodyMedium, color: theme.text, paddingHorizontal: 6, paddingTop: 8, paddingBottom: 8, maxHeight: 120 },
   sendBtn: { marginLeft: 8, marginBottom: 3 },
   sendBtnDisabled: { opacity: 0.5 },
   sendGradient: { width: 34, height: 34, borderRadius: 17, justifyContent: 'center', alignItems: 'center', ...getThemedShadow(theme, 'soft') },
+  heroContainer: { alignItems: 'center', marginTop: 16, marginBottom: 16 },
+  heroCard: { marginTop: 20, paddingHorizontal: 20, paddingVertical: 15, borderRadius: 16, borderWidth: 1.2, width: '90%' },
+  contextCard: { marginTop: 12, padding: 12, borderRadius: 12, backgroundColor: theme.surface, borderWidth: 1.2, borderColor: theme.border },
+  contextCardTitle: { ...typography.bodyMedium, fontWeight: '700', marginBottom: 6 },
+  contextCardDivider: { height: 1, width: '100%', marginBottom: 6 },
+  contextCardText: { ...typography.caption },
+  quickActionsRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6, flexWrap: 'wrap', gap: 6 },
+  quickActionBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border },
+  quickActionText: { fontSize: 11, fontWeight: '600', marginLeft: 4 },
 });
 
 export default AIScreen;
