@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
       setEmailData(data.email);
       setStep("reset");
       toast.success("Password reset code sent to your email!");
-    } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+    } catch (error: any  ) {
       if (error.response?.status === 404) {
         toast.error("No account found with this email address.");
       } else {
@@ -71,7 +71,7 @@ export default function ForgotPasswordPage() {
       setStep("success");
       toast.success("Password reset successfully!");
       setTimeout(() => router.push("/login"), 2000);
-    } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+    } catch (error: any  ) {
       toast.error(error.response?.data?.detail || "Failed to reset password. Invalid code.");
     } finally {
       setIsLoading(false);

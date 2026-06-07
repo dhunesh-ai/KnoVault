@@ -44,7 +44,7 @@ export default function LoginPage() {
       login(access_token, refresh_token, user);
       toast.success("Welcome back!");
       router.push("/dashboard");
-    } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+    } catch (error: any  ) {
       toast.error(error.response?.data?.detail || "Failed to login. Please check your credentials.");
     } finally {
       setIsLoading(false);
@@ -57,7 +57,7 @@ export default function LoginPage() {
       await loginWithGoogle();
       toast.success("Successfully signed in with Google!");
       router.push("/dashboard");
-    } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+    } catch (error: any  ) {
       toast.error(error.message || "Google sign-in failed. Please try again.");
     } finally {
       setIsGoogleLoading(false);

@@ -2431,3 +2431,15 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-06-07 17:56:03,954 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
 2026-06-07 17:56:39,465 - utils.firebase - WARNING - [Firebase] Invalid token: Firebase ID token has no "kid" claim.
 2026-06-07 18:20:00,201 - watchfiles.main - INFO - 1 change detected
+2026-06-07 18:54:19,574 - watchfiles.main - INFO - 1 change detected
+2026-06-07 19:02:21,745 - watchfiles.main - INFO - 1 change detected
+2026-06-07 19:16:51,775 - watchfiles.main - INFO - 1 change detected
+2026-06-07 19:18:19,134 - services.email - INFO - Attempting to send reset email to dhuneshwaran4@gmail.com via Brevo HTTP API...
+2026-06-07 19:18:21,254 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
+2026-06-07 19:18:21,258 - services.email - INFO - Successfully sent reset email to dhuneshwaran4@gmail.com via Brevo HTTP API
+2026-06-07 19:27:24,803 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-07 19:27:26,813 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-07 19:27:34,115 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-07 19:35:39,473 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-07 19:35:41,831 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-07 19:35:50,282 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json

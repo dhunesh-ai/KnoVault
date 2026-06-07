@@ -24,6 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Plus, Trash2, Check, ChevronsUpDown } from "lucide-react";
 import { toast } from "sonner";
+import { VoiceDictationButton } from "@/components/notes/VoiceDictationButton";
 
 const noteSchema = z.object({
   title: z.string().min(1, "Title is required").max(100),
@@ -230,7 +231,7 @@ export function NoteEditor({ open, onOpenChange, note }: NoteEditorProps) {
                         ))
                       ) : (
                         <div className="p-2 text-sm text-muted-foreground text-center">
-                          Press Enter to create "{categoryInput}"
+                          Press Enter to create &quot;{categoryInput}&quot;
                         </div>
                       )}
                     </div>
@@ -242,7 +243,20 @@ export function NoteEditor({ open, onOpenChange, note }: NoteEditorProps) {
             {/* Content based on type */}
             {watchNoteType === "standard" && (
               <div className="space-y-2 flex-1 flex flex-col h-full min-h-[200px]">
-                <Label>Content</Label>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Label>Content</Label>
+                    <VoiceDictationButton 
+                      onTranscript={(text) => {
+                        const current = form.getValues("content") || "";
+                        form.setValue("content", current + text, { shouldDirty: true });
+                      }}
+                    />
+                  </div>
+                  <span className="text-xs text-muted-foreground font-medium">
+                    {(form.watch("content") || "").length} characters
+                  </span>
+                </div>
                 <Textarea
                   {...form.register("content")}
                   placeholder="Write your note here..."

@@ -72,7 +72,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       Cookies.set('user_token', access_token, { expires: 7, secure: true });
       Cookies.set('refresh_token', refresh_token, { expires: 30, secure: true });
       set({ user, isAuthenticated: true, isLoading: false });
-    } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+    } catch (error: any  ) {
       console.error('Google login failed:', error);
       throw new Error(error.response?.data?.detail || "Google sign-in failed");
     }

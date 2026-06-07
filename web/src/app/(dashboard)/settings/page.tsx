@@ -1,18 +1,37 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSettingsStore } from "@/store/useSettingsStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { 
-  User, Moon, Bell, Lock, Download, LogOut, Settings as SettingsIcon,
-  ShieldAlert, Sparkles, ChevronRight, CheckCircle2
+  Moon, Bell, Lock, LogOut, Settings as SettingsIcon,
+  ShieldAlert, Sparkles, CheckCircle2, ShieldCheck, 
+  HardDrive, LayoutDashboard, StickyNote, Target, Gift
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/axios";
+import { motion } from "framer-motion";
+
+const StatCard = ({ icon: Icon, label, value, colorClass, isLoading }: any) => (
+  <div className="flex items-center gap-3 p-4 bg-background/50 border border-border rounded-xl hover:bg-accent/50 transition-colors">
+    <div className={`p-2 rounded-lg ${colorClass} bg-opacity-10`}>
+      <Icon className={`w-5 h-5 ${colorClass.replace('bg-', 'text-').replace('/10', '')}`} />
+    </div>
+    <div>
+      <p className="text-xs text-muted-foreground font-medium">{label}</p>
+      <p className="text-xl font-bold text-foreground tracking-tight">
+        {isLoading ? <span className="animate-pulse bg-muted rounded h-6 w-10 inline-block" /> : value}
+      </p>
+    </div>
+  </div>
+);
 
 export default function SettingsPage() {
   const { user, logout } = useAuthStore();
@@ -23,9 +42,72 @@ export default function SettingsPage() {
     secureNotesTimeout, setSecureNotesTimeout
   } = useSettingsStore();
 
-  const [isExporting, setIsExporting] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [password, setPassword] = useState("");
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  
+  const [stats, setStats] = useState({
+    notes: 0,
+    secureNotes: 0,
+    reminders: 0,
+    projects: 0,
+    goals: 0,
+    specialDays: 0,
+    storageUsageBytes: 0,
+  });
+
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setIsLoadingStats(true);
+        const [notesRes, remindersRes, projectsRes, goalsRes, specialDaysRes] = await Promise.all([
+          api.get('/api/notes').catch(() => ({ data: [] })),
+          api.get('/api/reminders').catch(() => ({ data: [] })),
+          api.get('/api/projects').catch(() => ({ data: [] })),
+          api.get('/api/goals').catch(() => ({ data: [] })),
+          api.get('/api/special-days').catch(() => ({ data: [] }))
+        ]);
+
+        const notesData = notesRes.data || [];
+        const remindersData = remindersRes.data || [];
+        const projectsData = projectsRes.data || [];
+        const goalsData = goalsRes.data || [];
+        const specialDaysData = specialDaysRes.data || [];
+
+        const totalBytes = new Blob([
+          JSON.stringify(notesData),
+          JSON.stringify(remindersData),
+          JSON.stringify(projectsData),
+          JSON.stringify(goalsData),
+          JSON.stringify(specialDaysData)
+        ]).size;
+        
+        setStats({
+          notes: notesData.length,
+          secureNotes: notesData.filter((n: any) => n.is_secure || n.category === "Secure").length,
+          reminders: remindersData.length,
+          projects: projectsData.length,
+          goals: goalsData.length,
+          specialDays: specialDaysData.length,
+          storageUsageBytes: totalBytes,
+        });
+      } catch (error) {
+        console.error("Failed to fetch profile stats:", error);
+      } finally {
+        setIsLoadingStats(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   const handleNotificationRequest = async (checked: boolean) => {
     if (checked) {
@@ -47,15 +129,6 @@ export default function SettingsPage() {
     }
   };
 
-  const handleExportData = () => {
-    setIsExporting(true);
-    // Simulate export delay
-    setTimeout(() => {
-      toast.success("Workspace data exported successfully. Check your downloads.");
-      setIsExporting(false);
-    }, 2000);
-  };
-
   const handleChangePassword = async () => {
     if (password.length < 6) {
       toast.error("Password must be at least 6 characters");
@@ -66,156 +139,250 @@ export default function SettingsPage() {
       toast.success("Password updated successfully");
       setPassword("");
       setIsChangingPassword(false);
-    } catch (e) {
+    } catch {
       // Error handled by axios interceptor
     }
   };
 
-  const SectionTitle = ({ title, icon: Icon, description }: { title: string, icon: any, description?: string }) => (
-    <div className="mb-4">
-      <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-        <Icon className="w-5 h-5 text-primary" /> {title}
-      </h2>
-      {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
-    </div>
-  );
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-16 h-full flex flex-col">
-      <div className="shrink-0 mb-2">
-        <h1 className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-2">
-          Settings <SettingsIcon className="w-6 h-6 text-muted-foreground" />
+    <div className="max-w-6xl mx-auto space-y-8 pb-16 h-full flex flex-col">
+      <div className="shrink-0 mb-6">
+        <h1 className="text-4xl font-extrabold text-foreground tracking-tight flex items-center gap-3">
+          Account Profile
         </h1>
-        <p className="text-muted-foreground mt-1">Manage your account preferences and application settings.</p>
+        <p className="text-muted-foreground mt-2 text-lg">Manage your personal settings and profile overview.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 flex-1 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 items-start">
         
-        {/* Account Info Card - Left Col */}
-        <div className="md:col-span-4 space-y-6">
-          <div className="bg-card border border-border p-6 rounded-2xl flex flex-col items-center text-center shadow-sm">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-2xl font-bold text-foreground mb-4 shadow-lg shadow-purple-500/20">
-              {user?.full_name?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <h3 className="text-xl font-bold text-foreground">{user?.full_name}</h3>
-            <p className="text-muted-foreground text-sm mb-6">{user?.email}</p>
+        {/* Left Column: Profile Sticky Overview */}
+        <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-8">
+          {/* Profile Card */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-card/40 backdrop-blur-xl border border-border p-8 rounded-3xl flex flex-col items-center text-center shadow-lg relative overflow-hidden"
+          >
+            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-[#7C4DFF]/20 to-transparent pointer-events-none" />
             
-            <Button variant="outline" className="w-full border-border text-foreground hover:bg-accent mb-3" onClick={() => setIsChangingPassword(!isChangingPassword)}>
-              Change Password
-            </Button>
-            
-            {isChangingPassword && (
-              <div className="w-full space-y-3 mb-6 p-4 bg-muted rounded-lg border border-border text-left">
-                <input 
-                  type="password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="New password"
-                />
-                <Button className="w-full bg-purple-600 hover:bg-purple-700 text-foreground text-xs" onClick={handleChangePassword}>
-                  Update
-                </Button>
+            <div className="relative mt-4">
+              <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-[#7C4DFF] to-pink-500 p-1 shadow-2xl shadow-[#7C4DFF]/30">
+                <div className="w-full h-full rounded-full bg-card flex items-center justify-center text-5xl font-bold text-foreground relative overflow-hidden">
+                  {user?.full_name?.charAt(0).toUpperCase() || 'U'}
+                </div>
               </div>
-            )}
+              <div className="absolute bottom-0 right-1 bg-green-500 p-1.5 rounded-full border-4 border-card" title="Verified Account">
+                <CheckCircle2 className="w-5 h-5 text-white" />
+              </div>
+            </div>
 
-            <Button variant="destructive" className="w-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-foreground border border-red-500/20" onClick={logout}>
-              <LogOut className="w-4 h-4 mr-2" /> Logout
+            <h3 className="text-3xl font-bold text-foreground mt-6">
+              {user?.full_name}
+            </h3>
+            <p className="text-muted-foreground text-sm mt-1">{user?.email}</p>
+            
+            <Badge variant="outline" className="mt-4 bg-[#7C4DFF]/10 text-[#7C4DFF] border-[#7C4DFF]/20 font-medium px-4 py-1.5 text-sm">
+              Pro Member
+            </Badge>
+
+            <div className="w-full grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-border/50">
+              <div className="text-left">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Joined</p>
+                <p className="text-sm font-medium text-foreground mt-1">Oct 2024</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Status</p>
+                <p className="text-sm font-medium text-green-500 mt-1">Active</p>
+              </div>
+            </div>
+
+            <Button variant="ghost" className="w-full mt-6 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-xl py-5" onClick={logout}>
+              <LogOut className="w-4 h-4 mr-2" /> Sign Out
             </Button>
-          </div>
+          </motion.div>
+
+          {/* Account Overview */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-card/40 backdrop-blur-xl border border-border p-8 rounded-3xl shadow-lg"
+          >
+            <h3 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
+              <HardDrive className="w-5 h-5 text-[#7C4DFF]" /> Account Overview
+            </h3>
+            <div className="space-y-5">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Storage Usage</span>
+                <span className="text-sm font-medium text-foreground">{isLoadingStats ? "..." : formatBytes(stats.storageUsageBytes)} / 5 GB</span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2">
+                <div className="bg-[#7C4DFF] h-2 rounded-full transition-all duration-1000" style={{ width: `${Math.min((stats.storageUsageBytes / (5 * 1024 * 1024 * 1024)) * 100, 100)}%` }}></div>
+              </div>
+              <Separator className="bg-border/50" />
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Last Login</span>
+                <span className="text-sm font-medium text-foreground">Today, 09:41 AM</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Encryption</span>
+                <span className="text-sm font-medium text-green-500 flex items-center gap-1"><Lock className="w-3 h-3" /> Active</span>
+              </div>
+            </div>
+          </motion.div>
         </div>
 
-        {/* Settings Form - Right Col */}
-        <div className="md:col-span-8 space-y-6">
-          
-          {/* Appearance */}
-          <div className="bg-card border border-border p-6 rounded-2xl shadow-sm">
-            <SectionTitle title="Appearance" icon={Moon} description="Customize how KnoVault looks on your device." />
-            <div className="flex items-center justify-between p-4 bg-muted rounded-xl border border-border">
-              <div>
-                <h4 className="text-sm font-medium text-foreground">Theme Preference</h4>
-                <p className="text-xs text-muted-foreground">Choose your preferred theme across the application.</p>
-              </div>
-              <Select value={theme} onValueChange={(v: any) => setTheme(v)}>
-                <SelectTrigger className="w-32 bg-background border-border text-foreground">
-                  <SelectValue placeholder="Theme" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border-border text-foreground">
-                  <SelectItem value="dark">Dark</SelectItem>
-                  <SelectItem value="light">Light</SelectItem>
-                  <SelectItem value="system">System</SelectItem>
-                </SelectContent>
-              </Select>
+        {/* Right Column: Detailed Settings & Stats */}
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="lg:col-span-8 space-y-8"
+        >
+          {/* Profile Statistics */}
+          <motion.div variants={itemVariants} className="bg-card/40 backdrop-blur-xl border border-border p-8 rounded-3xl shadow-sm">
+            <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+              <LayoutDashboard className="w-5 h-5 text-[#7C4DFF]" /> Profile Statistics
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+              <StatCard icon={StickyNote} label="Total Notes" value={stats.notes} colorClass="text-blue-500 bg-blue-500/10" isLoading={isLoadingStats} />
+              <StatCard icon={ShieldCheck} label="Secure Notes" value={stats.secureNotes} colorClass="text-red-500 bg-red-500/10" isLoading={isLoadingStats} />
+              <StatCard icon={Bell} label="Reminders" value={stats.reminders} colorClass="text-amber-500 bg-amber-500/10" isLoading={isLoadingStats} />
+              <StatCard icon={Target} label="Goals" value={stats.goals} colorClass="text-emerald-500 bg-emerald-500/10" isLoading={isLoadingStats} />
+              <StatCard icon={Gift} label="Special Days" value={stats.specialDays} colorClass="text-pink-500 bg-pink-500/10" isLoading={isLoadingStats} />
             </div>
-          </div>
+          </motion.div>
 
-          {/* Notifications & AI */}
-          <div className="bg-card border border-border p-6 rounded-2xl shadow-sm">
-            <SectionTitle title="Preferences" icon={Bell} description="Manage alerts and AI interactions." />
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-4 bg-muted rounded-xl border border-border">
-                <div>
-                  <h4 className="text-sm font-medium text-foreground flex items-center gap-2">Browser Notifications</h4>
-                  <p className="text-xs text-muted-foreground">Receive alerts for reminders and special days.</p>
+          {/* Preferences */}
+          <motion.div variants={itemVariants} className="bg-card/40 backdrop-blur-xl border border-border p-8 rounded-3xl shadow-sm">
+            <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+              <SettingsIcon className="w-5 h-5 text-[#7C4DFF]" /> Preferences
+            </h2>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-5 bg-background/50 hover:bg-background/80 transition-colors rounded-2xl border border-border/50">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-muted rounded-xl"><Moon className="w-5 h-5 text-foreground" /></div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground">Theme Preference</h4>
+                    <p className="text-xs text-muted-foreground mt-1">Choose your preferred application theme.</p>
+                  </div>
+                </div>
+                <Select value={theme} onValueChange={(v: any) => setTheme(v)}>
+                  <SelectTrigger className="w-36 bg-background border-border text-foreground rounded-xl h-10">
+                    <SelectValue placeholder="Theme" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="dark">Dark</SelectItem>
+                    <SelectItem value="light">Light</SelectItem>
+                    <SelectItem value="system">System</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center justify-between p-5 bg-background/50 hover:bg-background/80 transition-colors rounded-2xl border border-border/50">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-amber-500/10 rounded-xl"><Bell className="w-5 h-5 text-amber-500" /></div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground">Browser Notifications</h4>
+                    <p className="text-xs text-muted-foreground mt-1">Receive alerts for reminders and events.</p>
+                  </div>
                 </div>
                 <Switch checked={notificationsEnabled} onCheckedChange={handleNotificationRequest} />
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-muted rounded-xl border border-border">
-                <div>
-                  <h4 className="text-sm font-medium text-foreground flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-primary" /> AI Voice Responses</h4>
-                  <p className="text-xs text-muted-foreground">Enable text-to-speech for AI Assistant responses.</p>
+              <div className="flex items-center justify-between p-5 bg-background/50 hover:bg-background/80 transition-colors rounded-2xl border border-border/50">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-[#7C4DFF]/10 rounded-xl"><Sparkles className="w-5 h-5 text-[#7C4DFF]" /></div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground">AI Voice Responses</h4>
+                    <p className="text-xs text-muted-foreground mt-1">Enable text-to-speech for AI Assistant.</p>
+                  </div>
                 </div>
                 <Switch checked={aiVoiceEnabled} onCheckedChange={setAiVoiceEnabled} />
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Security */}
-          <div className="bg-card border border-border p-6 rounded-2xl shadow-sm">
-            <SectionTitle title="Security" icon={ShieldAlert} description="Configure your privacy settings." />
-            <div className="flex items-center justify-between p-4 bg-muted rounded-xl border border-border">
-              <div>
-                <h4 className="text-sm font-medium text-foreground">Secure Notes Timeout</h4>
-                <p className="text-xs text-muted-foreground">Auto-lock your vault after inactivity.</p>
+          {/* Security Center */}
+          <motion.div variants={itemVariants} className="bg-card/40 backdrop-blur-xl border border-border p-8 rounded-3xl shadow-sm">
+            <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-red-500" /> Security Center
+            </h2>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-5 bg-background/50 hover:bg-background/80 transition-colors rounded-2xl border border-border/50">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-red-500/10 rounded-xl"><Lock className="w-5 h-5 text-red-500" /></div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground">Secure Notes Timeout</h4>
+                    <p className="text-xs text-muted-foreground mt-1">Auto-lock your vault after inactivity.</p>
+                  </div>
+                </div>
+                <Select value={secureNotesTimeout.toString()} onValueChange={(v) => setSecureNotesTimeout(parseInt(v))}>
+                  <SelectTrigger className="w-36 bg-background border-border text-foreground rounded-xl h-10">
+                    <SelectValue placeholder="Timeout" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="5">5 Minutes</SelectItem>
+                    <SelectItem value="15">15 Minutes</SelectItem>
+                    <SelectItem value="30">30 Minutes</SelectItem>
+                    <SelectItem value="60">1 Hour</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <Select value={secureNotesTimeout.toString()} onValueChange={(v) => setSecureNotesTimeout(parseInt(v))}>
-                <SelectTrigger className="w-32 bg-background border-border text-foreground">
-                  <SelectValue placeholder="Timeout" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border-border text-foreground">
-                  <SelectItem value="5">5 Minutes</SelectItem>
-                  <SelectItem value="15">15 Minutes</SelectItem>
-                  <SelectItem value="30">30 Minutes</SelectItem>
-                  <SelectItem value="60">1 Hour</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
 
-          {/* Data Management */}
-          <div className="bg-card border border-border p-6 rounded-2xl shadow-sm">
-            <SectionTitle title="Data Management" icon={Download} description="Control your personal information." />
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button 
-                variant="outline" 
-                className="flex-1 bg-muted border-border text-foreground hover:bg-accent"
-                onClick={handleExportData}
-                disabled={isExporting}
-              >
-                {isExporting ? (
-                  "Generating Archive..."
-                ) : (
-                  <><Download className="w-4 h-4 mr-2" /> Export Workspace Data</>
+              {/* Password Change */}
+              <div className="p-5 bg-background/50 rounded-2xl border border-border/50 transition-all">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-muted rounded-xl"><Lock className="w-5 h-5 text-foreground" /></div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-foreground">Account Password</h4>
+                      <p className="text-xs text-muted-foreground mt-1">Last changed 3 months ago.</p>
+                    </div>
+                  </div>
+                  <Button variant="outline" className="rounded-xl border-border" onClick={() => setIsChangingPassword(!isChangingPassword)}>
+                    {isChangingPassword ? "Cancel" : "Change Password"}
+                  </Button>
+                </div>
+                
+                {isChangingPassword && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }} 
+                    animate={{ opacity: 1, height: 'auto' }} 
+                    className="mt-5 pt-5 border-t border-border flex items-center gap-3 overflow-hidden"
+                  >
+                    <Input 
+                      type="password" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="flex-1 bg-background border-border rounded-xl focus-visible:ring-[#7C4DFF] h-11"
+                      placeholder="Enter new password"
+                    />
+                    <Button className="bg-[#7C4DFF] hover:bg-[#6b42e0] text-white rounded-xl h-11 px-6" onClick={handleChangePassword}>
+                      Update Password
+                    </Button>
+                  </motion.div>
                 )}
-              </Button>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-3 flex items-center">
-              <Lock className="w-3 h-3 mr-1" /> Your data is encrypted at rest and in transit via KnoVault protocols.
-            </p>
-          </div>
+          </motion.div>
 
-        </div>
+        </motion.div>
       </div>
     </div>
   );

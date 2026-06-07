@@ -65,7 +65,7 @@ export default function RegisterPage() {
       setEmailData(data);
       setStep("otp");
       toast.success("Verification code sent to your email!");
-    } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+    } catch (error: any  ) {
       if (error.response?.status === 429) {
         toast.error("Please wait a moment before requesting another code.");
       } else {
@@ -88,7 +88,7 @@ export default function RegisterPage() {
       setOtpCode(data.code);
       setStep("password");
       toast.success("Email verified!");
-    } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+    } catch (error: any  ) {
       toast.error(error.response?.data?.detail || "Invalid code.");
     } finally {
       setIsLoading(false);
@@ -108,7 +108,7 @@ export default function RegisterPage() {
       login(access_token, refresh_token, user);
       setStep("success");
       setTimeout(() => router.push("/dashboard"), 1500);
-    } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+    } catch (error: any  ) {
       toast.error(error.response?.data?.detail || "Failed to create account.");
     } finally {
       setIsLoading(false);
@@ -121,7 +121,7 @@ export default function RegisterPage() {
       await loginWithGoogle();
       toast.success("Successfully signed in with Google!");
       router.push("/dashboard");
-    } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+    } catch (error: any  ) {
       toast.error(error.message || "Google sign-in failed. Please try again.");
     } finally {
       setIsGoogleLoading(false);
