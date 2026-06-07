@@ -5,8 +5,8 @@ from sqlalchemy import select, func, or_
 from sqlalchemy.orm import selectinload
 from database import get_db
 from models.user import User
-from models.note import Note, ChecklistItem, FieldNote, VoiceNote
-from schemas.note import NoteCreate, NoteUpdate, NoteResponse, VoiceNoteResponse
+from models.note import Note, ChecklistItem, FieldNote, VoiceNote, NoteCategory
+from schemas.note import NoteCreate, NoteUpdate, NoteResponse, VoiceNoteResponse, CategoryResponse, CategoryCreate, CategoryRename
 from middleware.auth import get_current_user
 from utils.encryption import encrypt_text, decrypt_text
 import os
@@ -79,18 +79,128 @@ async def get_favorite_notes(
     return [_prepare_note_response(n) for n in notes]
 
 
-@router.get("/categories", response_model=list[str])
+@router.get("/categories", response_model=list[CategoryResponse])
 async def get_categories(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    result = await db.execute(
-        select(Note.category)
+    # Get counts from existing notes
+    notes_query = await db.execute(
+        select(Note.category, func.count(Note.id))
         .where(Note.user_id == current_user.id)
-        .distinct()
+        .group_by(Note.category)
     )
-    categories = result.scalars().all()
-    return [c for c in categories if c]
+    usage = {row[0]: row[1] for row in notes_query.all()}
+    
+    # Get custom created categories
+    custom_query = await db.execute(
+        select(NoteCategory.name)
+        .where(NoteCategory.user_id == current_user.id)
+    )
+    custom_names = set(custom_query.scalars().all())
+    
+    # Built-in categories
+    built_in = {"General", "Personal", "Work", "Study", "Passwords", "Finance", "Ideas", "Other"}
+    
+    all_names = set(usage.keys()) | custom_names | built_in
+    
+    result = []
+    for name in all_names:
+        if not name:
+            continue
+        result.append({
+            "name": name,
+            "count": usage.get(name, 0),
+            "is_custom": name not in built_in
+        })
+        
+    # Sort alphabetically
+    result.sort(key=lambda x: x["name"].lower())
+    return result
+
+@router.post("/categories", response_model=CategoryResponse)
+async def create_category(
+    data: CategoryCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    name = data.name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Name cannot be empty")
+        
+    # Check if exists
+    existing = await db.execute(
+        select(NoteCategory).where(NoteCategory.name == name, NoteCategory.user_id == current_user.id)
+    )
+    if not existing.scalar_one_or_none():
+        new_cat = NoteCategory(name=name, user_id=current_user.id)
+        db.add(new_cat)
+        await db.flush()
+        
+    return {"name": name, "count": 0, "is_custom": True}
+
+@router.put("/categories/{name}", response_model=CategoryResponse)
+async def rename_category(
+    name: str,
+    data: CategoryRename,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    new_name = data.new_name.strip()
+    if not new_name:
+        raise HTTPException(status_code=400, detail="New name cannot be empty")
+        
+    if name == new_name:
+        return {"name": name, "count": 0, "is_custom": True} # Placeholder count
+        
+    # Update custom category registry if it exists
+    custom = await db.execute(
+        select(NoteCategory).where(NoteCategory.name == name, NoteCategory.user_id == current_user.id)
+    )
+    cat = custom.scalar_one_or_none()
+    if cat:
+        cat.name = new_name
+    else:
+        # If they rename a built-in or implicitly created category, register the new one
+        db.add(NoteCategory(name=new_name, user_id=current_user.id))
+        
+    # Ensure no duplicates in registry
+    existing_new = await db.execute(
+        select(NoteCategory).where(NoteCategory.name == new_name, NoteCategory.user_id == current_user.id, NoteCategory.id != (cat.id if cat else -1))
+    )
+    if existing_new.scalar_one_or_none() and cat:
+        await db.delete(cat) # Merge duplicates
+        
+    # Bulk update notes
+    await db.execute(
+        Note.__table__.update()
+        .where(Note.category == name, Note.user_id == current_user.id)
+        .values(category=new_name)
+    )
+    await db.flush()
+    return {"name": new_name, "count": 0, "is_custom": True}
+
+@router.delete("/categories/{name}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_category(
+    name: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # Remove from custom registry
+    custom = await db.execute(
+        select(NoteCategory).where(NoteCategory.name == name, NoteCategory.user_id == current_user.id)
+    )
+    cat = custom.scalar_one_or_none()
+    if cat:
+        await db.delete(cat)
+        
+    # Bulk update notes to 'General'
+    await db.execute(
+        Note.__table__.update()
+        .where(Note.category == name, Note.user_id == current_user.id)
+        .values(category="General")
+    )
+    await db.flush()
 
 
 @router.get("/{note_id}", response_model=NoteResponse)
@@ -221,14 +331,11 @@ async def update_note(
     # Handle checklist items replacement
     if "checklist_items" in update_data:
         items_data = update_data.pop("checklist_items")
-        # Delete old items
-        for item in note.checklist_items:
-            await db.delete(item)
-        # Add new items
+        # Clear collection and let cascade delete-orphan handle removal
+        note.checklist_items.clear()
         if items_data:
             for idx, item_data in enumerate(items_data):
-                db.add(ChecklistItem(
-                    note_id=note.id,
+                note.checklist_items.append(ChecklistItem(
                     text=item_data["text"],
                     completed=item_data.get("completed", False),
                     order=item_data.get("order", idx),
@@ -237,12 +344,11 @@ async def update_note(
     # Handle field notes replacement
     if "field_notes" in update_data:
         fields_data = update_data.pop("field_notes")
-        for field in note.field_notes:
-            await db.delete(field)
+        # Clear collection and let cascade delete-orphan handle removal
+        note.field_notes.clear()
         if fields_data:
             for idx, field_data in enumerate(fields_data):
-                db.add(FieldNote(
-                    note_id=note.id,
+                note.field_notes.append(FieldNote(
                     label=field_data["label"],
                     value=field_data["value"],
                     order=field_data.get("order", idx),

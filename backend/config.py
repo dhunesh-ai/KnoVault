@@ -11,15 +11,10 @@ class Settings(BaseSettings):
     GROQ_MODEL: str = "llama-3.1-8b-instant"
     ALLOWED_ORIGINS: str = "*"
 
-    # SMTP Settings
-    SMTP_HOST: str = "smtp.gmail.com"
-    SMTP_PORT: int = 465
-    SMTP_USER: str = ""
-    SMTP_PASSWORD: str = ""
-    SMTP_FROM: str = "KnoVault <noreply@knovault.com>"
-
     # Brevo API Settings
     BREVO_API_KEY: str = ""
+    BREVO_SENDER_EMAIL: str = "thinkgood24hrs@gmail.com"
+    BREVO_SENDER_NAME: str = "KnoVault"
 
     # Firebase Settings
     FIREBASE_CREDENTIALS_PATH: str = "secrets/firebase-adminsdk.json"

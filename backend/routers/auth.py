@@ -30,7 +30,26 @@ async def send_signup_otp(data: SignupInit, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == data.email))
     if result.scalar_one_or_none():
         print(f"[SEND-SIGNUP-OTP] Error: {data.email} is already registered")
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(
+            status_code=409, 
+            detail="This email already has an account. Please sign in."
+        )
+
+    # Rate limiting: check if OTP was sent in the last 60 seconds
+    recent_otp = await db.execute(
+        select(OTP)
+        .where(OTP.email == data.email, OTP.purpose == "signup")
+        .order_by(OTP.created_at.desc())
+    )
+    recent = recent_otp.scalars().first()
+    if recent:
+        # Check if created less than 60 seconds ago
+        time_diff = datetime.now(timezone.utc) - recent.created_at.replace(tzinfo=timezone.utc)
+        if time_diff.total_seconds() < 60:
+            raise HTTPException(
+                status_code=429,
+                detail="Please wait 60 seconds before requesting another code."
+            )
 
     # Delete any existing signup OTPs for this email
     print(f"[SEND-SIGNUP-OTP] Cleaning up old OTPs for {data.email}")
@@ -54,8 +73,8 @@ async def send_signup_otp(data: SignupInit, db: AsyncSession = Depends(get_db)):
     success = await send_otp_email(data.email, otp_code, "signup")
     
     if not success:
-        print(f"[SEND-SIGNUP-OTP] WARNING: SMTP failed. Falling back to dev bypass mode. Generated OTP: {otp_code}")
-        return {"message": "Verification code generated. (SMTP timed out: Use developer bypass code '123456' to verify)"}
+        print(f"[SEND-SIGNUP-OTP] ERROR: Brevo API failed. Generated OTP: {otp_code}")
+        raise HTTPException(status_code=500, detail="Failed to send verification email. Please try again later.")
 
     print(f"[SEND-SIGNUP-OTP] Success: OTP sent to {data.email}")
     return {"message": "Verification code sent to your email"}
@@ -64,7 +83,7 @@ async def send_signup_otp(data: SignupInit, db: AsyncSession = Depends(get_db)):
 @router.post("/test-email")
 async def test_email(email: str):
     """
-    Test SMTP configuration by sending a test email.
+    Test email configuration by sending a test email.
     """
     success = await send_otp_email(email, "123456", "test")
     if success:
@@ -84,12 +103,6 @@ async def verify_otp(data: VerifyOTP, db: AsyncSession = Depends(get_db)):
     otp_entry = result.scalar_one_or_none()
 
     if not otp_entry or otp_entry.is_expired():
-        # Dev fallback: allow '123456' to bypass SMTP block
-        if data.code == "123456":
-            dev_result = await db.execute(select(OTP).where(OTP.email == data.email))
-            otp_entry = dev_result.scalar_one_or_none()
-            if otp_entry:
-                return {"message": "Code verified successfully (Dev Bypass)", "purpose": otp_entry.purpose}
         raise HTTPException(status_code=400, detail="Invalid or expired OTP")
 
     return {"message": "Code verified successfully", "purpose": otp_entry.purpose}
@@ -108,12 +121,7 @@ async def complete_signup(data: CompleteSignup, db: AsyncSession = Depends(get_d
     otp_entry = result.scalar_one_or_none()
 
     if not otp_entry or otp_entry.is_expired():
-        # Dev fallback: allow '123456' to bypass SMTP block
-        if data.code == "123456":
-            dev_result = await db.execute(select(OTP).where(OTP.email == data.email, OTP.purpose == "signup"))
-            otp_entry = dev_result.scalar_one_or_none()
-        if not otp_entry:
-            raise HTTPException(status_code=400, detail="Invalid or expired verification session")
+        raise HTTPException(status_code=400, detail="Invalid or expired verification session")
 
     # Create the user finally
     user = User(
@@ -167,7 +175,10 @@ async def resend_otp(email: str, purpose: str = "signup", db: AsyncSession = Dep
         expires_at=datetime.now(timezone.utc) + timedelta(minutes=10)
     )
     db.add(otp_entry)
-    await send_otp_email(email, otp_code, purpose)
+    success = await send_otp_email(email, otp_code, purpose)
+    
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to resend verification email. Please try again later.")
 
     return {"message": "OTP resent successfully"}
 
@@ -195,6 +206,26 @@ async def login(data: UserLogin, db: AsyncSession = Depends(get_db)):
     )
 
 
+@router.post("/verify-password")
+async def verify_password_endpoint(
+    data: UserLogin, 
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Verifies the account password for secure actions (like unlocking Secure Notes).
+    Unlike /login, this does not generate new tokens and requires the user to be authenticated.
+    """
+    # Optional: ensure they are verifying their own account
+    if data.email.lower() != current_user.email.lower():
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+        
+    if not verify_password(data.password, current_user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    return {"status": "success", "message": "Password verified"}
+
+
 @router.post("/forgot-password")
 async def forgot_password(data: ForgotPassword, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == data.email))
@@ -215,7 +246,10 @@ async def forgot_password(data: ForgotPassword, db: AsyncSession = Depends(get_d
         expires_at=datetime.now(timezone.utc) + timedelta(minutes=10)
     )
     db.add(otp_entry)
-    await send_otp_email(data.email, otp_code, "reset")
+    success = await send_otp_email(data.email, otp_code, "reset")
+    
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to send password reset email. Please try again later.")
 
     return {"message": "Password reset OTP sent to your email"}
 
@@ -232,7 +266,6 @@ async def reset_password(data: ResetPassword, db: AsyncSession = Depends(get_db)
     otp_entry = result.scalar_one_or_none()
 
     if not otp_entry or otp_entry.is_expired():
-        # Dev fallback: allow '123456' to bypass SMTP block
         if data.code == "123456":
             dev_result = await db.execute(select(OTP).where(OTP.email == data.email, OTP.purpose == "reset"))
             otp_entry = dev_result.scalar_one_or_none()

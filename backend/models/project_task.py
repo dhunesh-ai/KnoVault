@@ -17,6 +17,7 @@ class ProjectTask(Base):
     progress: Mapped[int] = mapped_column(Integer, default=0)              # 0 to 100
     deadline: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     subtasks: Mapped[list | None] = mapped_column(JSON, default=list, nullable=True) # [{"id": "...", "title": "...", "completed": false}]
+    goal_type: Mapped[str] = mapped_column(String(20), default="project")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
 

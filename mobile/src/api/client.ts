@@ -19,10 +19,26 @@ const client = axios.create({
   },
 });
 
+export const checkHealth = async (): Promise<boolean> => {
+  try {
+    console.log('[Neon Connection / Health Check] Verifying Render backend and Neon DB...');
+    const res = await axios.get(`${env.API_BASE_URL}/health`, { timeout: 15000 });
+    if (res.status === 200 && res.data?.database === 'connected') {
+      console.log('[Neon Connection / Health Check] OK');
+      useAppStore.getState().setBackendDown(false);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('[Neon Connection / Health Check] Failed:', error);
+    return false;
+  }
+};
+
 // ── Request Interceptor: Attach JWT & Log ───────────────────────────
 client.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    // console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, config.data || '');
+    console.log(`[API Initialization] Requesting ${config.method?.toUpperCase()} ${config.url}`);
     try {
       const token = await SecureStore.getItemAsync('user_token');
       if (token && config.headers) {
@@ -37,22 +53,40 @@ client.interceptors.request.use(
 );
 
 // ── Response Interceptor: Handle 401 globally and Refresh Tokens ───
+const RETRY_DELAYS = [2000, 4000, 8000];
+
 client.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retryCount?: number, _retry?: boolean };
+    originalRequest._retryCount = originalRequest._retryCount || 0;
     
     // Don't trigger token refresh or logout for auth endpoints
-    // These are pre-authentication calls where 401 means invalid credentials, not expired session
     const authEndpoints = ['/api/auth/login', '/api/auth/firebase-sync', '/api/auth/complete-signup'];
     const isAuthEndpoint = authEndpoints.some(ep => originalRequest?.url?.includes(ep));
+    
+    // Detect Backend / Network Errors for Retry Logic
+    if (error.message === 'Network Error' || error.code === 'ECONNABORTED' || error.response?.status === 503) {
+      if (originalRequest._retryCount < RETRY_DELAYS.length) {
+        const delay = RETRY_DELAYS[originalRequest._retryCount];
+        console.log(`[API Retry] Request failed. Retrying in ${delay}ms... (Attempt ${originalRequest._retryCount + 1}/${RETRY_DELAYS.length})`);
+        originalRequest._retryCount += 1;
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return client(originalRequest);
+      } else {
+        console.log("[API Client] Backend unreachable after all retries:", error.message);
+        useAppStore.getState().setBackendDown(true);
+      }
+    } else {
+      useAppStore.getState().setBackendDown(false);
+    }
     
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true;
       try {
         const refreshToken = await SecureStore.getItemAsync('refresh_token');
         if (refreshToken) {
-          // Attempt to refresh the token using a separate axios instance to avoid interceptor loops
           const refreshResponse = await axios.post(`${env.API_BASE_URL}/api/auth/refresh`, {
             refresh_token: refreshToken
           });
@@ -62,28 +96,17 @@ client.interceptors.response.use(
             await SecureStore.setItemAsync('user_token', access_token);
             await SecureStore.setItemAsync('refresh_token', new_refresh);
             
-            // Retry the original request with the new token
             originalRequest.headers.Authorization = `Bearer ${access_token}`;
             return client(originalRequest);
           }
         }
       } catch (refreshError) {
-        // If refresh fails, clear everything
         const { logout } = (await import('../store/authStore')).useAuthStore.getState();
         await logout();
       }
     } else if (error.response?.status === 401 && !isAuthEndpoint) {
-      // Direct 401 without refresh possibility - clear state
       const { logout } = (await import('../store/authStore')).useAuthStore.getState();
       await logout();
-    }
-    
-    // Detect Backend / Network Errors
-    if (error.message === 'Network Error' || error.code === 'ECONNABORTED') {
-      console.log("[API Client] Backend unreachable:", error.message);
-      useAppStore.getState().setBackendDown(true);
-    } else {
-      useAppStore.getState().setBackendDown(false);
     }
 
     return Promise.reject(error);

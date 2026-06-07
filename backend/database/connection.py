@@ -23,6 +23,26 @@ _db_url = settings.DATABASE_URL
 if _db_url.startswith("postgresql://"):
     _db_url = _db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
+# Fix Neon IPv6 hang by resolving hostname to IPv4
+import socket
+from urllib.parse import urlparse, urlunparse
+try:
+    parsed = urlparse(_db_url)
+    if parsed.hostname and "neon.tech" in parsed.hostname:
+        ipv4 = socket.gethostbyname(parsed.hostname)
+        endpoint = parsed.hostname.split('.')[0]
+        netloc = f"{parsed.username}:{parsed.password}@{ipv4}:{parsed.port or 5432}"
+        # Keep original query params, but we will pass endpoint via connect_args
+        _db_url = urlunparse((parsed.scheme, netloc, parsed.path, parsed.params, parsed.query, parsed.fragment))
+        
+        # Pass endpoint via server_settings for asyncpg
+        if "server_settings" not in _connect_args:
+            _connect_args["server_settings"] = {}
+        _connect_args["server_settings"]["options"] = f"endpoint={endpoint}"
+except Exception as e:
+    print(f"[DB] Error resolving IPv4 for Neon: {e}")
+
+
 # Configure SSL context for Neon
 _ssl_ctx = ssl.create_default_context()
 _ssl_ctx.check_hostname = False

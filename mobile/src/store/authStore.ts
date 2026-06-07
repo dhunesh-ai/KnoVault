@@ -67,27 +67,27 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   authProvider: null,
 
   initialize: async () => {
-    // console.log('[AuthStore] Starting initialization...');
+    console.log('[Auth Restore] Starting initialization...');
     try {
-      // console.log('[AuthStore] Fetching token from SecureStore...');
+      console.log('[Auth Restore] Fetching token from SecureStore...');
       const token = await SecureStore.getItemAsync(TOKEN_KEY);
       const provider = (await SecureStore.getItemAsync(AUTH_PROVIDER_KEY)) as AuthProvider;
-      // console.log('[AuthStore] Token retrieved:', token ? 'exists' : 'null', 'provider:', provider);
+      console.log('[Auth Restore] Token retrieved:', token ? 'exists' : 'null', 'provider:', provider);
       
       if (token) {
-        // console.log('[AuthStore] Token found, fetching profile in background...');
+        console.log('[Auth Restore] Token found, fetching profile in background...');
         set({ token, isAuthenticated: true, isAuthenticating: false, error: null, authProvider: provider });
         await get().fetchUser();
 
         // Sync FCM token in background (don't block init)
         get().syncNotifications().catch(console.warn);
       } else {
-        // console.log('[AuthStore] No token found');
+        console.log('[Auth Restore] No token found');
         set({ isAuthenticated: false, isAuthenticating: false, error: null });
       }
-      // console.log('[AuthStore] Initialization sequence complete');
+      console.log('[Auth Restore] Initialization sequence complete');
     } catch (err) {
-      // console.log('[AuthStore] Initialization failed:', err);
+      console.error('[Auth Restore] Initialization failed:', err);
       set({ isAuthenticated: false, isAuthenticating: false, error: null });
     } finally {
       set({ isLoading: false });

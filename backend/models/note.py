@@ -16,7 +16,7 @@ class Note(Base):
     is_secure: Mapped[bool] = mapped_column(Boolean, default=False)
     is_pinned: Mapped[bool] = mapped_column(Boolean, default=False)
     is_completed: Mapped[bool] = mapped_column(Boolean, default=False)
-    note_type: Mapped[str] = mapped_column(String(50), default="general")  # general, checklist, field, voice
+    note_type: Mapped[str] = mapped_column(String(50), default="standard")  # standard, checklist, field, voice
     is_favorite: Mapped[bool] = mapped_column(Boolean, default=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -63,3 +63,12 @@ class VoiceNote(Base):
     transcript: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     note = relationship("Note", back_populates="voice_note")
+
+class NoteCategory(Base):
+    __tablename__ = "note_categories"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+

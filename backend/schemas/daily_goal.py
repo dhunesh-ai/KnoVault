@@ -5,12 +5,21 @@ from pydantic import BaseModel
 class DailyGoalCreate(BaseModel):
     title: str
     goal_date: date | None = None
+    daily_target: int = 1
+    target_unit: str = "times"
+    start_date: date | None = None
+    reminder_time: str | None = None
+    goal_type: str = "daily_goal"
 
 
 class DailyGoalUpdate(BaseModel):
     title: str | None = None
     completed: bool | None = None
     goal_date: date | None = None
+    daily_target: int | None = None
+    target_unit: str | None = None
+    start_date: date | None = None
+    reminder_time: str | None = None
 
 
 class DailyGoalResponse(BaseModel):
@@ -18,6 +27,11 @@ class DailyGoalResponse(BaseModel):
     title: str
     completed: bool
     goal_date: date
+    daily_target: int
+    target_unit: str
+    start_date: date
+    reminder_time: str | None
+    goal_type: str
     created_at: datetime
     user_id: int
 

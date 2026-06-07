@@ -270,8 +270,8 @@ class AIService:
             return []
 
         prompt = (
-            "Based on the user's recent notes and context, suggest 5 high-impact tasks. "
-            "Return them as a JSON list of objects: [{\"title\": \"...\", \"category\": \"...\"}]"
+            "Based on the user's recent notes and context, suggest 5 high-impact short tasks. "
+            "Return them as a JSON list of raw strings: [\"Task 1\", \"Task 2\"]"
             f"\n\nContext: {context}"
         )
         

@@ -42,8 +42,16 @@ async def create_goal(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    goal_date = data.goal_date or date.today()
-    goal = DailyGoal(title=data.title, goal_date=goal_date, user_id=current_user.id)
+    goal = DailyGoal(
+        title=data.title, 
+        goal_date=data.goal_date or date.today(),
+        daily_target=data.daily_target,
+        target_unit=data.target_unit,
+        start_date=data.start_date or date.today(),
+        reminder_time=data.reminder_time,
+        goal_type=data.goal_type,
+        user_id=current_user.id
+    )
     db.add(goal)
     await db.flush()
     await db.refresh(goal)

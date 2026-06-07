@@ -117,7 +117,7 @@ function RootLayoutContent() {
     let isMounted = true;
     const bootstrap = async () => {
       try {
-        console.log('[RootLayout] Mounting - initializing auth & db...');
+        console.log('[App Startup] Mounting - initializing auth & db...');
         
         // Initialize DB FIRST to avoid concurrent SQLite.openDatabaseSync NullPointerException
         await initDB();
@@ -299,6 +299,13 @@ function RootLayoutContent() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
       
+      {!isAppReady && (
+        <View style={[StyleSheet.absoluteFill, styles.startupLoadingContainer]}>
+          <ActivityIndicator size="large" color={lightColors.primary} style={{ marginBottom: 20 }} />
+          <Text style={styles.startupLoadingText}>Connecting to KnoVault...</Text>
+        </View>
+      )}
+
       {bootError && (
         <View style={[StyleSheet.absoluteFill, styles.errorContainer]}>
           <ActivityIndicator size="large" color="#EF4444" style={{ marginBottom: 20 }} />
@@ -382,6 +389,18 @@ const styles = StyleSheet.create({
     color: lightColors.text.tertiary,
     textAlign: 'center',
     marginBottom: 30,
+  },
+  startupLoadingContainer: {
+    flex: 1,
+    backgroundColor: lightColors.surface.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+  },
+  startupLoadingText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: lightColors.text.primary,
   },
   resetButton: {
     backgroundColor: '#EF4444',

@@ -1290,3 +1290,1139 @@
 2026-05-31 18:52:11,012 - KnoVaultAI - INFO - [GROQ CALL] Response received (106 chars)
 2026-05-31 18:52:11,013 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 106 chars
 2026-05-31 18:53:42,415 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:06:58,700 - watchfiles.main - INFO - 1 change detected
+2026-05-31 19:14:23,340 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:15:56,931 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:16:31,329 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:16:32,717 - KnoVaultAI - INFO - [INTRO PROMPT DETECTED] Pattern matched for: 'Hi'
+2026-05-31 19:16:32,717 - KnoVaultAI - INFO - [CONCISE MODE ENABLED] Intro/greeting question
+2026-05-31 19:16:32,718 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Hi...' | max_tokens=200
+2026-05-31 19:16:32,719 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-31 19:16:33,225 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-31 19:16:33,491 - KnoVaultAI - INFO - [GROQ CALL] Response received (63 chars)
+2026-05-31 19:16:33,494 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 63 chars
+2026-05-31 19:19:30,845 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:19:32,168 - KnoVaultAI - INFO - [INTRO PROMPT DETECTED] Pattern matched for: 'Who are you'
+2026-05-31 19:19:32,169 - KnoVaultAI - INFO - [CONCISE MODE ENABLED] Intro/greeting question
+2026-05-31 19:19:32,169 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Who are you...' | max_tokens=200
+2026-05-31 19:19:32,169 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-31 19:19:32,657 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-31 19:19:32,660 - KnoVaultAI - INFO - [GROQ CALL] Response received (213 chars)
+2026-05-31 19:19:32,661 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 213 chars
+2026-05-31 19:19:53,381 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:19:53,384 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:20:18,550 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:20:19,788 - KnoVaultAI - INFO - [INTRO PROMPT DETECTED] Pattern matched for: 'Who are you'
+2026-05-31 19:20:19,789 - KnoVaultAI - INFO - [CONCISE MODE ENABLED] Intro/greeting question
+2026-05-31 19:20:19,789 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Who are you...' | max_tokens=200
+2026-05-31 19:20:19,790 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-31 19:20:20,403 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-31 19:20:20,797 - KnoVaultAI - INFO - [GROQ CALL] Response received (79 chars)
+2026-05-31 19:20:20,797 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 79 chars
+2026-05-31 19:31:56,026 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:32:12,126 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:37:00,063 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:37:00,144 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:37:09,591 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:37:12,071 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:38:22,908 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:38:29,210 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:46:12,353 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:46:18,655 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:46:35,654 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:46:36,743 - KnoVaultAI - INFO - [INTRO PROMPT DETECTED] Pattern matched for: 'Hello'
+2026-05-31 19:46:36,743 - KnoVaultAI - INFO - [CONCISE MODE ENABLED] Intro/greeting question
+2026-05-31 19:46:36,745 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Hello...' | max_tokens=200
+2026-05-31 19:46:36,745 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-31 19:46:37,163 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-31 19:46:37,165 - KnoVaultAI - INFO - [GROQ CALL] Response received (8 chars)
+2026-05-31 19:46:37,165 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 8 chars
+2026-05-31 19:51:25,152 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:51:26,750 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:51:43,189 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:51:52,559 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:52:23,728 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:52:24,684 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:52:26,299 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'Show my favorites...' | max_tokens=400
+2026-05-31 19:52:26,299 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-05-31 19:52:26,731 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-31 19:52:26,735 - KnoVaultAI - INFO - [GROQ CALL] Response received (80 chars)
+2026-05-31 19:52:26,736 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 80 chars
+2026-05-31 19:52:57,209 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:53:32,895 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:53:40,269 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 19:54:05,549 - services.email - INFO - Attempting to send reset email to thinkgood24hrs@gmail.com via Brevo HTTP API...
+2026-05-31 19:54:07,037 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
+2026-05-31 19:54:07,039 - services.email - INFO - Successfully sent reset email to thinkgood24hrs@gmail.com via Brevo HTTP API
+2026-05-31 19:54:31,924 - utils.firebase - INFO - [Firebase] Token verified successfully for: thinkgood24hrs@gmail.com
+2026-05-31 19:54:58,104 - watchfiles.main - INFO - 1 change detected
+2026-05-31 19:56:18,435 - watchfiles.main - INFO - 1 change detected
+2026-05-31 19:56:18,809 - watchfiles.main - INFO - 1 change detected
+2026-05-31 19:56:31,058 - watchfiles.main - INFO - 1 change detected
+2026-05-31 19:56:36,303 - watchfiles.main - INFO - 1 change detected
+2026-05-31 19:56:41,590 - watchfiles.main - INFO - 1 change detected
+2026-05-31 19:57:00,394 - watchfiles.main - INFO - 1 change detected
+2026-05-31 19:57:33,391 - watchfiles.main - INFO - 1 change detected
+2026-05-31 19:57:47,057 - watchfiles.main - INFO - 1 change detected
+2026-05-31 20:00:04,927 - watchfiles.main - INFO - 1 change detected
+2026-05-31 20:00:24,731 - watchfiles.main - INFO - 1 change detected
+2026-05-31 20:00:31,307 - watchfiles.main - INFO - 1 change detected
+2026-05-31 20:01:09,099 - watchfiles.main - INFO - 1 change detected
+2026-05-31 20:01:09,453 - watchfiles.main - INFO - 1 change detected
+2026-05-31 20:01:14,282 - watchfiles.main - INFO - 1 change detected
+2026-05-31 20:01:14,636 - watchfiles.main - INFO - 1 change detected
+2026-05-31 20:01:19,629 - watchfiles.main - INFO - 1 change detected
+2026-05-31 20:01:20,018 - watchfiles.main - INFO - 1 change detected
+2026-05-31 20:01:25,113 - watchfiles.main - INFO - 1 change detected
+2026-05-31 20:01:25,469 - watchfiles.main - INFO - 1 change detected
+2026-05-31 20:01:30,318 - watchfiles.main - INFO - 1 change detected
+2026-05-31 20:01:35,496 - watchfiles.main - INFO - 1 change detected
+2026-05-31 20:01:35,853 - watchfiles.main - INFO - 1 change detected
+2026-05-31 20:01:40,709 - watchfiles.main - INFO - 1 change detected
+2026-05-31 20:01:45,855 - watchfiles.main - INFO - 1 change detected
+2026-05-31 21:50:26,716 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 21:50:28,575 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 21:50:40,931 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 21:55:42,977 - utils.firebase - INFO - [Firebase] Token verified successfully for: thinkgood24hrs@gmail.com
+2026-05-31 21:55:47,307 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 23:47:21,295 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 23:47:22,819 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-05-31 23:47:27,177 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-05-31 23:48:10,512 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-05-31 23:48:11,451 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 00:00:21,646 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 00:00:22,682 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 00:00:55,514 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 00:00:55,905 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 00:00:56,289 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 575 chars
+2026-06-01 00:00:56,291 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 00:00:56,655 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 575 chars
+2026-06-01 00:00:56,657 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 00:00:56,999 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 00:00:57,034 - KnoVaultAI - INFO - [GROQ CALL] Response received (342 chars)
+2026-06-01 00:00:57,038 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 00:00:57,042 - KnoVaultAI - INFO - [GROQ CALL] Response received (421 chars)
+2026-06-01 00:01:09,179 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 00:01:09,196 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 00:01:09,797 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 575 chars
+2026-06-01 00:01:09,799 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 00:01:09,806 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 575 chars
+2026-06-01 00:01:09,808 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 00:01:10,203 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 00:01:10,206 - KnoVaultAI - INFO - [GROQ CALL] Response received (408 chars)
+2026-06-01 00:01:10,221 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 00:01:10,223 - KnoVaultAI - INFO - [GROQ CALL] Response received (429 chars)
+2026-06-01 00:01:10,224 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 00:01:43,660 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 00:01:44,498 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 00:14:23,706 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 00:14:24,652 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 00:14:27,059 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 00:14:27,906 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 00:15:25,847 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 00:15:26,713 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 06:29:40,321 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 06:29:42,208 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 06:29:50,803 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 06:32:22,564 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 06:32:24,769 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 06:32:28,046 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 06:32:29,787 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 06:34:20,201 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 06:34:20,618 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 06:34:21,236 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 575 chars
+2026-06-01 06:34:21,237 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 06:34:21,466 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 575 chars
+2026-06-01 06:34:21,468 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 06:34:22,138 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 06:34:22,140 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 06:34:22,165 - KnoVaultAI - INFO - [GROQ CALL] Response received (470 chars)
+2026-06-01 06:34:22,169 - KnoVaultAI - INFO - [GROQ CALL] Response received (447 chars)
+2026-06-01 06:34:22,172 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 06:34:36,763 - KnoVaultAI - INFO - [INTRO PROMPT DETECTED] Pattern matched for: 'hi'
+2026-06-01 06:34:36,763 - KnoVaultAI - INFO - [CONCISE MODE ENABLED] Intro/greeting question
+2026-06-01 06:34:36,763 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'hi...' | max_tokens=200
+2026-06-01 06:34:36,765 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 06:34:37,176 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 06:34:37,178 - KnoVaultAI - INFO - [GROQ CALL] Response received (29 chars)
+2026-06-01 06:34:37,179 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 29 chars
+2026-06-01 06:34:48,436 - KnoVaultAI - INFO - [INTRO PROMPT DETECTED] Pattern matched for: 'who are you'
+2026-06-01 06:34:48,436 - KnoVaultAI - INFO - [CONCISE MODE ENABLED] Intro/greeting question
+2026-06-01 06:34:48,437 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'who are you...' | max_tokens=200
+2026-06-01 06:34:48,438 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 06:34:48,948 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 06:34:48,951 - KnoVaultAI - INFO - [GROQ CALL] Response received (41 chars)
+2026-06-01 06:34:48,952 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 41 chars
+2026-06-01 06:35:43,470 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 06:35:44,350 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 575 chars
+2026-06-01 06:35:44,352 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 06:35:44,844 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 06:35:44,846 - KnoVaultAI - INFO - [GROQ CALL] Response received (300 chars)
+2026-06-01 06:35:44,848 - KnoVaultAI - ERROR - [AI TASK ERROR] Extra data: line 2 column 1 (char 68)
+2026-06-01 06:35:45,040 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 06:35:45,925 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 575 chars
+2026-06-01 06:35:45,926 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 06:35:46,287 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 06:35:46,290 - KnoVaultAI - INFO - [GROQ CALL] Response received (411 chars)
+2026-06-01 06:35:46,291 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 06:44:25,386 - watchfiles.main - INFO - 1 change detected
+2026-06-01 06:46:09,457 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 06:46:09,861 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 06:46:10,262 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 575 chars
+2026-06-01 06:46:10,263 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 06:46:10,734 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 575 chars
+2026-06-01 06:46:10,736 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 06:46:11,014 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 06:46:11,016 - KnoVaultAI - INFO - [GROQ CALL] Response received (449 chars)
+2026-06-01 06:46:11,017 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 06:46:11,314 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 06:46:11,316 - KnoVaultAI - INFO - [GROQ CALL] Response received (589 chars)
+2026-06-01 06:48:25,271 - services.email - INFO - Attempting to send signup email to testuser@example.com via Brevo HTTP API...
+2026-06-01 06:48:26,893 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
+2026-06-01 06:48:26,894 - services.email - INFO - Successfully sent signup email to testuser@example.com via Brevo HTTP API
+2026-06-01 06:48:43,703 - services.email - INFO - Attempting to send signup email to testuser@example.com via Brevo HTTP API...
+2026-06-01 06:48:45,096 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
+2026-06-01 06:48:45,097 - services.email - INFO - Successfully sent signup email to testuser@example.com via Brevo HTTP API
+2026-06-01 06:49:54,459 - services.email - INFO - Attempting to send signup email to test@knovault.com via Brevo HTTP API...
+2026-06-01 06:49:55,588 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
+2026-06-01 06:49:55,591 - services.email - INFO - Successfully sent signup email to test@knovault.com via Brevo HTTP API
+2026-06-01 15:37:15,705 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 15:37:17,476 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 15:37:26,423 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 15:38:42,386 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:38:44,234 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:39:14,842 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:39:16,483 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:40:51,830 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 15:40:51,837 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 15:40:52,796 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 575 chars
+2026-06-01 15:40:52,796 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 15:40:52,870 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 575 chars
+2026-06-01 15:40:52,871 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 15:40:53,806 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 15:40:54,159 - KnoVaultAI - INFO - [GROQ CALL] Response received (501 chars)
+2026-06-01 15:40:54,161 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 15:40:54,845 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 15:40:54,847 - KnoVaultAI - INFO - [GROQ CALL] Response received (424 chars)
+2026-06-01 15:40:54,848 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 15:41:42,773 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:41:44,757 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:41:50,510 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:41:51,836 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:41:52,841 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:41:54,466 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:42:33,254 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:42:35,037 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:42:44,630 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 15:42:44,795 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 15:42:45,885 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 575 chars
+2026-06-01 15:42:45,887 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 575 chars
+2026-06-01 15:42:45,887 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 15:42:45,889 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 15:42:47,222 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 15:42:47,224 - KnoVaultAI - INFO - [GROQ CALL] Response received (541 chars)
+2026-06-01 15:42:47,403 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 15:42:47,406 - KnoVaultAI - INFO - [GROQ CALL] Response received (322 chars)
+2026-06-01 15:42:48,438 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:42:49,620 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:43:03,969 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:43:05,248 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:46:35,658 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:46:37,654 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:49:38,621 - watchfiles.main - INFO - 1 change detected
+2026-06-01 15:51:14,400 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:51:16,748 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:51:16,967 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:51:17,876 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:51:28,214 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:51:29,703 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:53:52,841 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:53:53,959 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:54:17,788 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:54:19,156 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:56:21,637 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:56:23,769 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:56:28,626 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 15:56:30,920 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:03:11,451 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:03:13,183 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:03:13,544 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:03:14,541 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:03:15,235 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:03:16,085 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:03:17,203 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:08:18,227 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:08:19,739 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:08:28,745 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:08:29,891 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:08:31,470 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:08:32,990 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:08:37,751 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:08:39,930 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:08:48,064 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:08:49,870 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:08:50,633 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:12:50,710 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:12:51,497 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:12:52,288 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:12:53,171 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:12:54,022 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:12:55,636 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:13:06,798 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:13:09,021 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:13:10,992 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:13:12,732 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:18:11,521 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:18:14,704 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:30:19,407 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:30:20,275 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:30:21,467 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:30:22,119 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:30:23,097 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:30:23,207 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:30:24,316 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:30:24,577 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:35:03,493 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:35:05,145 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:46:22,723 - watchfiles.main - INFO - 1 change detected
+2026-06-01 16:46:24,040 - watchfiles.main - INFO - 1 change detected
+2026-06-01 16:46:24,903 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 16:46:25,743 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 16:46:32,415 - watchfiles.main - INFO - 1 change detected
+2026-06-01 16:46:36,758 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 16:46:37,677 - watchfiles.main - INFO - 1 change detected
+2026-06-01 16:46:39,264 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 16:46:49,847 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 16:47:29,714 - watchfiles.main - INFO - 1 change detected
+2026-06-01 16:47:30,723 - watchfiles.main - INFO - 1 change detected
+2026-06-01 16:47:31,483 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 16:47:32,213 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 16:47:42,189 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 16:48:07,302 - watchfiles.main - INFO - 1 change detected
+2026-06-01 16:48:08,310 - watchfiles.main - INFO - 1 change detected
+2026-06-01 16:48:09,476 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 16:48:09,687 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 16:48:20,284 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 16:48:40,546 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:48:41,039 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:48:42,620 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:48:42,814 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:48:55,809 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:48:57,266 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:48:58,313 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:48:58,861 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:51:16,187 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:51:17,842 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:51:18,261 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:51:19,602 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:51:20,108 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:51:21,947 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:51:21,955 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:51:23,151 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:53:28,900 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:53:29,980 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:53:30,870 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:53:31,836 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:53:32,875 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:53:32,915 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:53:33,990 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:53:34,010 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:54:18,905 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:54:20,760 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:54:22,477 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:54:24,336 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:56:17,749 - watchfiles.main - INFO - 1 change detected
+2026-06-01 16:56:18,882 - watchfiles.main - INFO - 1 change detected
+2026-06-01 16:56:19,592 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 16:56:20,228 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 16:56:29,190 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 16:57:40,679 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 16:57:48,475 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 16:58:16,311 - watchfiles.main - INFO - 1 change detected
+2026-06-01 16:58:17,399 - watchfiles.main - INFO - 1 change detected
+2026-06-01 16:58:18,510 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 16:58:18,729 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 16:58:28,788 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 16:58:31,074 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:58:31,489 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:58:32,912 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:58:33,125 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:58:34,754 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:59:41,392 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:59:41,769 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:59:43,257 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:59:43,719 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 16:59:45,151 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:02:58,065 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:02:59,326 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:02:59,453 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:03:00,569 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:03:01,327 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:03:02,152 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:03:02,869 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:03:03,384 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:03:04,046 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:03:04,542 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:03:05,655 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:03:07,387 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:03:47,386 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 17:03:49,118 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 17:03:58,982 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 17:04:02,232 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:04:03,526 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:04:04,231 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:04:05,487 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:04:05,933 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:04:07,040 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:04:07,211 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:04:08,457 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:04:08,707 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:04:09,630 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:04:10,720 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:04:12,511 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:04:14,050 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:05:46,366 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:05:47,842 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:10:02,104 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:10:03,961 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:11:08,050 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:11:09,911 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:13:24,728 - watchfiles.main - INFO - 1 change detected
+2026-06-01 17:13:25,732 - watchfiles.main - INFO - 1 change detected
+2026-06-01 17:13:26,903 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 17:13:27,128 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 17:13:35,478 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 17:23:09,196 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:23:09,458 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:23:10,814 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:23:10,892 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:23:12,112 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:23:13,659 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:23:15,150 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:23:16,985 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:25:13,470 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:25:14,507 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:28:00,983 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:28:02,138 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:28:02,849 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:28:03,645 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:31:41,886 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:31:42,430 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:31:43,085 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:31:43,736 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:31:44,834 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:31:45,477 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:31:46,598 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:31:46,880 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:33:41,549 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:33:41,646 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:33:43,400 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:33:43,690 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:33:44,643 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:33:46,267 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:33:47,853 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:33:48,526 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:33:49,433 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:33:49,951 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:37:45,859 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:37:47,556 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:37:53,640 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:37:54,899 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:38:06,490 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:38:07,969 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:45:11,088 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:45:12,879 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:45:16,367 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:45:17,916 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:48:30,987 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 17:48:31,409 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 17:48:32,007 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 525 chars
+2026-06-01 17:48:32,008 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 17:48:32,338 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 525 chars
+2026-06-01 17:48:32,340 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 17:48:32,959 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 17:48:32,967 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 17:48:32,991 - KnoVaultAI - INFO - [GROQ CALL] Response received (386 chars)
+2026-06-01 17:48:33,576 - KnoVaultAI - INFO - [GROQ CALL] Response received (404 chars)
+2026-06-01 17:48:33,579 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 17:48:41,928 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:48:43,086 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:48:46,969 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:48:48,042 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 17:52:59,191 - watchfiles.main - INFO - 1 change detected
+2026-06-01 17:55:28,290 - services.email - INFO - Attempting to send signup email to test_secure@example.com via Brevo HTTP API...
+2026-06-01 17:55:30,056 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
+2026-06-01 17:55:30,057 - services.email - INFO - Successfully sent signup email to test_secure@example.com via Brevo HTTP API
+2026-06-01 17:57:45,604 - services.email - INFO - Attempting to send signup email to test_secure2@example.com via Brevo HTTP API...
+2026-06-01 17:57:47,237 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
+2026-06-01 17:57:47,238 - services.email - INFO - Successfully sent signup email to test_secure2@example.com via Brevo HTTP API
+2026-06-01 18:00:19,749 - watchfiles.main - INFO - 1 change detected
+2026-06-01 18:00:20,709 - watchfiles.main - INFO - 1 change detected
+2026-06-01 18:00:21,211 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 18:00:21,745 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 18:00:29,635 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 18:05:05,522 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:05:07,043 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:05:08,549 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:05:10,151 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:05:11,741 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:05:13,333 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:05:33,644 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:05:34,720 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:05:36,377 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:05:37,938 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:05:49,137 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:07:15,201 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:07:33,714 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:15:03,974 - watchfiles.main - INFO - 1 change detected
+2026-06-01 18:15:04,924 - watchfiles.main - INFO - 1 change detected
+2026-06-01 18:15:05,334 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 18:15:05,808 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 18:15:14,800 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 18:15:20,911 - watchfiles.main - INFO - 1 change detected
+2026-06-01 18:15:21,788 - watchfiles.main - INFO - 1 change detected
+2026-06-01 18:15:22,194 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 18:15:22,647 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 18:15:30,257 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 18:21:55,836 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:21:57,084 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:21:58,618 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:22:00,194 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:22:01,788 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:22:15,162 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:28:05,440 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 18:28:07,040 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 20:36:15,949 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 20:36:17,881 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 20:36:29,278 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 20:36:33,495 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 20:36:35,793 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 20:36:37,264 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 20:36:39,373 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 20:36:44,066 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 20:36:45,202 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 21:00:09,747 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:00:16,989 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:01:20,938 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:02:10,076 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:02:11,078 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:02:12,489 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 21:02:21,054 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 21:05:27,035 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:05:33,149 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:06:21,571 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:06:22,621 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:06:24,033 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 21:06:32,508 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 21:07:27,723 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:07:28,735 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:07:30,022 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 21:07:37,363 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 21:08:35,307 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:08:36,340 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:08:37,652 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 21:08:37,820 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 21:08:44,951 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 21:08:54,710 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:08:55,784 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:08:56,948 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 21:08:57,087 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 21:09:04,662 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 21:12:50,621 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 21:12:52,426 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 21:18:11,785 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:18:13,247 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:18:15,059 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 21:18:24,177 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 21:26:57,359 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:26:58,459 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:27:00,096 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 21:27:07,816 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 21:27:15,122 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:27:16,493 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:27:17,999 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 21:27:28,137 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 21:33:23,824 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 21:33:25,384 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 21:33:32,638 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 21:33:34,210 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 21:33:35,686 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 21:33:37,399 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 21:35:26,390 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 21:35:28,093 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 21:46:01,989 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:49:26,260 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:49:27,338 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:49:28,658 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 21:49:28,836 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 21:49:37,880 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 21:49:41,440 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:49:42,463 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:49:43,779 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 21:49:43,945 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 21:49:49,405 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:49:53,155 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 21:49:54,091 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:49:55,305 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 21:49:55,471 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 21:50:04,488 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 21:51:00,107 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:51:01,186 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:51:02,558 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 21:51:12,752 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 21:51:16,415 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 21:51:18,550 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:51:35,095 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 21:51:36,966 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:52:00,896 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 21:52:02,695 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 21:52:04,214 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 21:52:05,881 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 21:54:37,474 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:54:38,542 - watchfiles.main - INFO - 1 change detected
+2026-06-01 21:54:40,143 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 21:54:49,787 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 21:54:52,815 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 21:55:01,449 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:01:35,503 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:01:36,603 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:01:38,142 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 22:01:47,561 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 22:01:54,115 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 22:02:00,332 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:05:20,031 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:05:21,562 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:05:23,201 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 22:05:32,380 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 22:05:33,991 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 22:06:18,961 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:06:35,803 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:06:36,810 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:06:38,133 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 22:06:38,345 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 22:06:45,420 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:06:48,948 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 22:06:49,881 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:06:51,132 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 22:07:00,090 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 22:07:03,545 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 22:07:45,520 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:08:55,768 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 22:08:57,663 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 22:11:06,670 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:11:07,753 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:11:09,034 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 22:11:15,502 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 22:11:31,976 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 22:11:33,575 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:11:52,325 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:11:53,294 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:11:54,668 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 22:12:02,784 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 22:12:15,113 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 22:13:16,705 - watchfiles.main - INFO - 1 change detected
+2026-06-01 22:27:56,990 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 22:27:58,462 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 22:28:42,472 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 22:28:43,950 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:04:14,837 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:04:16,902 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:05:12,940 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 23:05:14,041 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 454 chars
+2026-06-01 23:05:14,042 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:05:14,321 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 23:05:15,221 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 454 chars
+2026-06-01 23:05:15,222 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:05:15,510 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:05:15,555 - KnoVaultAI - INFO - [GROQ CALL] Response received (385 chars)
+2026-06-01 23:05:15,558 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 23:05:15,943 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:05:15,945 - KnoVaultAI - INFO - [GROQ CALL] Response received (470 chars)
+2026-06-01 23:05:15,946 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 23:13:14,984 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:13:16,302 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:14:17,560 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:14:18,734 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:14:20,391 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:14:28,636 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:15:52,163 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:15:53,145 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:15:54,452 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:16:01,935 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:16:24,565 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:16:25,609 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:16:26,326 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 23:16:27,006 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:16:35,635 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:16:35,682 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:16:36,676 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:16:37,432 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 23:16:38,176 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:16:47,595 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:16:49,439 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:16:50,909 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:16:52,180 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 23:16:53,384 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:17:01,049 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:17:03,937 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:17:05,005 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:17:05,711 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 23:17:06,352 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:17:13,117 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:17:24,325 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:17:25,509 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:17:26,724 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 23:17:26,918 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:17:35,687 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:17:58,903 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:18:00,484 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:18:06,636 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 12
+2026-06-01 23:18:06,640 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 12
+2026-06-01 23:18:07,541 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 599 chars
+2026-06-01 23:18:07,542 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:18:07,822 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 599 chars
+2026-06-01 23:18:07,823 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:18:08,603 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:18:08,608 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:18:08,619 - KnoVaultAI - INFO - [GROQ CALL] Response received (323 chars)
+2026-06-01 23:18:08,621 - KnoVaultAI - INFO - [GROQ CALL] Response received (406 chars)
+2026-06-01 23:18:08,625 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 23:18:15,799 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 12
+2026-06-01 23:18:15,931 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:18:16,599 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 599 chars
+2026-06-01 23:18:16,600 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:18:17,083 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:18:17,084 - KnoVaultAI - INFO - [GROQ CALL] Response received (365 chars)
+2026-06-01 23:18:17,085 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 23:18:17,682 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:18:17,948 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 12
+2026-06-01 23:18:18,079 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 12
+2026-06-01 23:18:18,944 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 599 chars
+2026-06-01 23:18:18,945 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:18:18,949 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 599 chars
+2026-06-01 23:18:18,951 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:18:19,166 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:18:19,276 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:18:19,278 - KnoVaultAI - INFO - [GROQ CALL] Response received (377 chars)
+2026-06-01 23:18:19,452 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:18:19,453 - KnoVaultAI - INFO - [GROQ CALL] Response received (447 chars)
+2026-06-01 23:18:19,454 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 23:18:20,659 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:18:52,208 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 12
+2026-06-01 23:18:53,060 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 12
+2026-06-01 23:18:53,077 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 599 chars
+2026-06-01 23:18:53,077 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:18:53,527 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:18:53,528 - KnoVaultAI - INFO - [GROQ CALL] Response received (324 chars)
+2026-06-01 23:18:53,904 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 599 chars
+2026-06-01 23:18:53,905 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:18:54,242 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:18:54,244 - KnoVaultAI - INFO - [GROQ CALL] Response received (331 chars)
+2026-06-01 23:19:26,118 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 12
+2026-06-01 23:19:26,541 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 599 chars
+2026-06-01 23:19:26,542 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:19:26,991 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 12
+2026-06-01 23:19:27,042 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:19:27,043 - KnoVaultAI - INFO - [GROQ CALL] Response received (349 chars)
+2026-06-01 23:19:27,418 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 599 chars
+2026-06-01 23:19:27,422 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:19:27,802 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:19:27,803 - KnoVaultAI - INFO - [GROQ CALL] Response received (371 chars)
+2026-06-01 23:20:08,874 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 12
+2026-06-01 23:20:08,876 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 12
+2026-06-01 23:20:09,742 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 599 chars
+2026-06-01 23:20:09,742 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:20:09,894 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 599 chars
+2026-06-01 23:20:09,895 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:20:10,269 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:20:10,270 - KnoVaultAI - INFO - [GROQ CALL] Response received (406 chars)
+2026-06-01 23:20:10,271 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 23:20:10,495 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:20:10,497 - KnoVaultAI - INFO - [GROQ CALL] Response received (415 chars)
+2026-06-01 23:20:10,497 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 23:25:21,303 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:25:22,403 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:25:24,297 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:25:31,375 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:27:05,171 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:27:06,236 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:27:07,629 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:27:15,264 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:27:24,930 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:27:25,887 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:27:27,238 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:27:35,643 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:28:05,615 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:28:06,592 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:28:07,986 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:28:15,964 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:28:52,338 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:32:05,538 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:32:05,993 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 12
+2026-06-01 23:32:06,334 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 12
+2026-06-01 23:32:06,915 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 599 chars
+2026-06-01 23:32:06,916 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:32:06,974 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:32:07,542 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 599 chars
+2026-06-01 23:32:07,543 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:32:07,812 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:32:07,831 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:32:07,846 - KnoVaultAI - INFO - [GROQ CALL] Response received (364 chars)
+2026-06-01 23:32:08,278 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:32:08,279 - KnoVaultAI - INFO - [GROQ CALL] Response received (462 chars)
+2026-06-01 23:32:08,280 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 23:32:09,247 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:32:10,795 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:32:12,154 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:32:13,909 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:32:15,397 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:33:16,911 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 12
+2026-06-01 23:33:17,491 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 12
+2026-06-01 23:33:17,787 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 599 chars
+2026-06-01 23:33:17,788 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:33:18,391 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:33:18,392 - KnoVaultAI - INFO - [GROQ CALL] Response received (405 chars)
+2026-06-01 23:33:18,393 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 23:33:18,671 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 599 chars
+2026-06-01 23:33:18,671 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:33:19,203 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:33:19,204 - KnoVaultAI - INFO - [GROQ CALL] Response received (303 chars)
+2026-06-01 23:34:49,696 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:34:50,697 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:34:51,681 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:35:03,179 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:37:17,478 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:37:18,460 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:37:19,496 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:37:25,659 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:41:29,138 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:41:30,013 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:41:30,979 - watchfiles.main - INFO - 5 changes detected
+2026-06-01 23:41:31,080 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:41:37,895 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:44:03,201 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:44:04,534 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:44:05,455 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:44:12,037 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:45:37,120 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 12
+2026-06-01 23:45:37,527 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:45:38,315 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 599 chars
+2026-06-01 23:45:38,316 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:45:38,468 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 12
+2026-06-01 23:45:39,017 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:45:39,093 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:45:39,103 - KnoVaultAI - INFO - [GROQ CALL] Response received (212 chars)
+2026-06-01 23:45:39,323 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 599 chars
+2026-06-01 23:45:39,324 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:45:39,566 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:45:39,567 - KnoVaultAI - INFO - [GROQ CALL] Response received (80 chars)
+2026-06-01 23:45:40,406 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:45:41,897 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:47:52,438 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:47:53,389 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:47:54,403 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:48:01,771 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:49:25,694 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:49:26,631 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:49:28,000 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:49:35,377 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:50:47,323 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:51:37,203 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:51:38,144 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:51:39,542 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:51:45,925 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:52:09,681 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:52:10,684 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:52:12,126 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:52:20,030 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:52:43,681 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:52:44,659 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:52:46,043 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:52:52,797 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:53:02,926 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:53:03,892 - watchfiles.main - INFO - 1 change detected
+2026-06-01 23:53:05,290 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:53:12,877 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:55:06,634 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:55:08,507 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-01 23:55:19,016 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-01 23:55:32,127 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:55:33,673 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:55:35,234 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:55:36,876 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:55:48,775 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 23:55:49,218 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 23:55:49,746 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 454 chars
+2026-06-01 23:55:49,748 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:55:50,095 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 454 chars
+2026-06-01 23:55:50,096 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:55:50,622 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:55:50,650 - KnoVaultAI - INFO - [GROQ CALL] Response received (225 chars)
+2026-06-01 23:55:50,651 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 23:55:50,714 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:55:50,716 - KnoVaultAI - INFO - [GROQ CALL] Response received (363 chars)
+2026-06-01 23:55:50,717 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 23:56:08,208 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:56:09,724 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:56:24,895 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 23:56:24,903 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-01 23:56:25,878 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 454 chars
+2026-06-01 23:56:25,879 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:56:25,905 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 454 chars
+2026-06-01 23:56:25,906 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:56:26,335 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:56:26,337 - KnoVaultAI - INFO - [GROQ CALL] Response received (77 chars)
+2026-06-01 23:56:26,458 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:56:26,460 - KnoVaultAI - INFO - [GROQ CALL] Response received (296 chars)
+2026-06-01 23:56:26,461 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-01 23:56:28,693 - KnoVaultAI - INFO - [INTRO PROMPT DETECTED] Pattern matched for: 'hi'
+2026-06-01 23:56:28,693 - KnoVaultAI - INFO - [CONCISE MODE ENABLED] Intro/greeting question
+2026-06-01 23:56:28,694 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'hi...' | max_tokens=200
+2026-06-01 23:56:28,695 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:56:29,087 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:56:29,090 - KnoVaultAI - INFO - [GROQ CALL] Response received (124 chars)
+2026-06-01 23:56:29,091 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 124 chars
+2026-06-01 23:56:39,220 - KnoVaultAI - INFO - [INTRO PROMPT DETECTED] Pattern matched for: 'who are you'
+2026-06-01 23:56:39,222 - KnoVaultAI - INFO - [CONCISE MODE ENABLED] Intro/greeting question
+2026-06-01 23:56:39,223 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'who are you...' | max_tokens=200
+2026-06-01 23:56:39,223 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-01 23:56:40,045 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-01 23:56:40,047 - KnoVaultAI - INFO - [GROQ CALL] Response received (148 chars)
+2026-06-01 23:56:40,048 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 148 chars
+2026-06-01 23:57:11,657 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-01 23:57:13,631 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-02 00:09:50,987 - services.email - INFO - Attempting to send test verification email to thinkgood24hrs@gmail.com via Brevo HTTP API...
+2026-06-02 00:09:52,716 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
+2026-06-02 00:09:52,718 - services.email - INFO - Successfully sent test verification email to thinkgood24hrs@gmail.com via Brevo HTTP API
+2026-06-02 00:09:52,789 - watchfiles.main - INFO - 1 change detected
+2026-06-02 00:10:09,151 - services.email - INFO - Attempting to send test SMTP email to thinkgood24hrs@gmail.com via SMTP fallback...
+2026-06-02 00:10:14,385 - services.email - INFO - Successfully sent test SMTP email to thinkgood24hrs@gmail.com via SMTP fallback
+2026-06-02 00:10:14,452 - watchfiles.main - INFO - 1 change detected
+2026-06-02 00:10:35,937 - watchfiles.main - INFO - 1 change detected
+2026-06-02 00:10:36,945 - watchfiles.main - INFO - 1 change detected
+2026-06-02 00:10:38,016 - watchfiles.main - INFO - 5 changes detected
+2026-06-02 00:10:38,427 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 00:10:46,842 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 00:10:52,398 - services.email - INFO - Attempting to send test SMTP email to thinkgood24hrs@gmail.com via SMTP fallback...
+2026-06-02 00:10:56,073 - services.email - INFO - Successfully sent test SMTP email to thinkgood24hrs@gmail.com via SMTP fallback
+2026-06-02 00:10:56,166 - watchfiles.main - INFO - 1 change detected
+2026-06-02 00:11:38,789 - watchfiles.main - INFO - 1 change detected
+2026-06-02 00:11:39,707 - watchfiles.main - INFO - 1 change detected
+2026-06-02 00:11:40,366 - watchfiles.main - INFO - 5 changes detected
+2026-06-02 00:11:41,056 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 00:11:48,093 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 00:22:14,320 - services.email - INFO - Attempting to send signup email to test@test.com via SMTP fallback...
+2026-06-02 00:22:18,160 - services.email - INFO - Successfully sent signup email to test@test.com via SMTP fallback
+2026-06-02 06:25:20,530 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:25:21,879 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:26:22,052 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:34:36,120 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:36:07,299 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:36:57,795 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:37:06,902 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:37:36,777 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:37:38,284 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:38:07,108 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:38:38,462 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:38:44,870 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:38:46,384 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:39:03,209 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:39:47,223 - watchfiles.main - INFO - 7 changes detected
+2026-06-02 06:39:47,936 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:39:48,391 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:39:49,203 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:39:50,196 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:39:50,481 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:40:01,675 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:40:03,100 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:40:03,239 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:40:21,188 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:40:21,698 - watchfiles.main - INFO - 5 changes detected
+2026-06-02 06:40:22,577 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:40:29,944 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 06:40:33,926 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:40:40,719 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 06:41:39,190 - services.email - INFO - Attempting to send test email to test@knovault.app via SMTP fallback...
+2026-06-02 06:42:04,364 - services.email - INFO - Successfully sent test email to test@knovault.app via SMTP fallback
+2026-06-02 06:42:23,428 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:42:42,307 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:42:43,171 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:42:43,932 - watchfiles.main - INFO - 5 changes detected
+2026-06-02 06:42:44,257 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:42:51,038 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 06:42:56,638 - services.email - INFO - Attempting to send test email to test@knovault.app via Brevo HTTP API...
+2026-06-02 06:42:57,928 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
+2026-06-02 06:42:57,929 - services.email - INFO - Successfully sent test email to test@knovault.app via Brevo HTTP API
+2026-06-02 06:43:13,580 - services.email - INFO - Attempting to send signup email to test2@knovault.app via Brevo HTTP API...
+2026-06-02 06:43:15,040 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
+2026-06-02 06:43:15,040 - services.email - INFO - Successfully sent signup email to test2@knovault.app via Brevo HTTP API
+2026-06-02 06:49:49,460 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:49:51,211 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:50:01,980 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 06:54:34,605 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:54:52,383 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:55:14,225 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:55:15,219 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:55:16,540 - watchfiles.main - INFO - 5 changes detected
+2026-06-02 06:55:16,786 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:55:29,947 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 06:56:05,748 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:56:06,711 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:56:07,942 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:56:17,417 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 06:56:32,543 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:56:33,404 - watchfiles.main - INFO - 1 change detected
+2026-06-02 06:56:34,593 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:56:42,579 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 06:59:46,091 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:59:47,658 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 06:59:57,617 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 07:00:10,756 - watchfiles.main - INFO - 1 change detected
+2026-06-02 07:00:23,137 - watchfiles.main - INFO - 1 change detected
+2026-06-02 07:00:24,423 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 07:15:19,673 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 07:15:21,312 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 07:15:32,758 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 07:17:26,246 - utils.firebase - INFO - [Firebase] Token verified successfully for: thinkgood24hrs@gmail.com
+2026-06-02 07:17:26,260 - utils.firebase - INFO - [Firebase] Token verified successfully for: thinkgood24hrs@gmail.com
+2026-06-02 07:17:26,268 - utils.firebase - INFO - [Firebase] Token verified successfully for: thinkgood24hrs@gmail.com
+2026-06-02 07:17:27,469 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-06-02 07:17:46,177 - services.email - INFO - Attempting to send reset email to thinkgood24hrs@gmail.com via Brevo HTTP API...
+2026-06-02 07:17:48,074 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
+2026-06-02 07:17:48,076 - services.email - INFO - Successfully sent reset email to thinkgood24hrs@gmail.com via Brevo HTTP API
+2026-06-02 07:18:20,751 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-06-02 07:18:24,277 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-06-02 07:18:29,967 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-06-02 07:18:39,880 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-06-02 07:21:51,950 - watchfiles.main - INFO - 1 change detected
+2026-06-02 07:21:53,082 - watchfiles.main - INFO - 1 change detected
+2026-06-02 07:21:54,409 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 07:22:02,586 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 07:22:42,732 - watchfiles.main - INFO - 1 change detected
+2026-06-02 07:22:43,714 - watchfiles.main - INFO - 1 change detected
+2026-06-02 07:22:44,425 - watchfiles.main - INFO - 5 changes detected
+2026-06-02 07:22:44,974 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 07:22:53,159 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 07:22:57,381 - watchfiles.main - INFO - 1 change detected
+2026-06-02 07:22:58,764 - watchfiles.main - INFO - 1 change detected
+2026-06-02 07:22:59,533 - watchfiles.main - INFO - 5 changes detected
+2026-06-02 07:23:00,144 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 07:23:08,568 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 07:23:29,621 - watchfiles.main - INFO - 1 change detected
+2026-06-02 07:23:30,605 - watchfiles.main - INFO - 1 change detected
+2026-06-02 07:23:31,829 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 07:23:38,672 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 07:25:32,417 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-06-02 07:26:51,874 - watchfiles.main - INFO - 1 change detected
+2026-06-02 07:26:52,919 - watchfiles.main - INFO - 1 change detected
+2026-06-02 07:26:53,732 - watchfiles.main - INFO - 5 changes detected
+2026-06-02 07:26:54,360 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 07:27:02,282 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 07:27:08,400 - passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-06-02 07:27:58,924 - watchfiles.main - INFO - 1 change detected
+2026-06-02 07:27:59,909 - watchfiles.main - INFO - 1 change detected
+2026-06-02 07:28:00,575 - watchfiles.main - INFO - 5 changes detected
+2026-06-02 07:28:01,080 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 07:28:08,671 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 07:28:39,062 - watchfiles.main - INFO - 1 change detected
+2026-06-02 07:28:40,026 - watchfiles.main - INFO - 1 change detected
+2026-06-02 07:28:40,694 - watchfiles.main - INFO - 5 changes detected
+2026-06-02 07:28:41,282 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 07:28:49,118 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 07:29:26,612 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 07:29:28,129 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 07:29:37,533 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 07:30:24,261 - services.email - INFO - Attempting to send reset email to thinkgood24hrs@gmail.com via Brevo HTTP API...
+2026-06-02 07:30:27,542 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
+2026-06-02 07:30:27,543 - services.email - INFO - Successfully sent reset email to thinkgood24hrs@gmail.com via Brevo HTTP API
+2026-06-02 07:31:11,166 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-02 07:31:12,889 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-02 07:31:14,486 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-02 07:31:16,384 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-02 13:46:31,122 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 13:46:32,479 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 13:46:39,085 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 13:47:40,891 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-02 13:47:42,878 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-02 13:47:42,923 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-02 13:47:44,011 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-02 20:35:23,021 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 20:35:24,821 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-02 20:35:31,354 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-02 20:35:44,047 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-02 20:35:45,483 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-02 20:35:46,783 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-02 20:35:47,681 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-02 20:36:05,423 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-02 20:36:06,745 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-02 20:36:42,222 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-02 20:36:42,475 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-02 20:36:43,023 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 678 chars
+2026-06-02 20:36:43,035 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-02 20:36:43,324 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 678 chars
+2026-06-02 20:36:43,326 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-02 20:36:43,938 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-02 20:36:43,977 - KnoVaultAI - INFO - [GROQ CALL] Response received (246 chars)
+2026-06-02 20:36:43,981 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-02 20:36:44,122 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-02 20:36:44,124 - KnoVaultAI - INFO - [GROQ CALL] Response received (120 chars)
+2026-06-02 20:37:01,605 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-02 20:37:02,516 - utils.encryption - WARNING - [Encryption] InvalidToken: Note was likely unencrypted. Returning original content safely.
+2026-06-02 20:37:12,485 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-02 20:37:12,833 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-02 20:37:12,870 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 678 chars
+2026-06-02 20:37:12,872 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-02 20:37:13,364 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-02 20:37:13,366 - KnoVaultAI - INFO - [GROQ CALL] Response received (111 chars)
+2026-06-02 20:37:13,603 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 678 chars
+2026-06-02 20:37:13,604 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-02 20:37:14,057 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-02 20:37:14,059 - KnoVaultAI - INFO - [GROQ CALL] Response received (80 chars)
+2026-06-02 20:37:21,503 - KnoVaultAI - INFO - [AI REQUEST START] Message: 'who are...' | max_tokens=400
+2026-06-02 20:37:21,504 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-02 20:37:22,015 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-02 20:37:22,018 - KnoVaultAI - INFO - [GROQ CALL] Response received (132 chars)
+2026-06-02 20:37:22,019 - KnoVaultAI - INFO - [AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] 132 chars
+2026-06-05 19:27:47,835 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-05 19:27:53,324 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-05 19:27:59,831 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-05 19:28:07,844 - utils.firebase - WARNING - [Firebase] Invalid token: Firebase ID token has no "kid" claim.
+2026-06-05 19:38:26,514 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-05 19:38:29,366 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-05 19:38:35,688 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-05 19:41:08,918 - watchfiles.main - INFO - 1 change detected

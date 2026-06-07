@@ -36,7 +36,10 @@ async def get_reminders(
     current_user: User = Depends(get_current_user),
 ):
     print(f"[REMINDERS] Fetching reminders for user: {current_user.id} (type: {type}, upcoming: {upcoming}, start_date: {start_date}, end_date: {end_date})")
-    query = select(Reminder).where(Reminder.user_id == current_user.id)
+    query = select(Reminder).where(
+        Reminder.user_id == current_user.id,
+        Reminder.is_deleted == False
+    )
 
     if type:
         query = query.where(Reminder.type == type)
@@ -77,7 +80,8 @@ async def get_upcoming_reminders(
         and_(
             Reminder.user_id == current_user.id,
             func.lower(Reminder.type).in_(allowed_types),
-            Reminder.reminder_date >= now
+            Reminder.reminder_date >= now,
+            Reminder.is_deleted == False
         )
     ).order_by(Reminder.reminder_date.asc()).limit(limit)
     
@@ -98,7 +102,7 @@ async def get_reminder(
 ):
     print(f"[REMINDERS] Fetching reminder: {reminder_id} for user: {current_user.id}")
     result = await db.execute(
-        select(Reminder).where(Reminder.id == reminder_id, Reminder.user_id == current_user.id)
+        select(Reminder).where(Reminder.id == reminder_id, Reminder.user_id == current_user.id, Reminder.is_deleted == False)
     )
     reminder = result.scalar_one_or_none()
     if not reminder:
@@ -128,12 +132,29 @@ async def generate_medicine_reminders(
     data_title: str,
     data_description: str,
     data_reminder_date: datetime,
-    data_custom_type: str | None
+    data_custom_type: str | None,
+    old_series_id: str | None = None
 ) -> Reminder:
     try:
         desc_json = json.loads(data_description)
     except Exception:
         desc_json = {}
+        
+    # Fetch already completed doses if editing an old series
+    completed_doses = set()
+    if old_series_id:
+        from sqlalchemy import select
+        res = await db.execute(
+            select(Reminder).where(
+                Reminder.user_id == current_user.id,
+                ((Reminder.series_id == old_series_id) | Reminder.description.like(f'%"series_id": "{old_series_id}"%')),
+                Reminder.is_completed == True,
+                Reminder.is_deleted == False
+            )
+        )
+        for r in res.scalars().all():
+            if r.course_day and r.timing_label:
+                completed_doses.add((r.course_day, r.timing_label))
         
     med_name = desc_json.get("medName", data_title)
     med_type = desc_json.get("medType", "Tablet 💊")
@@ -146,7 +167,7 @@ async def generate_medicine_reminders(
     notes = desc_json.get("notes", "")
     
     duration_days = parse_duration_days(duration_str)
-    series_id = str(uuid.uuid4())
+    series_id = old_series_id if old_series_id else str(uuid.uuid4())
     
     first_reminder = None
     
@@ -157,6 +178,9 @@ async def generate_medicine_reminders(
         
     for d in range(duration_days):
         for idx, t in enumerate(timings):
+            if (d + 1, t) in completed_doses:
+                continue
+
             # Resolve time_str from timing_times or DEFAULT_TIMING_HOURS
             time_str = timing_times.get(t)
             if not time_str:
@@ -182,6 +206,7 @@ async def generate_medicine_reminders(
                 
             start_date = data_reminder_date
             occurrence_date = start_date + timedelta(days=d)
+            # Ensure we maintain the exact timezone of the start_date
             occurrence_date = occurrence_date.replace(hour=hour, minute=minute, second=0, microsecond=0)
             
             occurrence_desc = json.dumps({
@@ -288,7 +313,7 @@ async def update_reminder(
     current_user: User = Depends(get_current_user),
 ):
     result = await db.execute(
-        select(Reminder).where(Reminder.id == reminder_id, Reminder.user_id == current_user.id)
+        select(Reminder).where(Reminder.id == reminder_id, Reminder.user_id == current_user.id, Reminder.is_deleted == False)
     )
     reminder = result.scalar_one_or_none()
     if not reminder:
@@ -336,18 +361,20 @@ async def update_reminder(
     if is_new_medicine and config_changed:
         # If it was an old series, delete the old series first
         if old_series_id:
-            delete_stmt = delete(Reminder).where(
+            from sqlalchemy import update
+            update_stmt = update(Reminder).where(
                 Reminder.user_id == current_user.id,
-                (Reminder.series_id == old_series_id) | Reminder.description.like(f'%"series_id": "{old_series_id}"%')
-            )
-            await db.execute(delete_stmt)
+                ((Reminder.series_id == old_series_id) | Reminder.description.like(f'%"series_id": "{old_series_id}"%')),
+                Reminder.is_completed == False
+            ).values(is_deleted=True)
+            await db.execute(update_stmt)
         else:
-            # Delete just the current single reminder
-            await db.delete(reminder)
+            # Soft delete single reminder
+            reminder.is_deleted = True
             
         # Re-generate the medicine reminder series
         first_rem = await generate_medicine_reminders(
-            db, current_user, new_title, new_desc or "{}", new_date, new_custom_type
+            db, current_user, new_title, new_desc or "{}", new_date, new_custom_type, old_series_id=old_series_id
         )
         if first_rem:
             return ReminderResponse.model_validate(first_rem)
@@ -356,12 +383,14 @@ async def update_reminder(
     # Standard update flow
     if not is_new_medicine and old_series_id:
         # If transitioning from a series to a standard reminder, delete all other series reminders
-        delete_stmt = delete(Reminder).where(
+        from sqlalchemy import update
+        update_stmt = update(Reminder).where(
             Reminder.user_id == current_user.id,
             ((Reminder.series_id == old_series_id) | Reminder.description.like(f'%"series_id": "{old_series_id}"%')),
-            Reminder.id != reminder_id
-        )
-        await db.execute(delete_stmt)
+            Reminder.id != reminder_id,
+            Reminder.is_completed == False
+        ).values(is_deleted=True)
+        await db.execute(update_stmt)
 
     for key, value in data.model_dump(exclude_unset=True).items():
         if key == "is_completed":
@@ -404,12 +433,14 @@ async def delete_reminder(
             pass
 
     if series_id:
-        # Delete all matching series reminders
-        delete_stmt = delete(Reminder).where(
+        # Soft delete all matching series reminders
+        from sqlalchemy import update
+        update_stmt = update(Reminder).where(
             Reminder.user_id == current_user.id,
-            (Reminder.series_id == series_id) | Reminder.description.like(f'%"series_id": "{series_id}"%')
-        )
-        await db.execute(delete_stmt)
+            ((Reminder.series_id == series_id) | Reminder.description.like(f'%"series_id": "{series_id}"%')),
+            Reminder.is_completed == False
+        ).values(is_deleted=True)
+        await db.execute(update_stmt)
         return
 
-    await db.delete(reminder)
+    reminder.is_deleted = True

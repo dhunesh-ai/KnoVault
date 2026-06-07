@@ -1,9 +1,15 @@
-import client from '../api/client';
+import client, { checkHealth } from '../api/client';
 import { getDB, getSyncQueue, clearSyncQueue, localInsert, localUpdate, localDelete } from './db';
 
 export const syncWorkspace = async () => {
     const db = getDB();
-    console.log('[Sync] Starting workspace synchronization...');
+    console.log('[Sync Start] Starting workspace synchronization...');
+
+    const isHealthy = await checkHealth();
+    if (!isHealthy) {
+        console.log('[Sync] Aborted. Backend is not healthy.');
+        return false;
+    }
 
     // 1. PUSH local changes to server
     const queue = await getSyncQueue();
@@ -135,7 +141,7 @@ export const syncWorkspace = async () => {
         await processPull('ImportantDays', important_days);
 
         await db.runAsync('UPDATE SyncMetadata SET last_sync = ?', [timestamp]);
-        console.log('[Sync] Pull completed. Workspace synchronized.');
+        console.log('[Sync Completion] Pull completed. Workspace synchronized.');
         return true;
 
     } catch (e) {

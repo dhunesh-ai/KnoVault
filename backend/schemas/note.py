@@ -59,12 +59,25 @@ class VoiceNoteResponse(BaseModel):
         from_attributes = True
 
 
+class CategoryResponse(BaseModel):
+    name: str
+    count: int = 0
+    is_custom: bool = False
+
+class CategoryCreate(BaseModel):
+    name: str
+
+class CategoryRename(BaseModel):
+    new_name: str
+
+
+
 class NoteCreate(BaseModel):
     title: str
     content: str | None = None
     category: str = "General"
     is_secure: bool = False
-    note_type: str = "general"
+    note_type: str = "standard"
     is_pinned: bool = False
     is_completed: bool = False
     is_favorite: bool = False

@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from database import init_db
+from database.connection import engine, init_db
 from config import get_settings
 from routers import (
     auth_router, notes_router, goals_router, projects_router,
@@ -70,6 +70,9 @@ app.include_router(notifications_router)
 app.include_router(sync_router)
 
 
+from sqlalchemy import text
+from fastapi import HTTPException
+
 @app.get("/")
 async def root():
     return {"message": "KnoVault API v1.0.0", "status": "running"}
@@ -77,4 +80,9 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(text("SELECT 1"))
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        raise HTTPException(status_code=503, detail={"status": "unhealthy", "database": "disconnected", "error": str(e)})
