@@ -2426,3 +2426,8 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-06-05 19:38:29,366 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
 2026-06-05 19:38:35,688 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
 2026-06-05 19:41:08,918 - watchfiles.main - INFO - 1 change detected
+2026-06-07 17:55:53,344 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-07 17:55:55,358 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-07 17:56:03,954 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-07 17:56:39,465 - utils.firebase - WARNING - [Firebase] Invalid token: Firebase ID token has no "kid" claim.
+2026-06-07 18:20:00,201 - watchfiles.main - INFO - 1 change detected
