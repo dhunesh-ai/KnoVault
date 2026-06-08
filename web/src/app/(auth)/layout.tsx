@@ -2,6 +2,8 @@
 
 import { motion } from "framer-motion";
 
+import { Shield } from "lucide-react";
+
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-background overflow-hidden">
@@ -18,11 +20,17 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="backdrop-blur-xl bg-card border border-border shadow-2xl rounded-3xl p-8"
         >
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
+          <div className="mb-8 flex flex-col items-center text-center">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 shadow-[0_0_15px_rgba(124,77,255,0.2)]">
+              <Shield className="w-6 h-6 text-primary" />
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
               KnoVault
             </h1>
-            <p className="text-muted-foreground mt-2 text-sm">Your secure digital vault</p>
+            <p className="text-primary/80 mt-2 text-sm font-medium">Secure Knowledge & Life Management</p>
+          </div>
+          <div className="mb-6 text-center">
+            <p className="text-muted-foreground text-sm">Your secure digital vault</p>
           </div>
           {children}
         </motion.div>
