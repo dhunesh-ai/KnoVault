@@ -2443,3 +2443,32 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-06-07 19:35:39,473 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
 2026-06-07 19:35:41,831 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
 2026-06-07 19:35:50,282 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-07 19:44:44,896 - watchfiles.main - INFO - 1 change detected
+2026-06-07 20:04:53,228 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-07 20:04:53,259 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-07 20:04:54,646 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 527 chars
+2026-06-07 20:04:54,687 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-07 20:04:54,697 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 527 chars
+2026-06-07 20:04:54,704 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-07 20:04:55,893 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-07 20:04:55,952 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-07 20:04:55,955 - KnoVaultAI - INFO - [GROQ CALL] Response received (179 chars)
+2026-06-07 20:04:55,960 - KnoVaultAI - INFO - [GROQ CALL] Response received (272 chars)
+2026-06-07 20:04:55,961 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-07 20:09:12,433 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-07 20:09:12,872 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 527 chars
+2026-06-07 20:09:12,874 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-07 20:09:13,255 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-06-07 20:09:13,421 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-07 20:09:13,435 - KnoVaultAI - INFO - [GROQ CALL] Response received (258 chars)
+2026-06-07 20:09:13,438 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-07 20:09:14,019 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 527 chars
+2026-06-07 20:09:14,022 - KnoVaultAI - INFO - [GROQ CALL] Sending request...
+2026-06-07 20:09:14,398 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-06-07 20:09:14,412 - KnoVaultAI - INFO - [GROQ CALL] Response received (389 chars)
+2026-06-07 20:09:14,414 - KnoVaultAI - ERROR - [AI TASK ERROR] Expecting value: line 1 column 1 (char 0)
+2026-06-07 20:17:43,346 - watchfiles.main - INFO - 1 change detected
+2026-06-08 16:21:51,787 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-08 16:21:53,536 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
+2026-06-08 16:21:59,924 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-06-08 16:35:52,674 - watchfiles.main - INFO - 1 change detected

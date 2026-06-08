@@ -38,9 +38,11 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
+    console.log("Attempting Email Login");
     try {
       const response = await api.post("/api/auth/login", data);
       const { access_token, refresh_token, user } = response.data;
+      console.log("Current User:", user);
       login(access_token, refresh_token, user);
       toast.success("Welcome back!");
       router.push("/dashboard");

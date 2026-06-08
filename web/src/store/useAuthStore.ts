@@ -60,10 +60,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   loginWithGoogle: async () => {
     try {
+      console.log("Attempting Google Login");
       const { signInWithPopup } = await import('firebase/auth');
       const { auth, googleProvider } = await import('../lib/firebase');
       
       const result = await signInWithPopup(auth, googleProvider);
+      console.log("Current User:", result.user);
       const idToken = await result.user.getIdToken();
       
       const response = await api.post('/api/auth/firebase-sync', { id_token: idToken });
@@ -73,6 +75,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       Cookies.set('refresh_token', refresh_token, { expires: 30, secure: true });
       set({ user, isAuthenticated: true, isLoading: false });
     } catch (error: any  ) {
+      console.error("Firebase Auth Error:", error.code, error.message);
       console.error('Google login failed:', error);
       throw new Error(error.response?.data?.detail || "Google sign-in failed");
     }
