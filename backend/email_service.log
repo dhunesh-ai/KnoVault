@@ -2477,3 +2477,15 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-06-08 16:43:37,486 - utils.firebase - INFO - [Firebase] Token verified successfully for: thinkgood24hrs@gmail.com
 2026-06-08 16:43:40,951 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully
 2026-06-08 16:43:42,202 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully
+2026-06-08 17:00:51,957 - watchfiles.main - INFO - 1 change detected
+2026-06-08 17:04:12,514 - watchfiles.main - INFO - 1 change detected
+2026-06-08 17:05:15,041 - services.email - INFO - Attempting to send reset email to dhuneshwaran4@gmail.com via Brevo HTTP API...
+2026-06-08 17:05:16,435 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
+2026-06-08 17:05:16,438 - services.email - INFO - Successfully sent reset email to dhuneshwaran4@gmail.com via Brevo HTTP API
+2026-06-08 17:06:38,017 - utils.firebase - INFO - [Firebase] Token verified successfully for: dhuneshwaran4@gmail.com
+2026-06-08 17:26:59,978 - watchfiles.main - INFO - 1 change detected
+2026-06-08 17:29:18,191 - utils.firebase - INFO - [Firebase] Token verified successfully for: thinkgood24hrs@gmail.com
+2026-06-08 17:29:21,649 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully
+2026-06-08 17:29:22,807 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully
+2026-06-08 17:29:46,279 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully
+2026-06-08 17:29:47,617 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully
