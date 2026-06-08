@@ -43,7 +43,11 @@ export default function SettingsPage() {
   } = useSettingsStore();
 
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordStep, setPasswordStep] = useState<"request" | "otp" | "new_password">("request");
   const [password, setPassword] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [isPasswordLoading, setIsPasswordLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   
   const [stats, setStats] = useState({
@@ -64,6 +68,29 @@ export default function SettingsPage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const CLOUD_LIMIT_MB = 5.0;
+  const usedMB = parseFloat((stats.storageUsageBytes / 1024 / 1024).toFixed(2));
+  const usedKB = parseFloat((stats.storageUsageBytes / 1024).toFixed(1));
+  const usedString = usedMB >= 1 ? `${usedMB.toFixed(1)} MB` : `${usedKB} KB`;
+
+  const remainingMBVal = Math.max(0, CLOUD_LIMIT_MB - usedMB);
+  const remainingMB = remainingMBVal.toFixed(1);
+  const remainingKB = parseFloat((remainingMBVal * 1024).toFixed(1));
+  const remainingString = remainingMBVal >= 1 ? `${remainingMB} MB` : `${remainingKB} KB`;
+
+  const storageProgress = Math.min(1, usedMB / CLOUD_LIMIT_MB);
+  let storageColor = '#10B981'; // Green
+  if (storageProgress >= 0.9) storageColor = '#EF4444'; // Red
+  else if (storageProgress >= 0.7) storageColor = '#F59E0B'; // Orange
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (resendCooldown > 0) {
+      timer = setTimeout(() => setResendCooldown(c => c - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -81,14 +108,10 @@ export default function SettingsPage() {
         const projectsData = projectsRes.data || [];
         const goalsData = goalsRes.data || [];
         const specialDaysData = specialDaysRes.data || [];
+        const statsData = await api.get('/api/profile/stats').then(res => res.data).catch(() => ({}));
 
-        const totalBytes = new Blob([
-          JSON.stringify(notesData),
-          JSON.stringify(remindersData),
-          JSON.stringify(projectsData),
-          JSON.stringify(goalsData),
-          JSON.stringify(specialDaysData)
-        ]).size;
+        const workspaceData = { notes: notesData, reminders: remindersData, stats: statsData };
+        const totalBytes = new Blob([JSON.stringify(workspaceData)]).size;
         
         setStats({
           notes: notesData.length,
@@ -129,18 +152,57 @@ export default function SettingsPage() {
     }
   };
 
+  const handleRequestPasswordChange = async () => {
+    if (!user?.email) return;
+    setIsPasswordLoading(true);
+    try {
+      await api.post("/api/auth/forgot-password", { email: user.email });
+      toast.success("Verification code sent to your email!");
+      setPasswordStep("otp");
+      setResendCooldown(60);
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || "Failed to send OTP.");
+    } finally {
+      setIsPasswordLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otpCode.length !== 6 || !user?.email) return;
+    setIsPasswordLoading(true);
+    try {
+      await api.post("/api/auth/verify-otp", { email: user.email, code: otpCode });
+      setPasswordStep("new_password");
+      toast.success("OTP verified. Enter your new password.");
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || "Invalid code.");
+    } finally {
+      setIsPasswordLoading(false);
+    }
+  };
+
   const handleChangePassword = async () => {
     if (password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
     }
+    if (!user?.email) return;
+    setIsPasswordLoading(true);
     try {
-      await api.post("/api/profile/change-password", { new_password: password });
-      toast.success("Password updated successfully");
+      await api.post("/api/auth/reset-password", { email: user.email, code: otpCode, new_password: password });
+      toast.success("Password updated successfully. Please log in again.");
       setPassword("");
+      setOtpCode("");
       setIsChangingPassword(false);
-    } catch {
-      // Error handled by axios interceptor
+      setPasswordStep("request");
+      setTimeout(() => logout(), 1500);
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || "Failed to reset password.");
+      if (error.response?.data?.detail === "Invalid or expired OTP") {
+         setPasswordStep("otp");
+      }
+    } finally {
+      setIsPasswordLoading(false);
     }
   };
 
@@ -227,12 +289,16 @@ export default function SettingsPage() {
             <div className="space-y-5">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Storage Usage</span>
-                <span className="text-sm font-medium text-foreground">{isLoadingStats ? "..." : formatBytes(stats.storageUsageBytes)} / 5 GB</span>
+                <span className="text-sm font-medium text-foreground">{isLoadingStats ? "..." : usedString} / {CLOUD_LIMIT_MB.toFixed(1)} MB</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2">
-                <div className="bg-[#7C4DFF] h-2 rounded-full transition-all duration-1000" style={{ width: `${Math.min((stats.storageUsageBytes / (5 * 1024 * 1024 * 1024)) * 100, 100)}%` }}></div>
+                <div className="h-2 rounded-full transition-all duration-1000" style={{ backgroundColor: storageColor, width: `${storageProgress * 100}%` }}></div>
               </div>
               <Separator className="bg-border/50" />
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Cloud Storage Remaining</span>
+                <span className="text-sm font-medium text-foreground">{isLoadingStats ? "..." : remainingString}</span>
+              </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Last Login</span>
                 <span className="text-sm font-medium text-foreground">Today, 09:41 AM</span>
@@ -364,18 +430,71 @@ export default function SettingsPage() {
                   <motion.div 
                     initial={{ opacity: 0, height: 0 }} 
                     animate={{ opacity: 1, height: 'auto' }} 
-                    className="mt-5 pt-5 border-t border-border flex items-center gap-3 overflow-hidden"
+                    className="mt-5 pt-5 border-t border-border overflow-hidden"
                   >
-                    <Input 
-                      type="password" 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="flex-1 bg-background border-border rounded-xl focus-visible:ring-[#7C4DFF] h-11"
-                      placeholder="Enter new password"
-                    />
-                    <Button className="bg-[#7C4DFF] hover:bg-[#6b42e0] text-white rounded-xl h-11 px-6" onClick={handleChangePassword}>
-                      Update Password
-                    </Button>
+                    {passwordStep === "request" && (
+                       <div className="flex flex-col items-center text-center">
+                         <ShieldCheck className="w-12 h-12 text-[#7C4DFF] mb-3 opacity-80" />
+                         <p className="text-sm text-muted-foreground mb-4">
+                           For your security, we need to verify your identity before changing the password. 
+                           An OTP will be sent to <strong>{user?.email}</strong>.
+                         </p>
+                         <Button className="w-full bg-[#7C4DFF] hover:bg-[#6b42e0] text-white rounded-xl h-11" onClick={handleRequestPasswordChange} disabled={isPasswordLoading}>
+                           {isPasswordLoading ? "Sending..." : "Send OTP"}
+                         </Button>
+                       </div>
+                    )}
+
+                    {passwordStep === "otp" && (
+                       <div className="flex flex-col space-y-4">
+                         <p className="text-sm text-center text-muted-foreground">
+                           Enter the 6-digit code sent to your email.
+                         </p>
+                         <Input 
+                           value={otpCode}
+                           onChange={(e) => setOtpCode(e.target.value)}
+                           className="bg-background border-border rounded-xl text-center tracking-[0.5em] font-bold text-lg h-12 focus-visible:ring-[#7C4DFF]"
+                           placeholder="123456"
+                           maxLength={6}
+                         />
+                         <div className="flex gap-3">
+                           <Button variant="outline" className="flex-1 rounded-xl h-11" onClick={() => setPasswordStep("request")}>
+                             Back
+                           </Button>
+                           <Button className="flex-1 bg-[#7C4DFF] hover:bg-[#6b42e0] text-white rounded-xl h-11" onClick={handleVerifyOtp} disabled={isPasswordLoading || otpCode.length !== 6}>
+                             {isPasswordLoading ? "Verifying..." : "Verify Code"}
+                           </Button>
+                         </div>
+                         <div className="text-center pt-2">
+                           <button 
+                             type="button" 
+                             onClick={handleRequestPasswordChange} 
+                             disabled={resendCooldown > 0 || isPasswordLoading}
+                             className="text-xs text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+                           >
+                             {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : "Didn't receive it? Resend"}
+                           </button>
+                         </div>
+                       </div>
+                    )}
+
+                    {passwordStep === "new_password" && (
+                       <div className="flex flex-col space-y-4">
+                         <p className="text-sm text-center text-muted-foreground">
+                           Create your new secure password. You will be logged out after this change.
+                         </p>
+                         <Input 
+                           type="password" 
+                           value={password}
+                           onChange={(e) => setPassword(e.target.value)}
+                           className="bg-background border-border rounded-xl focus-visible:ring-[#7C4DFF] h-11"
+                           placeholder="Enter new password (min. 6 characters)"
+                         />
+                         <Button className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl h-11" onClick={handleChangePassword} disabled={isPasswordLoading}>
+                           {isPasswordLoading ? "Updating..." : "Update Password"}
+                         </Button>
+                       </div>
+                    )}
                   </motion.div>
                 )}
               </div>

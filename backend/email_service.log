@@ -2472,3 +2472,8 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-06-08 16:21:53,536 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: llama-3.1-8b-instant
 2026-06-08 16:21:59,924 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
 2026-06-08 16:35:52,674 - watchfiles.main - INFO - 1 change detected
+2026-06-08 16:35:58,956 - watchfiles.main - INFO - 1 change detected
+2026-06-08 16:42:04,129 - watchfiles.main - INFO - 1 change detected
+2026-06-08 16:43:37,486 - utils.firebase - INFO - [Firebase] Token verified successfully for: thinkgood24hrs@gmail.com
+2026-06-08 16:43:40,951 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully
+2026-06-08 16:43:42,202 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully
