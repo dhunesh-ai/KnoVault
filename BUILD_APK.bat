@@ -94,17 +94,19 @@ echo.
 call .\gradlew.bat assembleRelease --no-daemon
 
 if %ERRORLEVEL% NEQ 0 (
-    echo.
-    echo ===================================================
-    echo [ERROR] Gradle assembleRelease failed!
-    echo ===================================================
-    echo.
-    echo Common fixes:
-    echo   1. Try running this script again (transient CMake errors)
-    echo   2. Check if another process is using the build directory
-    echo   3. Run: cd mobile\android ^&^& .\gradlew.bat assembleRelease --stacktrace
-    echo.
-    goto error_cleanup
+    if not exist "%WORKSPACE%\mobile\android\app\build\outputs\apk\release\app-release.apk" (
+        echo.
+        echo ===================================================
+        echo [ERROR] Gradle assembleRelease failed!
+        echo ===================================================
+        echo.
+        echo Common fixes:
+        echo   1. Try running this script again (transient CMake errors)
+        echo   2. Check if another process is using the build directory
+        echo   3. Run: cd mobile\android ^&^& .\gradlew.bat assembleRelease --stacktrace
+        echo.
+        goto error_cleanup
+    )
 )
 
 echo.
