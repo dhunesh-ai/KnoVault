@@ -62,11 +62,11 @@ client.interceptors.response.use(
     originalRequest._retryCount = originalRequest._retryCount || 0;
     
     // Don't trigger token refresh or logout for auth endpoints
-    const authEndpoints = ['/api/auth/login', '/api/auth/firebase-sync', '/api/auth/complete-signup'];
+    const authEndpoints = ['/api/auth/login', '/api/auth/firebase-sync', '/api/auth/complete-signup', '/api/auth/me'];
     const isAuthEndpoint = authEndpoints.some(ep => originalRequest?.url?.includes(ep));
     
-    // Detect Backend / Network Errors for Retry Logic
-    if (error.message === 'Network Error' || error.code === 'ECONNABORTED' || error.response?.status === 503) {
+    // Detect Backend / Network Errors for Retry Logic (bypass for auth endpoints to fail fast)
+    if ((error.message === 'Network Error' || error.code === 'ECONNABORTED' || error.response?.status === 503) && !isAuthEndpoint) {
       if (originalRequest._retryCount < RETRY_DELAYS.length) {
         const delay = RETRY_DELAYS[originalRequest._retryCount];
         console.log(`[API Retry] Request failed. Retrying in ${delay}ms... (Attempt ${originalRequest._retryCount + 1}/${RETRY_DELAYS.length})`);

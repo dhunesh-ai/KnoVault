@@ -36,11 +36,11 @@ api.interceptors.response.use(
     
     originalRequest._retryCount = originalRequest._retryCount || 0;
     
-    const authEndpoints = ['/api/auth/login', '/api/auth/firebase-sync', '/api/auth/complete-signup'];
+    const authEndpoints = ['/api/auth/login', '/api/auth/firebase-sync', '/api/auth/complete-signup', '/api/auth/me'];
     const isAuthEndpoint = authEndpoints.some(ep => originalRequest?.url?.includes(ep));
     
-    // Retry Logic for network errors
-    if (error.message === 'Network Error' || error.code === 'ECONNABORTED' || error.response?.status === 503) {
+    // Retry Logic for network errors (bypass for auth endpoints to fail fast)
+    if ((error.message === 'Network Error' || error.code === 'ECONNABORTED' || error.response?.status === 503) && !isAuthEndpoint) {
       if (originalRequest._retryCount < RETRY_DELAYS.length) {
         const delay = RETRY_DELAYS[originalRequest._retryCount];
         originalRequest._retryCount += 1;

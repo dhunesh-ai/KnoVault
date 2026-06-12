@@ -301,7 +301,7 @@ function RootLayoutContent() {
       
       {!isAppReady && (
         <View style={[StyleSheet.absoluteFill, styles.startupLoadingContainer]}>
-          <ActivityIndicator size="large" color={lightColors.primary} style={{ marginBottom: 20 }} />
+          <ActivityIndicator size="large" color={colors.primary} style={{ marginBottom: 20 }} />
           <Text style={styles.startupLoadingText}>Connecting to KnoVault...</Text>
         </View>
       )}

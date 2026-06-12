@@ -42,20 +42,28 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   checkAuth: async () => {
     try {
-      set({ isLoading: true });
       const token = Cookies.get('user_token');
       if (!token) {
         set({ user: null, isAuthenticated: false, isLoading: false });
         return;
       }
       
+      // Optimistically set authenticated state so the app shell renders immediately
+      set({ isAuthenticated: true, isLoading: false });
+      
       const response = await api.get('/api/auth/me');
-      set({ user: response.data, isAuthenticated: true, isLoading: false });
-    } catch (error) {
+      set({ user: response.data, isAuthenticated: true });
+    } catch (error: any) {
       console.error('Auth check failed:', error);
-      Cookies.remove('user_token');
-      Cookies.remove('refresh_token');
-      set({ user: null, isAuthenticated: false, isLoading: false });
+      // Only clear credentials and redirect if the server explicitly rejected the token (401/403)
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        Cookies.remove('user_token');
+        Cookies.remove('refresh_token');
+        set({ user: null, isAuthenticated: false });
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+      }
     }
   },
   loginWithGoogle: async () => {

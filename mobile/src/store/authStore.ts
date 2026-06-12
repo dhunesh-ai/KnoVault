@@ -77,7 +77,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (token) {
         console.log('[Auth Restore] Token found, fetching profile in background...');
         set({ token, isAuthenticated: true, isAuthenticating: false, error: null, authProvider: provider });
-        await get().fetchUser();
+        
+        // Fetch profile in the background, don't block app initialization
+        get().fetchUser().catch(console.warn);
 
         // Sync FCM token in background (don't block init)
         get().syncNotifications().catch(console.warn);
