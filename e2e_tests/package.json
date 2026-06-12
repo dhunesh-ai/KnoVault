@@ -1,0 +1,18 @@
+{
+  "name": "knovault-e2e-tests",
+  "version": "1.0.0",
+  "description": "E2E automated testing framework for KnoVault (Web & Mobile)",
+  "main": "run-tests.js",
+  "scripts": {
+    "test:web": "node run-tests.js --web",
+    "test:mobile": "node run-tests.js --mobile",
+    "test:all": "node run-tests.js --all"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "selenium-webdriver": "^4.22.0",
+    "webdriverio": "^8.39.0",
+    "dotenv": "^16.4.5"
+  },
+  "private": true
+}

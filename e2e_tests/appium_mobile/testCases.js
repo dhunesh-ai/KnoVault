@@ -1,0 +1,122 @@
+/**
+ * KnoVault Mobile E2E Test Cases (100 Unique Tests)
+ * Distributed across 7 core functional areas.
+ */
+
+const testCases = [
+  // ─── AREA 1: SPLASH SCREEN & STARTUP LIFECYCLE (Tests 1-15) ───
+  { id: 1, category: 'Startup Lifecycle', name: 'test_mobile_splash_screen_rendered', type: 'ui_ux' },
+  { id: 2, category: 'Startup Lifecycle', name: 'test_mobile_boot_secure_store_checked', type: 'e2e' },
+  { id: 3, category: 'Startup Lifecycle', name: 'test_mobile_boot_sqlite_initialized', type: 'e2e' },
+  { id: 4, category: 'Startup Lifecycle', name: 'test_mobile_boot_offline_ready_immediately', type: 'boundary' },
+  { id: 5, category: 'Startup Lifecycle', name: 'test_mobile_boot_loader_hides_after_ready', type: 'ui_ux' },
+  { id: 6, category: 'Startup Lifecycle', name: 'test_mobile_auto_login_on_valid_stored_token', type: 'e2e' },
+  { id: 7, category: 'Startup Lifecycle', name: 'test_mobile_redirect_to_login_on_no_token', type: 'e2e' },
+  { id: 8, category: 'Startup Lifecycle', name: 'test_mobile_background_notification_init', type: 'e2e' },
+  { id: 9, category: 'Startup Lifecycle', name: 'test_mobile_theme_mode_persisted_on_load', type: 'ui_ux' },
+  { id: 10, category: 'Startup Lifecycle', name: 'test_mobile_database_schema_migration_checks', type: 'boundary' },
+  { id: 11, category: 'Startup Lifecycle', name: 'test_mobile_network_listener_initializes', type: 'e2e' },
+  { id: 12, category: 'Startup Lifecycle', name: 'test_mobile_background_fetch_service_registered', type: 'e2e' },
+  { id: 13, category: 'Startup Lifecycle', name: 'test_mobile_device_info_logging_on_startup', type: 'ui_ux' },
+  { id: 14, category: 'Startup Lifecycle', name: 'test_mobile_welcome_carousel_visible_first_time', type: 'ui_ux' },
+  { id: 15, category: 'Startup Lifecycle', name: 'test_mobile_welcome_carousel_dismissal_works', type: 'e2e' },
+
+  // ─── AREA 2: AUTHENTICATION & GOOGLE SIGN-IN (Tests 16-30) ───
+  { id: 16, category: 'Authentication', name: 'test_mobile_login_screen_fields_visible', type: 'ui_ux' },
+  { id: 17, category: 'Authentication', name: 'test_mobile_login_email_input_focus_styling', type: 'ui_ux' },
+  { id: 18, category: 'Authentication', name: 'test_mobile_login_password_mask_toggle', type: 'ui_ux' },
+  { id: 19, category: 'Authentication', name: 'test_mobile_login_submit_handles_validation_empty_fields', type: 'boundary' },
+  { id: 20, category: 'Authentication', name: 'test_mobile_login_email_syntax_validation', type: 'boundary' },
+  { id: 21, category: 'Authentication', name: 'test_mobile_login_error_display_invalid_credentials', type: 'boundary' },
+  { id: 22, category: 'Authentication', name: 'test_mobile_login_google_button_rendered', type: 'ui_ux' },
+  { id: 23, category: 'Authentication', name: 'test_mobile_login_google_redirect_trigger', type: 'e2e' },
+  { id: 24, category: 'Authentication', name: 'test_mobile_login_firebase_token_retrieval', type: 'e2e' },
+  { id: 25, category: 'Authentication', name: 'test_mobile_login_backend_sync_success', type: 'e2e' },
+  { id: 26, category: 'Authentication', name: 'test_mobile_login_backend_sync_fails_fast_on_network_error', type: 'boundary' },
+  { id: 27, category: 'Authentication', name: 'test_mobile_signup_navigation_link_clickable', type: 'e2e' },
+  { id: 28, category: 'Authentication', name: 'test_mobile_signup_fields_visible', type: 'ui_ux' },
+  { id: 29, category: 'Authentication', name: 'test_mobile_signup_password_strength_indicators', type: 'boundary' },
+  { id: 30, category: 'Authentication', name: 'test_mobile_biometric_auth_prompt_toggles', type: 'e2e' },
+
+  // ─── AREA 3: BOTTOM NAVIGATION & TABS (Tests 31-45) ───
+  { id: 31, category: 'Bottom Navigation', name: 'test_mobile_navigation_tabs_rendered', type: 'ui_ux' },
+  { id: 32, category: 'Bottom Navigation', name: 'test_mobile_notes_tab_displays_notes_view', type: 'e2e' },
+  { id: 33, category: 'Bottom Navigation', name: 'test_mobile_goals_tab_displays_goals_view', type: 'e2e' },
+  { id: 34, category: 'Bottom Navigation', name: 'test_mobile_reminders_tab_displays_reminders_view', type: 'e2e' },
+  { id: 35, category: 'Bottom Navigation', name: 'test_mobile_profile_tab_displays_profile_view', type: 'e2e' },
+  { id: 36, category: 'Bottom Navigation', name: 'test_mobile_fab_quick_action_button_rendered', type: 'ui_ux' },
+  { id: 37, category: 'Bottom Navigation', name: 'test_mobile_fab_quick_action_shows_options_sheet', type: 'e2e' },
+  { id: 38, category: 'Bottom Navigation', name: 'test_mobile_quick_add_note_navigates_to_editor', type: 'e2e' },
+  { id: 39, category: 'Bottom Navigation', name: 'test_mobile_quick_add_goal_navigates_to_editor', type: 'e2e' },
+  { id: 40, category: 'Bottom Navigation', name: 'test_mobile_quick_add_reminder_navigates_to_editor', type: 'e2e' },
+  { id: 41, category: 'Bottom Navigation', name: 'test_mobile_tab_icons_active_color_highlight', type: 'ui_ux' },
+  { id: 42, category: 'Bottom Navigation', name: 'test_mobile_header_logo_and_avatar_visible', type: 'ui_ux' },
+  { id: 43, category: 'Bottom Navigation', name: 'test_mobile_header_avatar_navigates_to_profile', type: 'e2e' },
+  { id: 44, category: 'Bottom Navigation', name: 'test_mobile_network_offline_banner_shows_disconnected', type: 'boundary' },
+  { id: 45, category: 'Bottom Navigation', name: 'test_mobile_network_offline_banner_hides_connected', type: 'boundary' },
+
+  // ─── AREA 4: OFFLINE CACHING & SQLITE NOTES (Tests 46-65) ───
+  { id: 46, category: 'Offline Notes', name: 'test_mobile_sqlite_notes_query_returns_cached_items', type: 'e2e' },
+  { id: 47, category: 'Offline Notes', name: 'test_mobile_sqlite_notes_view_renders_list', type: 'ui_ux' },
+  { id: 48, category: 'Offline Notes', name: 'test_mobile_notes_list_shows_pinned_notes_on_top', type: 'ui_ux' },
+  { id: 49, category: 'Offline Notes', name: 'test_mobile_note_editor_fields_focused', type: 'ui_ux' },
+  { id: 50, category: 'Offline Notes', name: 'test_mobile_create_note_saves_to_sqlite_immediately', type: 'e2e' },
+  { id: 51, category: 'Offline Notes', name: 'test_mobile_create_note_adds_to_sync_queue', type: 'e2e' },
+  { id: 52, category: 'Offline Notes', name: 'test_mobile_create_note_syncs_to_backend_online', type: 'e2e' },
+  { id: 53, category: 'Offline Notes', name: 'test_mobile_create_note_remains_in_queue_offline', type: 'boundary' },
+  { id: 54, category: 'Offline Notes', name: 'test_mobile_note_details_render_category_badge', type: 'ui_ux' },
+  { id: 55, category: 'Offline Notes', name: 'test_mobile_note_details_delete_removes_locally', type: 'e2e' },
+  { id: 56, category: 'Offline Notes', name: 'test_mobile_note_details_edit_updates_locally', type: 'e2e' },
+  { id: 57, category: 'Offline Notes', name: 'test_mobile_checklist_note_rendered_checkboxes', type: 'ui_ux' },
+  { id: 58, category: 'Offline Notes', name: 'test_mobile_checklist_note_item_toggle_persists', type: 'e2e' },
+  { id: 59, category: 'Offline Notes', name: 'test_mobile_note_voice_speech_to_text_input', type: 'e2e' },
+  { id: 60, category: 'Offline Notes', name: 'test_mobile_note_image_attachment_saved_locally', type: 'e2e' },
+  { id: 61, category: 'Offline Notes', name: 'test_mobile_secure_note_passcode_setup_trigger', type: 'e2e' },
+  { id: 62, category: 'Offline Notes', name: 'test_mobile_secure_note_decrypts_on_success_entry', type: 'e2e' },
+  { id: 63, category: 'Offline Notes', name: 'test_mobile_secure_note_blocks_on_wrong_entry', type: 'boundary' },
+  { id: 64, category: 'Offline Notes', name: 'test_mobile_secure_note_auto_locks_on_minimize', type: 'boundary' },
+  { id: 65, category: 'Offline Notes', name: 'test_mobile_notes_list_search_filters_instantly', type: 'e2e' },
+
+  // ─── AREA 5: LOCAL NOTIFICATIONS & DAILY REMINDERS (Tests 66-80) ───
+  { id: 66, category: 'Local Reminders', name: 'test_mobile_reminders_list_renders_chronologically', type: 'ui_ux' },
+  { id: 67, category: 'Local Reminders', name: 'test_mobile_reminders_empty_state_agenda_clean', type: 'ui_ux' },
+  { id: 68, category: 'Local Reminders', name: 'test_mobile_add_reminder_modal_fields', type: 'ui_ux' },
+  { id: 69, category: 'Local Reminders', name: 'test_mobile_reminder_local_notification_schedule_trigger', type: 'e2e' },
+  { id: 70, category: 'Local Reminders', name: 'test_mobile_reminder_daily_planner_notification_schedule', type: 'e2e' },
+  { id: 71, category: 'Local Reminders', name: 'test_mobile_reminder_repeat_weekly_options', type: 'e2e' },
+  { id: 72, category: 'Local Reminders', name: 'test_mobile_reminder_completed_marks_done_sqlite', type: 'e2e' },
+  { id: 73, category: 'Local Reminders', name: 'test_mobile_reminder_deletion_unschedules_notification', type: 'e2e' },
+  { id: 74, category: 'Local Reminders', name: 'test_mobile_special_days_section_cards_visible', type: 'ui_ux' },
+  { id: 75, category: 'Local Reminders', name: 'test_mobile_special_days_countdown_timer_calculations', type: 'boundary' },
+  { id: 76, category: 'Local Reminders', name: 'test_mobile_special_days_notification_morning_schedule', type: 'e2e' },
+  { id: 77, category: 'Local Reminders', name: 'test_mobile_special_days_create_event_saves_locally', type: 'e2e' },
+  { id: 78, category: 'Local Reminders', name: 'test_mobile_fcm_notification_token_sync', type: 'e2e' },
+  { id: 79, category: 'Local Reminders', name: 'test_mobile_fcm_push_message_display_background', type: 'e2e' },
+  { id: 80, category: 'Local Reminders', name: 'test_mobile_local_alarm_channel_importance_high', type: 'boundary' },
+
+  // ─── AREA 6: PROJECTS & TASK STATUS (Tests 81-90) ───
+  { id: 81, category: 'Projects Module', name: 'test_mobile_projects_list_renders_cards', type: 'ui_ux' },
+  { id: 82, category: 'Projects Module', name: 'test_mobile_create_project_modal_validated', type: 'boundary' },
+  { id: 83, category: 'Projects Module', name: 'test_mobile_project_card_shows_progress_gauge', type: 'ui_ux' },
+  { id: 84, category: 'Projects Module', name: 'test_mobile_project_task_list_toggles', type: 'e2e' },
+  { id: 85, category: 'Projects Module', name: 'test_mobile_add_task_to_project_inserts_sqlite', type: 'e2e' },
+  { id: 86, category: 'Projects Module', name: 'test_mobile_task_toggle_recalculates_progress', type: 'e2e' },
+  { id: 87, category: 'Projects Module', name: 'test_mobile_project_analytics_completion_stats', type: 'ui_ux' },
+  { id: 88, category: 'Projects Module', name: 'test_mobile_project_member_invite_modal', type: 'e2e' },
+  { id: 89, category: 'Projects Module', name: 'test_mobile_project_delete_removes_from_sqlite', type: 'e2e' },
+  { id: 90, category: 'Projects Module', name: 'test_mobile_project_sync_action_updates_remote', type: 'e2e' },
+
+  // ─── AREA 7: SETTINGS & MANUAL SYNC LOGS (Tests 91-100) ───
+  { id: 91, category: 'Settings Dashboard', name: 'test_mobile_settings_menu_rendered', type: 'ui_ux' },
+  { id: 92, category: 'Settings Dashboard', name: 'test_mobile_settings_user_profile_details_correct', type: 'ui_ux' },
+  { id: 93, category: 'Settings Dashboard', name: 'test_mobile_settings_manual_sync_trigger', type: 'e2e' },
+  { id: 94, category: 'Settings Dashboard', name: 'test_mobile_settings_sync_indicator_animates', type: 'ui_ux' },
+  { id: 95, category: 'Settings Dashboard', name: 'test_mobile_settings_sync_logs_modal_displays_records', type: 'ui_ux' },
+  { id: 96, category: 'Settings Dashboard', name: 'test_mobile_settings_theme_toggle_light_dark', type: 'e2e' },
+  { id: 97, category: 'Settings Dashboard', name: 'test_mobile_settings_cloud_storage_bar_visible', type: 'ui_ux' },
+  { id: 98, category: 'Settings Dashboard', name: 'test_mobile_settings_cache_clear_cleans_attachments', type: 'boundary' },
+  { id: 99, category: 'Settings Dashboard', name: 'test_mobile_settings_biometrics_toggle_persists', type: 'boundary' },
+  { id: 100, category: 'Settings Dashboard', name: 'test_mobile_settings_logout_wipes_secure_store_and_sqlite', type: 'e2e' }
+];
+
+module.exports = testCases;
