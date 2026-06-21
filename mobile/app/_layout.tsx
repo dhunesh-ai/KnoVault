@@ -23,7 +23,7 @@ import * as TaskManager from 'expo-task-manager';
 import * as Notifications from 'expo-notifications';
 import { syncWorkspace } from '../src/services/sync';
 import { initDB } from '../src/services/db';
-import { setupNotificationChannelsAndCategories, scheduleDailyPlanner, scheduleSpecialDaysReminders } from '../src/utils/localNotifications';
+import { setupNotificationChannelsAndCategories, scheduleDailyPlanner, scheduleSpecialDaysReminders, syncWorkspaceNotifications } from '../src/utils/localNotifications';
 import NetInfo from '@react-native-community/netinfo';
 import { useAppStore } from '../src/store/appStore';
 
@@ -223,6 +223,14 @@ function RootLayoutContent() {
           // targetRoute = `/goal/${data.id}`;
         } else if (data?.type === 'special_day' && data?.id) {
           targetRoute = `/special_day/${data.id}`;
+        } else {
+          const type = data?.type;
+          const workspaceId = data?.workspaceId || data?.workspace_id;
+          if ((type === 'workspace_meeting' || type === 'meeting') && workspaceId) {
+            targetRoute = `/workspace/${workspaceId}?module=meetings`;
+          } else if ((type === 'workspace_event' || type === 'event') && workspaceId) {
+            targetRoute = `/workspace/${workspaceId}?module=calendar`;
+          }
         }
         
         if (targetRoute) {
@@ -233,6 +241,14 @@ function RootLayoutContent() {
 
     return () => subscription.remove();
   }, [router]);
+
+  // Sync workspace notifications on successful authentication
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log('[RootLayout] Authenticated - syncing workspace notifications...');
+      syncWorkspaceNotifications().catch(e => console.warn('Workspace notifications sync failed', e));
+    }
+  }, [isAuthenticated, user]);
 
   // Listen for local DB modifications to trigger auto-sync
   useEffect(() => {
