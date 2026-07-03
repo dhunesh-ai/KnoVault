@@ -117,6 +117,13 @@ export const initDB = async () => {
       reminder_unit TEXT,
       reminder_time TEXT,
       notification_ids TEXT,
+      auto_send_email INTEGER DEFAULT 0,
+      email_send_time TEXT,
+      last_email_sent_at TEXT,
+      last_sent_year INTEGER,
+      timezone TEXT DEFAULT 'UTC',
+      email_status TEXT DEFAULT 'PENDING',
+      email_retry_count INTEGER DEFAULT 0,
       user_id INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -141,9 +148,78 @@ export const initDB = async () => {
     'ALTER TABLE ImportantDays ADD COLUMN reminder_unit TEXT',
     'ALTER TABLE ImportantDays ADD COLUMN reminder_time TEXT',
     'ALTER TABLE ImportantDays ADD COLUMN notification_ids TEXT',
+    'ALTER TABLE ImportantDays ADD COLUMN auto_send_email INTEGER DEFAULT 0',
+    'ALTER TABLE ImportantDays ADD COLUMN email_send_time TEXT',
+    'ALTER TABLE ImportantDays ADD COLUMN last_email_sent_at TEXT',
+    'ALTER TABLE ImportantDays ADD COLUMN last_sent_year INTEGER',
+    'ALTER TABLE ImportantDays ADD COLUMN timezone TEXT DEFAULT \'UTC\'',
+    'ALTER TABLE ImportantDays ADD COLUMN email_status TEXT DEFAULT \'PENDING\'',
+    'ALTER TABLE ImportantDays ADD COLUMN email_retry_count INTEGER DEFAULT 0',
   ];
-  for (const migration of importantDaysMigrations) {
-    try { await db.execAsync(migration); } catch (_e) { /* column already exists */ }
+
+  try {
+    for (const migration of importantDaysMigrations) {
+      try {
+        await db.execAsync(migration);
+      } catch (_e: any) {
+        // Safe to ignore if column already exists
+        const msg = (_e?.message || '').toLowerCase();
+        if (!msg.includes('duplicate column name') && !msg.includes('already exists')) {
+          throw _e;
+        }
+      }
+    }
+  } catch (err) {
+    logger.error('Failed to run ImportantDays migrations, recreating table:', err);
+    try {
+      await db.execAsync('DROP TABLE IF EXISTS ImportantDays;');
+      await db.execAsync(`
+        CREATE TABLE ImportantDays (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          remote_id INTEGER UNIQUE,
+          title TEXT NOT NULL,
+          date TEXT NOT NULL,
+          type TEXT DEFAULT 'Birthday',
+          is_recurring INTEGER DEFAULT 1,
+          custom_type TEXT,
+          notes TEXT,
+          gift_ideas TEXT,
+          celebration_plans TEXT,
+          reminder_notes TEXT,
+          message_draft TEXT,
+          recipient_email TEXT,
+          phone_number TEXT,
+          relationship TEXT,
+          email_subject TEXT,
+          email_message TEXT,
+          email_enabled INTEGER DEFAULT 0,
+          delivery_type TEXT DEFAULT 'notification',
+          send_time TEXT DEFAULT '09:00',
+          reminders_json TEXT,
+          reminder_enabled INTEGER DEFAULT 0,
+          reminder_type TEXT,
+          reminder_value INTEGER,
+          reminder_unit TEXT,
+          reminder_time TEXT,
+          notification_ids TEXT,
+          auto_send_email INTEGER DEFAULT 0,
+          email_send_time TEXT,
+          last_email_sent_at TEXT,
+          last_sent_year INTEGER,
+          timezone TEXT DEFAULT 'UTC',
+          email_status TEXT DEFAULT 'PENDING',
+          email_retry_count INTEGER DEFAULT 0,
+          user_id INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          is_deleted INTEGER DEFAULT 0
+        );
+      `);
+      await db.execAsync("UPDATE SyncMetadata SET last_sync = '1970-01-01T00:00:00Z';");
+      logger.info('Successfully recreated ImportantDays table and reset sync date.');
+    } catch (recreateErr) {
+      logger.error('Failed to recreate ImportantDays table:', recreateErr);
+    }
   }
 
   // Create SyncMetadata table to store last_sync
@@ -167,6 +243,17 @@ export const initDB = async () => {
     );
   `);
 
+  // Create GoogleDriveSync table
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS GoogleDriveSync (
+      entity TEXT NOT NULL,
+      record_id INTEGER NOT NULL,
+      drive_file_id TEXT NOT NULL,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (entity, record_id)
+    );
+  `);
+
   // Initialize SyncMetadata if empty
   const meta = await db.getFirstAsync('SELECT * FROM SyncMetadata LIMIT 1');
   if (!meta) {
@@ -185,6 +272,7 @@ export const clearDB = async () => {
         DELETE FROM ImportantDays;
         DELETE FROM SyncQueue;
         DELETE FROM NotificationHistory;
+        DELETE FROM GoogleDriveSync;
         UPDATE SyncMetadata SET last_sync = '1970-01-01T00:00:00Z';
     `);
 };
@@ -200,6 +288,7 @@ export const resetLocalDB = async () => {
         DROP TABLE IF EXISTS SyncQueue;
         DROP TABLE IF EXISTS SyncMetadata;
         DROP TABLE IF EXISTS NotificationHistory;
+        DROP TABLE IF EXISTS GoogleDriveSync;
     `);
     await initDB();
 };

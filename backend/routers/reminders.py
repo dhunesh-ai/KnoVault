@@ -100,14 +100,15 @@ async def get_reminder(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    print(f"[REMINDERS] Fetching reminder: {reminder_id} for user: {current_user.id}")
+    print(f"[DEBUG LOG] Reminder detail requested for ID: {reminder_id} for user: {current_user.id}")
     result = await db.execute(
-        select(Reminder).where(Reminder.id == reminder_id, Reminder.user_id == current_user.id, Reminder.is_deleted == False)
+        select(Reminder).where(Reminder.id == reminder_id, Reminder.user_id == current_user.id)
     )
     reminder = result.scalar_one_or_none()
-    if not reminder:
-        print(f"[REMINDERS] Reminder {reminder_id} not found")
+    if not reminder or reminder.is_deleted:
+        print(f"[DEBUG LOG] Reminder ID: {reminder_id} not found or is soft-deleted (is_deleted={reminder.is_deleted if reminder else 'None'})")
         raise HTTPException(status_code=404, detail="Reminder not found")
+    print(f"[DEBUG LOG] Reminder ID: {reminder_id} successfully found. Title: '{reminder.title}', is_deleted: {reminder.is_deleted}")
     return ReminderResponse.model_validate(reminder)
 
 
@@ -416,11 +417,13 @@ async def delete_reminder(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    print(f"[DEBUG LOG] Reminder deletion requested for ID: {reminder_id} for user: {current_user.id}")
     result = await db.execute(
         select(Reminder).where(Reminder.id == reminder_id, Reminder.user_id == current_user.id)
     )
     reminder = result.scalar_one_or_none()
     if not reminder:
+        print(f"[DEBUG LOG] Reminder deletion failed: ID {reminder_id} not found")
         raise HTTPException(status_code=404, detail="Reminder not found")
 
     # Check if it has a series_id
@@ -434,6 +437,7 @@ async def delete_reminder(
 
     if series_id:
         # Soft delete all matching series reminders
+        print(f"[DEBUG LOG] Deleting medicine series {series_id} for reminder {reminder_id}")
         from sqlalchemy import update
         update_stmt = update(Reminder).where(
             Reminder.user_id == current_user.id,
@@ -441,6 +445,8 @@ async def delete_reminder(
             Reminder.is_completed == False
         ).values(is_deleted=True)
         await db.execute(update_stmt)
+        print(f"[DEBUG LOG] Medicine series {series_id} soft-deleted")
         return
 
     reminder.is_deleted = True
+    print(f"[DEBUG LOG] Reminder ID {reminder_id} soft-deleted. is_deleted set to True.")

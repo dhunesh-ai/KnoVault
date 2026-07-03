@@ -8,7 +8,8 @@ from routers import (
     auth_router, notes_router, goals_router, projects_router,
     reminders_router, birthdays_router, special_days_router, important_days_router,
     ai_chat_router, profile_router, backup_router, calendar_router,
-    notifications_router, sync_router
+    notifications_router, sync_router, files_router, calendar_notes_router,
+    workspaces_router, secure_notes_router
 )
 from utils.firebase import initialize_firebase
 
@@ -28,9 +29,23 @@ print(f"======================================")
 async def lifespan(app: FastAPI):
     await init_db()
     os.makedirs("uploads/voice", exist_ok=True)
+    os.makedirs("uploads/images", exist_ok=True)
+    os.makedirs("uploads/documents", exist_ok=True)
     # Initialize Firebase Admin SDK
     initialize_firebase()
+    
+    # Start auto email wishes background scheduler
+    from services.email_scheduler import auto_email_wishes_scheduler
+    from services.notification_scheduler import auto_workspace_reminders_scheduler
+    import asyncio
+    scheduler_task = asyncio.create_task(auto_email_wishes_scheduler())
+    ws_scheduler_task = asyncio.create_task(auto_workspace_reminders_scheduler())
+    
     yield
+    
+    # Cancel the scheduler on shutdown
+    scheduler_task.cancel()
+    ws_scheduler_task.cancel()
 
 
 app = FastAPI(
@@ -66,8 +81,13 @@ app.include_router(ai_chat_router)
 app.include_router(profile_router)
 app.include_router(backup_router)
 app.include_router(calendar_router)
+app.include_router(calendar_notes_router)
 app.include_router(notifications_router)
 app.include_router(sync_router)
+app.include_router(files_router)
+app.include_router(workspaces_router)
+app.include_router(secure_notes_router)
+
 
 
 from sqlalchemy import text

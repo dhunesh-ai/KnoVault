@@ -5,6 +5,9 @@ from database import get_db
 from models.user import User
 from models.reminder import Reminder
 from models.important_day import ImportantDay
+from models.daily_goal import DailyGoal
+from models.project_task import ProjectTask
+from models.calendar_note import CalendarNote
 from middleware.auth import get_current_user
 from datetime import datetime, date, timedelta, timezone
 from typing import Dict, List, Any
@@ -25,6 +28,7 @@ async def get_calendar_events(
     important_day_query = select(ImportantDay).where(
         and_(
             ImportantDay.user_id == current_user.id,
+            ImportantDay.is_deleted == False,
             extract('month', ImportantDay.date) == month
         )
     )
@@ -35,12 +39,47 @@ async def get_calendar_events(
     reminder_query = select(Reminder).where(
         and_(
             Reminder.user_id == current_user.id,
+            Reminder.is_deleted == False,
             extract('month', Reminder.reminder_date) == month,
             extract('year', Reminder.reminder_date) == year
         )
     )
     reminder_result = await db.execute(reminder_query)
     reminders = reminder_result.scalars().all()
+
+    # 3. Fetch Daily Goals (matching month and year of goal_date)
+    goals_query = select(DailyGoal).where(
+        and_(
+            DailyGoal.user_id == current_user.id,
+            extract('month', DailyGoal.goal_date) == month,
+            extract('year', DailyGoal.goal_date) == year
+        )
+    )
+    goals_result = await db.execute(goals_query)
+    goals = goals_result.scalars().all()
+
+    # 4. Fetch Project Tasks (projects with deadlines matching month and year)
+    projects_query = select(ProjectTask).where(
+        and_(
+            ProjectTask.user_id == current_user.id,
+            ProjectTask.deadline.is_not(None),
+            extract('month', ProjectTask.deadline) == month,
+            extract('year', ProjectTask.deadline) == year
+        )
+    )
+    projects_result = await db.execute(projects_query)
+    projects = projects_result.scalars().all()
+
+    # 5. Fetch Calendar Notes (matching month and year of note_date)
+    notes_query = select(CalendarNote).where(
+        and_(
+            CalendarNote.user_id == current_user.id,
+            extract('month', CalendarNote.note_date) == month,
+            extract('year', CalendarNote.note_date) == year
+        )
+    )
+    notes_result = await db.execute(notes_query)
+    calendar_notes = notes_result.scalars().all()
 
     events_by_date: Dict[str, List[Dict[str, Any]]] = {}
 
@@ -87,7 +126,8 @@ async def get_calendar_events(
             "title": f"{b.title} ({b.type})",
             "color": type_colors.get(b.type.lower().strip(), "#A78BFA"),
             "original_id": b.id,
-            "notes": b.notes
+            "notes": b.notes,
+            "is_deleted": b.is_deleted
         })
 
     # Process Reminders
@@ -125,9 +165,57 @@ async def get_calendar_events(
             "color": color_map.get(r.type.lower().strip(), color_map["custom"]),
             "original_id": r.id,
             "time": time_str,
-            "description": r.description
+            "description": r.description,
+            "is_deleted": r.is_deleted
+        })
+
+    # Process Daily Goals
+    for g in goals:
+        date_str = g.goal_date.isoformat()
+        add_event(date_str, {
+            "id": f"g-{g.id}",
+            "type": "goal",
+            "title": g.title,
+            "color": "#8B5CF6", # Purple
+            "original_id": g.id,
+            "completed": g.completed,
+        })
+
+    # Process Project Tasks (projects)
+    for p in projects:
+        if p.deadline.tzinfo is None:
+            p_utc = p.deadline.replace(tzinfo=timezone.utc)
+        else:
+            p_utc = p.deadline
+
+        local_datetime = p_utc - timedelta(minutes=tz_offset)
+        date_str = local_datetime.strftime("%Y-%m-%d")
+        
+        add_event(date_str, {
+            "id": f"p-{p.id}",
+            "type": "project",
+            "title": p.title,
+            "color": "#EF4444", # Red/Orange
+            "original_id": p.id,
+            "completed": p.completed,
+            "progress": p.progress,
+            "priority": p.priority,
+            "status": p.status
+        })
+
+    # Process Calendar Notes
+    for cn in calendar_notes:
+        date_str = cn.note_date.isoformat()
+        add_event(date_str, {
+            "id": f"cn-{cn.id}",
+            "type": "calendar_note",
+            "title": cn.title,
+            "color": "#3B82F6", # Blue
+            "original_id": cn.id,
+            "description": cn.content,
         })
 
     total_events = sum(len(v) for v in events_by_date.values())
-    print(f"[CALENDAR EVENTS FOUND] Total Events: {total_events}")
+    print(f"[DEBUG LOG] [CALENDAR EVENTS FOUND] Total Events: {total_events} for user: {current_user.id}")
     return events_by_date
+

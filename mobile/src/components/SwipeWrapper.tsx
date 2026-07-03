@@ -49,23 +49,9 @@ export default function SwipeWrapper({ children, currentTab }: SwipeWrapperProps
 
   useEffect(() => {
     if (isFocused) {
-      const diff = currentIndex - lastActiveIndex;
       lastActiveIndex = currentIndex;
-
-      if (diff > 0) {
-        // Slide in from right (moving left)
-        translateX.value = SCREEN_WIDTH * 0.15;
-        opacity.value = 0.6;
-      } else if (diff < 0) {
-        // Slide in from left (moving right)
-        translateX.value = -SCREEN_WIDTH * 0.15;
-        opacity.value = 0.6;
-      } else {
-        translateX.value = 0;
-        opacity.value = 1;
-      }
-
-      translateX.value = animationsEnabled ? withSpring(0, { damping: 22, stiffness: 160 }) : 0;
+      translateX.value = 0;
+      opacity.value = 0.6;
       opacity.value = animationsEnabled ? withTiming(1, { duration: 250 }) : 1;
     }
   }, [isFocused, currentIndex, animationsEnabled]);
@@ -84,7 +70,7 @@ export default function SwipeWrapper({ children, currentTab }: SwipeWrapperProps
 
   // Configure Gesture Detector Pan Gesture
   const panGesture = Gesture.Pan()
-    .enabled(swipeEnabled)
+    .enabled(false) // Disable all horizontal swipe gestures between tabs
     .activeOffsetX([-25, 25]) // don't trigger on tiny accidental jitters
     .failOffsetY([-35, 35])   // cancel swipe if user is scrolling vertically
     .onUpdate((event) => {

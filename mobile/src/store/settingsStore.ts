@@ -13,14 +13,28 @@ interface SettingsState {
   notificationDailySummary: boolean;
   notificationSound: boolean;
   notificationVibration: boolean;
-  microphoneEnabled: boolean;
+  microphoneAccessEnabled: boolean;
+
+  // Hybrid Storage System Settings
+  storageMode: 'cloud' | 'cloud_gdrive' | 'cloud_local' | 'gdrive' | 'local';
+  autoSwitchWhenFull: boolean;
+  googleDriveConnected: boolean;
+  googleDriveAccessToken: string | null;
+  lastDriveSync: string | null;
+  rememberChoice: boolean;
 
   // Actions
   initializeSettings: () => Promise<void>;
   setAnimationsEnabled: (enabled: boolean) => Promise<void>;
   completeOnboarding: () => Promise<void>;
   toggleNotificationSetting: (key: keyof SettingsState, storageKey: string, value: boolean) => Promise<void>;
-  setMicrophoneEnabled: (enabled: boolean) => Promise<void>;
+  setMicrophoneAccessEnabled: (enabled: boolean) => Promise<void>;
+  setStorageMode: (mode: 'cloud' | 'cloud_gdrive' | 'cloud_local' | 'gdrive' | 'local') => Promise<void>;
+  setAutoSwitchWhenFull: (enabled: boolean) => Promise<void>;
+  setGoogleDriveConnected: (connected: boolean) => Promise<void>;
+  setGoogleDriveAccessToken: (token: string | null) => Promise<void>;
+  setLastDriveSync: (timestamp: string | null) => Promise<void>;
+  setRememberChoice: (remember: boolean) => Promise<void>;
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -33,11 +47,19 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   notificationDailySummary: true,
   notificationSound: true,
   notificationVibration: true,
-  microphoneEnabled: false,
+  microphoneAccessEnabled: false,
+
+  // Hybrid Storage Defaults
+  storageMode: 'cloud',
+  autoSwitchWhenFull: true,
+  googleDriveConnected: false,
+  googleDriveAccessToken: null,
+  lastDriveSync: null,
+  rememberChoice: false,
 
   initializeSettings: async () => {
     try {
-      const anims = await SecureStore.getItemAsync(ANIMATIONS_ENABLED_KEY);
+      const anims = await SecureStore.getItemAsync('knovault_animations');
       const onboarded = await SecureStore.getItemAsync('knovault_onboarding_completed');
 
       const notifsEnabled = await SecureStore.getItemAsync('knovault_notifications');
@@ -48,6 +70,14 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       const notifsVibration = await SecureStore.getItemAsync('knovault_notif_vibration');
       const micEnabled = await SecureStore.getItemAsync('knovault_mic_enabled');
 
+      // Hybrid storage settings from SecureStore
+      const mode = await SecureStore.getItemAsync('knovault_storage_mode') as SettingsState['storageMode'] || 'cloud';
+      const autoSwitch = await SecureStore.getItemAsync('knovault_storage_auto_switch') !== 'false';
+      const gDriveConnected = await SecureStore.getItemAsync('knovault_storage_gdrive_connected') === 'true';
+      const gDriveToken = await SecureStore.getItemAsync('knovault_storage_gdrive_token') || null;
+      const lastSync = await SecureStore.getItemAsync('knovault_storage_last_sync') || null;
+      const remember = await SecureStore.getItemAsync('knovault_storage_remember_choice') === 'true';
+
       set({
         animationsEnabled: anims === 'true', // Default to false
         isOnboarded: onboarded === 'true',
@@ -57,7 +87,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         notificationDailySummary: notifsSummary !== 'false',
         notificationSound: notifsSound !== 'false',
         notificationVibration: notifsVibration !== 'false',
-        microphoneEnabled: micEnabled === 'true', // Default to false
+        microphoneAccessEnabled: micEnabled === 'true', // Default to false
+        storageMode: mode,
+        autoSwitchWhenFull: autoSwitch,
+        googleDriveConnected: gDriveConnected,
+        googleDriveAccessToken: gDriveToken,
+        lastDriveSync: lastSync,
+        rememberChoice: remember,
         isInitialized: true,
       });
     } catch (e) {
@@ -68,7 +104,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   setAnimationsEnabled: async (enabled: boolean) => {
     try {
-      await SecureStore.setItemAsync(ANIMATIONS_ENABLED_KEY, enabled ? 'true' : 'false');
+      await SecureStore.setItemAsync('knovault_animations', enabled ? 'true' : 'false');
       set({ animationsEnabled: enabled });
     } catch (e) {
       console.error('[SettingsStore] Failed to set animations', e);
@@ -95,13 +131,75 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }
   },
 
-  setMicrophoneEnabled: async (enabled: boolean) => {
+  setMicrophoneAccessEnabled: async (enabled: boolean) => {
     try {
       await SecureStore.setItemAsync('knovault_mic_enabled', enabled ? 'true' : 'false');
-      set({ microphoneEnabled: enabled });
+      set({ microphoneAccessEnabled: enabled });
     } catch (e) {
-      console.error('[SettingsStore] Failed to set microphone', e);
+      console.error('[SettingsStore] Failed to set microphone access', e);
       throw e;
+    }
+  },
+
+  setStorageMode: async (mode: SettingsState['storageMode']) => {
+    try {
+      await SecureStore.setItemAsync('knovault_storage_mode', mode);
+      set({ storageMode: mode });
+    } catch (e) {
+      console.error('[SettingsStore] Failed to set storage mode', e);
+    }
+  },
+
+  setAutoSwitchWhenFull: async (enabled: boolean) => {
+    try {
+      await SecureStore.setItemAsync('knovault_storage_auto_switch', enabled ? 'true' : 'false');
+      set({ autoSwitchWhenFull: enabled });
+    } catch (e) {
+      console.error('[SettingsStore] Failed to set auto switch', e);
+    }
+  },
+
+  setGoogleDriveConnected: async (connected: boolean) => {
+    try {
+      await SecureStore.setItemAsync('knovault_storage_gdrive_connected', connected ? 'true' : 'false');
+      set({ googleDriveConnected: connected });
+    } catch (e) {
+      console.error('[SettingsStore] Failed to set gdrive connected', e);
+    }
+  },
+
+  setGoogleDriveAccessToken: async (token: string | null) => {
+    try {
+      if (token) {
+        await SecureStore.setItemAsync('knovault_storage_gdrive_token', token);
+      } else {
+        await SecureStore.deleteItemAsync('knovault_storage_gdrive_token');
+      }
+      set({ googleDriveAccessToken: token });
+    } catch (e) {
+      console.error('[SettingsStore] Failed to set gdrive token', e);
+    }
+  },
+
+  setLastDriveSync: async (timestamp: string | null) => {
+    try {
+      if (timestamp) {
+        await SecureStore.setItemAsync('knovault_storage_last_sync', timestamp);
+      } else {
+        await SecureStore.deleteItemAsync('knovault_storage_last_sync');
+      }
+      set({ lastDriveSync: timestamp });
+    } catch (e) {
+      console.error('[SettingsStore] Failed to set last sync', e);
+    }
+  },
+
+  setRememberChoice: async (remember: boolean) => {
+    try {
+      await SecureStore.setItemAsync('knovault_storage_remember_choice', remember ? 'true' : 'false');
+      set({ rememberChoice: remember });
+    } catch (e) {
+      console.error('[SettingsStore] Failed to set remember choice', e);
     }
   }
 }));

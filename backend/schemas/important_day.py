@@ -23,6 +23,11 @@ class ImportantDayCreate(BaseModel):
     email_enabled: bool = False
     delivery_type: str = "notification"
     send_time: str | None = "09:00"
+    auto_send_email: bool = False
+    email_send_time: str | None = "09:00"
+    timezone: str | None = "UTC"
+    email_status: str | None = "PENDING"
+    email_retry_count: int = 0
     # Reminders (stored as JSON array)
     # Smart Reminder System
     reminder_enabled: bool = False
@@ -61,6 +66,11 @@ class ImportantDayUpdate(BaseModel):
     email_enabled: bool | None = None
     delivery_type: str | None = None
     send_time: str | None = None
+    auto_send_email: bool | None = None
+    email_send_time: str | None = None
+    timezone: str | None = None
+    email_status: str | None = None
+    email_retry_count: int | None = None
     # Reminders
     # Smart Reminder System
     reminder_enabled: bool | None = None
@@ -100,6 +110,13 @@ class ImportantDayResponse(BaseModel):
     email_enabled: bool = False
     delivery_type: str = "notification"
     send_time: str | None = "09:00"
+    auto_send_email: bool = False
+    email_send_time: str | None = "09:00"
+    last_email_sent_at: datetime | None = None
+    last_sent_year: int | None = None
+    timezone: str | None = "UTC"
+    email_status: str | None = "PENDING"
+    email_retry_count: int = 0
     # Reminders
     # Smart Reminder System
     reminder_enabled: bool = False

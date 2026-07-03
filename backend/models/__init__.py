@@ -6,9 +6,23 @@ from models.project_task import ProjectTask
 from models.reminder import Reminder
 from models.important_day import ImportantDay
 from models.ai_chat import AIChat
+from models.calendar_note import CalendarNote
+from models.workspace import (
+    Workspace, WorkspaceMember, WorkspaceNote, WorkspaceTask, WorkspaceGoal,
+    WorkspaceDiscussion, WorkspaceKnowledge, WorkspaceMeeting, WorkspaceIdea,
+    WorkspaceActivity, WorkspaceAnalytics, WorkspaceEvent, WorkspaceInvite
+)
+from models.notification import Notification
+from models.secure_note_security import SecureNoteSecurity
+from models.support import BugReport, FeatureSuggestion
 
 __all__ = [
     "User", "Note", "ChecklistItem", "FieldNote", "VoiceNote",
-    "Goal", "DailyGoal", "ProjectTask", "Reminder", "ImportantDay", "AIChat"
+    "Goal", "DailyGoal", "ProjectTask", "Reminder", "ImportantDay", "AIChat", "CalendarNote",
+    "Workspace", "WorkspaceMember", "WorkspaceNote", "WorkspaceTask", "WorkspaceGoal",
+    "WorkspaceDiscussion", "WorkspaceKnowledge", "WorkspaceMeeting", "WorkspaceIdea",
+    "WorkspaceActivity", "WorkspaceAnalytics", "WorkspaceEvent", "WorkspaceInvite",
+    "Notification", "SecureNoteSecurity", "BugReport", "FeatureSuggestion"
 ]
+
 

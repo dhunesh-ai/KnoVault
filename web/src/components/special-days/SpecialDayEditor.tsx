@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { SpecialDay } from "@/types/SpecialDay";
 import { useSpecialDaysStore } from "@/store/useSpecialDaysStore";
+import api from "@/lib/axios";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,44 @@ const specialDaySchema = z.object({
   celebration_plans: z.string().optional().nullable(),
   reminder_notes: z.string().optional().nullable(),
   message_draft: z.string().optional().nullable(),
+  recipient_email: z.string().optional().nullable(),
+  auto_send_email: z.boolean(),
+  email_subject: z.string().optional().nullable(),
+  email_message: z.string().optional().nullable(),
+  email_send_time: z.string().optional().nullable(),
+}).superRefine((data, ctx) => {
+  if (data.auto_send_email) {
+    if (!data.recipient_email || !data.recipient_email.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Recipient email is required when auto email is enabled",
+        path: ["recipient_email"],
+      });
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.recipient_email)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Please enter a valid email address",
+          path: ["recipient_email"],
+        });
+      }
+    }
+    if (!data.email_subject || !data.email_subject.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Email subject is required when auto email is enabled",
+        path: ["email_subject"],
+      });
+    }
+    if (!data.email_message || !data.email_message.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Email message is required when auto email is enabled",
+        path: ["email_message"],
+      });
+    }
+  }
 });
 
 type SpecialDayFormValues = z.infer<typeof specialDaySchema>;
@@ -66,10 +105,15 @@ export function SpecialDayEditor({ open, onOpenChange, specialDay }: SpecialDayE
     celebration_plans: "",
     reminder_notes: "",
     message_draft: "",
+    recipient_email: "",
+    auto_send_email: false,
+    email_subject: "",
+    email_message: "",
+    email_send_time: "09:00",
   };
 
   const form = useForm<SpecialDayFormValues>({
-    resolver: zodResolver(specialDaySchema),
+    resolver: zodResolver(specialDaySchema as any),
     defaultValues,
   });
 
@@ -80,7 +124,7 @@ export function SpecialDayEditor({ open, onOpenChange, specialDay }: SpecialDayE
       form.reset({
         title: specialDay.title,
         date: specialDay.date,
-        type: specialDay.type as SpecialDayFormValues["type"],
+        type: specialDay.type as any,
         is_recurring: specialDay.is_recurring,
         custom_type: specialDay.custom_type || "",
         notes: specialDay.notes || "",
@@ -88,13 +132,88 @@ export function SpecialDayEditor({ open, onOpenChange, specialDay }: SpecialDayE
         celebration_plans: specialDay.celebration_plans || "",
         reminder_notes: specialDay.reminder_notes || "",
         message_draft: specialDay.message_draft || "",
+        recipient_email: specialDay.recipient_email || "",
+        auto_send_email: !!specialDay.auto_send_email,
+        email_subject: specialDay.email_subject || "",
+        email_message: specialDay.email_message || "",
+        email_send_time: specialDay.email_send_time || "09:00",
       });
     } else {
       form.reset(defaultValues);
     }
   }, [specialDay, open, form]);
 
-  const onSubmit = async (data: SpecialDayFormValues) => {
+  const [isGeneratingWish, setIsGeneratingWish] = useState(false);
+  const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
+
+  const handleGenerateWish = async () => {
+    const titleVal = form.getValues("title");
+    const typeVal = form.getValues("type");
+    const customTypeVal = form.getValues("custom_type");
+
+    setIsGeneratingWish(true);
+    try {
+      const response = await api.post("/api/important-days/generate-wish", {
+        type: typeVal,
+        person_name: titleVal || "Recipient",
+        custom_type: typeVal === "custom" ? customTypeVal : null,
+      });
+      if (response.data) {
+        form.setValue("email_subject", response.data.subject || "");
+        form.setValue("email_message", response.data.message || "");
+        toast.success("AI Wish generated and populated!");
+      }
+    } catch (error) {
+      console.error("Failed to generate AI wish:", error);
+      toast.error("Failed to generate AI wish. Using fallback template.");
+      const personName = titleVal || "Recipient";
+      form.setValue("email_subject", `Happy ${typeVal}! 🎉`);
+      form.setValue("email_message", `Dear ${personName},\n\nWishing you a wonderful ${typeVal}! Have a great day!`);
+    } finally {
+      setIsGeneratingWish(false);
+    }
+  };
+
+  const handleSendTestEmail = async () => {
+    const recipient = form.getValues("recipient_email");
+    const subject = form.getValues("email_subject");
+    const message = form.getValues("email_message");
+
+    if (!recipient?.trim()) {
+      toast.error("Please enter a recipient email first.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(recipient)) {
+      toast.error("Please enter a valid recipient email.");
+      return;
+    }
+    if (!subject?.trim()) {
+      toast.error("Please enter an email subject first.");
+      return;
+    }
+    if (!message?.trim()) {
+      toast.error("Please enter an email message first.");
+      return;
+    }
+
+    setIsSendingTestEmail(true);
+    try {
+      await api.post("/api/important-days/send-test-email", {
+        recipient_email: recipient,
+        email_subject: subject,
+        email_message: message,
+      });
+      toast.success("Test email sent successfully!");
+    } catch (error) {
+      console.error("Failed to send test email:", error);
+      toast.error("Failed to send test email. Check server configuration.");
+    } finally {
+      setIsSendingTestEmail(false);
+    }
+  };
+
+  const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
       if (specialDay) {
@@ -294,6 +413,106 @@ export function SpecialDayEditor({ open, onOpenChange, specialDay }: SpecialDayE
                     className="bg-card border-border/50 resize-none h-20"
                   />
                 </div>
+              </div>
+
+              {/* SECTION 3: Auto Email Wishes */}
+              <div className="space-y-5">
+                <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+                  <div className="w-6 h-6 rounded-full bg-pink-500/10 flex items-center justify-center text-pink-500 text-xs font-bold">3</div>
+                  <h3 className="text-lg font-semibold text-foreground">Auto Email Wishes</h3>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border border-border/50">
+                  <div className="space-y-1">
+                    <Label className="text-base">Enable Auto Email Wishes</Label>
+                    <p className="text-xs text-muted-foreground">Automatically send a greeting email to the recipient on this day.</p>
+                  </div>
+                  <Controller
+                    control={form.control}
+                    name="auto_send_email"
+                    render={({ field }) => (
+                      <Switch checked={field.value} onCheckedChange={field.onChange} className="data-[state=checked]:bg-pink-500" />
+                    )}
+                  />
+                </div>
+
+                {form.watch("auto_send_email") && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-4 pt-2">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Recipient Email</Label>
+                      <Input
+                        {...form.register("recipient_email")}
+                        placeholder="e.g. friend@example.com"
+                        type="email"
+                        className="bg-card border-border/50"
+                      />
+                      {form.formState.errors.recipient_email && (
+                        <p className="text-red-400 text-sm font-medium">{form.formState.errors.recipient_email.message}</p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">Email Content</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleGenerateWish}
+                        disabled={isGeneratingWish}
+                        className="text-pink-500 hover:text-pink-600 border-pink-500/30 bg-pink-500/5 hover:bg-pink-500/10"
+                      >
+                        {isGeneratingWish ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                        ✨ Generate AI Wish
+                      </Button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Email Subject</Label>
+                      <Input
+                        {...form.register("email_subject")}
+                        placeholder="e.g. Wishing you a happy birthday!"
+                        className="bg-card border-border/50"
+                      />
+                      {form.formState.errors.email_subject && (
+                        <p className="text-red-400 text-sm font-medium">{form.formState.errors.email_subject.message}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Email Message Body</Label>
+                      <Textarea
+                        {...form.register("email_message")}
+                        placeholder="Write your email wishes here..."
+                        className="bg-card border-border/50 resize-none h-32"
+                      />
+                      {form.formState.errors.email_message && (
+                        <p className="text-red-400 text-sm font-medium">{form.formState.errors.email_message.message}</p>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-end">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Send Email Time</Label>
+                        <Input
+                          {...form.register("email_send_time")}
+                          type="time"
+                          className="bg-card border-border/50"
+                        />
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleSendTestEmail}
+                        disabled={isSendingTestEmail}
+                        className="w-full text-foreground border-border/50 hover:bg-muted"
+                      >
+                        {isSendingTestEmail ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                        ✉️ Send Test Email
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
               </div>
 
             </div>

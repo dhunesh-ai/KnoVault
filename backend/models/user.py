@@ -26,4 +26,5 @@ class User(Base):
     reminders = relationship("Reminder", back_populates="user", cascade="all, delete-orphan")
     important_days = relationship("ImportantDay", back_populates="user", cascade="all, delete-orphan")
     ai_chats = relationship("AIChat", back_populates="user", cascade="all, delete-orphan")
+    calendar_notes = relationship("CalendarNote", back_populates="user", cascade="all, delete-orphan")
 

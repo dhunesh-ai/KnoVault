@@ -26,6 +26,15 @@ export interface ImportantDay {
   delivery_type?: DeliveryType;
   send_time?: string | null; // HH:MM format
 
+  // Auto Email Wishes fields
+  auto_send_email?: boolean;
+  email_send_time?: string | null;
+  last_email_sent_at?: string | null;
+  last_sent_year?: number | null;
+  timezone?: string | null;
+  email_status?: string | null;
+  email_retry_count?: number;
+
   // Reminders (stored as JSON string in the API)
   reminders?: EventReminder[] | null;
 

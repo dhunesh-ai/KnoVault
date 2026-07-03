@@ -110,6 +110,9 @@ def run_migrations(connection):
             connection.execute(text("ALTER TABLE important_days ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'Birthday' NOT NULL"))
             connection.execute(text("ALTER TABLE important_days ADD COLUMN IF NOT EXISTS is_recurring BOOLEAN DEFAULT TRUE NOT NULL"))
             connection.execute(text("ALTER TABLE important_days ADD COLUMN IF NOT EXISTS custom_type VARCHAR(100)"))
+            connection.execute(text("ALTER TABLE important_days ADD COLUMN IF NOT EXISTS timezone VARCHAR(50) DEFAULT 'UTC'"))
+            connection.execute(text("ALTER TABLE important_days ADD COLUMN IF NOT EXISTS email_status VARCHAR(20) DEFAULT 'PENDING'"))
+            connection.execute(text("ALTER TABLE important_days ADD COLUMN IF NOT EXISTS email_retry_count INTEGER DEFAULT 0 NOT NULL"))
         except Exception as e:
             print(f"[MIGRATION] Warning ensuring columns: {e}")
 
@@ -141,11 +144,32 @@ def run_migrations(connection):
         except Exception as e:
             print(f"[MIGRATION] Warning ensuring Reminders columns: {e}")
 
+    # ── Notifications columns migration ───────────────────────────────────
+    if "notifications" in tables:
+        try:
+            # Delete duplicates safely on both SQLite and PostgreSQL
+            connection.execute(text("""
+                DELETE FROM notifications 
+                WHERE id NOT IN (
+                    SELECT MIN(id) 
+                    FROM notifications 
+                    GROUP BY user_id, CASE WHEN related_item_id IS NULL THEN CAST(id AS VARCHAR) ELSE related_item_id END
+                )
+            """))
+            connection.execute(text(
+                "CREATE UNIQUE INDEX IF NOT EXISTS uq_notifications_user_related "
+                "ON notifications (user_id, related_item_id) WHERE related_item_id IS NOT NULL"
+            ))
+            print("[MIGRATION] ✅ Unique index verified on notifications table")
+        except Exception as e:
+            print(f"[MIGRATION] Warning ensuring Notifications index: {e}")
+
+
 
 async def init_db():
     print("[DB] Connecting to Neon PostgreSQL...")
     async with engine.begin() as conn:
-        from models import user, note, goal, daily_goal, project_task, reminder, important_day, ai_chat, otp  # noqa
+        from models import user, note, goal, daily_goal, project_task, reminder, important_day, ai_chat, otp, workspace, notification, secure_note_security, support  # noqa
         await conn.run_sync(run_migrations)
         await conn.run_sync(Base.metadata.create_all)
     print("[DB] All tables created / verified on Neon PostgreSQL")

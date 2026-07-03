@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import SwipeWrapper from '../../src/components/SwipeWrapper';
+import SwipeWrapper from '../src/components/SwipeWrapper';
 import {
   View,
   Text,
@@ -20,11 +20,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SecureStore from 'expo-secure-store';
 import * as Haptics from 'expo-haptics';
-import { goalsApi } from '../../src/api/goals';
-import { projectsApi } from '../../src/api/projects';
-import { GoalItem } from '../../src/components/GoalItem';
-import { ProjectItem } from '../../src/components/ProjectItem';
-import { ExactProgressRing } from '../../src/components/ExactProgressRing';
+import { goalsApi } from '../src/api/goals';
+import { projectsApi } from '../src/api/projects';
+import { GoalItem } from '../src/components/GoalItem';
+import { ProjectItem } from '../src/components/ProjectItem';
+import { ExactProgressRing } from '../src/components/ExactProgressRing';
 import Animated, { 
   useAnimatedStyle, 
   withTiming, 
@@ -34,12 +34,13 @@ import Animated, {
   withSpring,
   Easing
 } from 'react-native-reanimated';
-import { getFadeInDown, getFadeInUp } from '../../src/utils/animations';
+import { getFadeInDown, getFadeInUp } from '../src/utils/animations';
 import { useLocalSearchParams } from 'expo-router';
-import { useTheme } from '../../src/hooks/useTheme';
-import { getThemedShadow } from '../../src/components/ThemedComponents';
-import { typography, spacing, borderRadius } from '../../src/theme';
-import type { ProjectTaskCreate, ProjectTaskUpdate } from '../../src/types/projects';
+import { useTheme } from '../src/hooks/useTheme';
+import { getThemedShadow } from '../src/components/ThemedComponents';
+import { typography, spacing, borderRadius } from '../src/theme';
+import type { ProjectTaskCreate, ProjectTaskUpdate } from '../src/types/projects';
+import { logNotificationToHistory } from '../src/store/notificationStore';
 
 export default function GoalsScreen() {
   const queryClient = useQueryClient();
@@ -220,6 +221,16 @@ export default function GoalsScreen() {
 
       return { previousGoals, previousStats };
     },
+    onSuccess: (data: any) => {
+      if (data && data.completed) {
+        logNotificationToHistory(
+          '🎯 Goal Completed!',
+          `Excellent job finishing: "${data.title}"`,
+          'goals',
+          { type: 'goal', id: data.id }
+        );
+      }
+    },
     onError: (err, vars, context) => {
       if (context?.previousGoals) queryClient.setQueryData(['goals'], context.previousGoals);
       if (context?.previousStats) queryClient.setQueryData(['goalStats'], context.previousStats);
@@ -348,9 +359,9 @@ export default function GoalsScreen() {
     }
   };
 
-  const completedCount = goals?.filter(g => g.completed).length || 0;
+  const completedCount = goals?.filter((g: any) => g.completed).length || 0;
   const totalCount = goals?.length || 0;
-  const activeProjectsCount = projects?.filter(p => !p.completed).length || 0;
+  const activeProjectsCount = projects?.filter((p: any) => !p.completed).length || 0;
 
   return (
     <SwipeWrapper currentTab="goals">
@@ -501,13 +512,13 @@ export default function GoalsScreen() {
                 {isGoalsLoading ? (
                   <ActivityIndicator color={theme.primary} style={{ marginTop: 20 }} />
                 ) : goals && goals.length > 0 ? (
-                  goals.map((goal) => (
+                  goals.map((goal: any) => (
                     <GoalItem
                       key={goal.id}
                       goal={goal}
-                      onToggle={(id, completed) => toggleGoalMutation.mutate({ id, completed })}
-                      onDelete={(id) => deleteGoalMutation.mutate(id)}
-                      onEdit={(id, title) => editGoalMutation.mutate({ id, title })}
+                      onToggle={(id: number, completed: boolean) => toggleGoalMutation.mutate({ id, completed })}
+                      onDelete={(id: number) => deleteGoalMutation.mutate(id)}
+                      onEdit={(id: number, title: string) => editGoalMutation.mutate({ id, title })}
                     />
                   ))
                 ) : (
@@ -685,12 +696,12 @@ export default function GoalsScreen() {
                 {isProjectsLoading ? (
                   <ActivityIndicator color={theme.primary} style={{ marginTop: 20 }} />
                 ) : projects && projects.length > 0 ? (
-                  projects.map((project) => (
+                  projects.map((project: any) => (
                     <ProjectItem
                       key={project.id}
                       project={project}
-                      onUpdate={(id, data) => updateProjectMutation.mutate({ id, data })}
-                      onDelete={(id) => deleteProjectMutation.mutate(id)}
+                      onUpdate={(id: number, data: any) => updateProjectMutation.mutate({ id, data })}
+                      onDelete={(id: number) => deleteProjectMutation.mutate(id)}
                     />
                   ))
                 ) : (

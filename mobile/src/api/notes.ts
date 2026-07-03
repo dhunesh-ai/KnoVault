@@ -1,48 +1,45 @@
 /**
  * Kogniva — Notes API Functions
  */
-import client from './client';
+import { storageManager } from '../services/storageManager';
 import type { Note, NoteCreate, NoteUpdate } from '../types/notes';
 
 export const notesApi = {
   /** Fetch notes with optional filters */
   getNotes: async (params?: { category?: string; search?: string; pinned_only?: boolean }): Promise<Note[]> => {
-    const response = await client.get<Note[]>('/api/notes', { params });
-    return response.data;
+    return storageManager.getNotes(params);
   },
 
   /** Fetch favorite notes */
   getFavorites: async (): Promise<Note[]> => {
-    const response = await client.get<Note[]>('/api/notes/favorites');
-    return response.data;
+    const notes = await storageManager.getNotes();
+    return notes.filter(n => n.is_favorite);
   },
 
   /** Fetch a specific note */
   getNote: async (id: number): Promise<Note> => {
-    const response = await client.get<Note>(`/api/notes/${id}`);
-    return response.data;
+    return storageManager.getNote(id);
   },
 
   /** Fetch all used categories */
   getCategories: async (): Promise<string[]> => {
-    const response = await client.get<string[]>('/api/notes/categories');
-    return response.data;
+    const notes = await storageManager.getNotes();
+    const categories = notes.map(n => n.category || 'General');
+    return Array.from(new Set(categories));
   },
 
   /** Create a new note */
   createNote: async (data: NoteCreate): Promise<Note> => {
-    const response = await client.post<Note>('/api/notes', data);
-    return response.data;
+    return storageManager.createNote(data);
   },
 
   /** Update an existing note */
   updateNote: async (id: number, data: NoteUpdate): Promise<Note> => {
-    const response = await client.put<Note>(`/api/notes/${id}`, data);
-    return response.data;
+    return storageManager.updateNote(id, data);
   },
 
   /** Delete a note */
   deleteNote: async (id: number): Promise<void> => {
-    await client.delete(`/api/notes/${id}`);
+    await storageManager.deleteNote(id);
   },
 } as const;

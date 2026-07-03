@@ -21,6 +21,9 @@ import Link from "next/link";
 import { useAuthStore } from "@/store/useAuthStore";
 import { NoteEditor } from "@/components/notes/NoteEditor";
 import { ReminderEditor } from "@/components/reminders/ReminderEditor";
+import { useCalendarNotesStore } from "@/store/useCalendarNotesStore";
+import { CalendarNoteEditor } from "@/components/calendar-notes/CalendarNoteEditor";
+import { toast } from "sonner";
 
 interface DashboardStats {
   totalNotes: number;
@@ -35,6 +38,10 @@ export default function DashboardPage() {
   const { user } = useAuthStore();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const { todayNotes, fetchTodayCalendarNotes, deleteCalendarNote } = useCalendarNotesStore();
+  const [calendarNoteEditorOpen, setCalendarNoteEditorOpen] = useState(false);
+  const [selectedCalendarNote, setSelectedCalendarNote] = useState<any>(null);
 
   // Modals state
   const [noteEditorOpen, setNoteEditorOpen] = useState(false);
@@ -56,7 +63,8 @@ export default function DashboardPage() {
           api.get('/api/reminders').catch(() => ({ data: [] })),
           api.get('/api/projects').catch(() => ({ data: [] })),
           api.get('/api/goals').catch(() => ({ data: [] })),
-          api.get('/api/special-days').catch(() => ({ data: [] }))
+          api.get('/api/special-days').catch(() => ({ data: [] })),
+          fetchTodayCalendarNotes().catch(() => null)
         ]);
 
         const notes = notesRes.data || [];
@@ -171,7 +179,7 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Recent Activity & Quick Access */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -201,6 +209,118 @@ export default function DashboardPage() {
                   <StickyNote className="w-12 h-12 mb-4 opacity-20" />
                   <p>No recent notes found.</p>
                   <Button variant="link" className="text-primary mt-2" onClick={() => setNoteEditorOpen(true)}>Create your first note</Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+        >
+          <Card className="bg-card backdrop-blur-sm border-border h-[400px] shadow-sm flex flex-col">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-lg font-semibold text-foreground">Today's Notes</CardTitle>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => {
+                  setSelectedCalendarNote(null);
+                  setCalendarNoteEditorOpen(true);
+                }}
+                className="text-primary hover:text-primary/80 hover:bg-primary/10"
+              >
+                <Plus className="w-4 h-4 mr-1" /> Add Note
+              </Button>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-y-auto scrollbar-hide">
+              {loading ? (
+                <div className="space-y-4">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="flex flex-col gap-2 p-3 rounded-lg bg-muted">
+                      <Skeleton className="h-5 w-3/4 bg-border" />
+                      <Skeleton className="h-4 w-1/2 bg-border" />
+                    </div>
+                  ))}
+                </div>
+              ) : todayNotes && todayNotes.length > 0 ? (
+                <div className="space-y-3">
+                  {todayNotes.map((note) => (
+                    <div 
+                      key={note.id} 
+                      className="p-3 rounded-lg bg-card/50 border border-border/60 hover:border-primary/30 transition-all group flex flex-col gap-1.5"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <span 
+                          onClick={() => {
+                            setSelectedCalendarNote(note);
+                            setCalendarNoteEditorOpen(true);
+                          }}
+                          className="font-medium text-foreground cursor-pointer hover:underline line-clamp-1 flex-1"
+                        >
+                          {note.title}
+                        </span>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="w-7 h-7 hover:bg-muted text-muted-foreground hover:text-foreground"
+                            onClick={() => {
+                              setSelectedCalendarNote(note);
+                              setCalendarNoteEditorOpen(true);
+                            }}
+                          >
+                            <span className="sr-only">Edit</span>
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="w-7 h-7 hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                            onClick={async () => {
+                              if (confirm("Are you sure you want to delete this note?")) {
+                                try {
+                                  await deleteCalendarNote(note.id);
+                                  toast.success("Note deleted successfully");
+                                } catch (e) {
+                                  toast.error("Failed to delete note");
+                                }
+                              }
+                            }}
+                          >
+                            <span className="sr-only">Delete</span>
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </Button>
+                        </div>
+                      </div>
+                      {note.content && (
+                        <p className="text-sm text-muted-foreground line-clamp-2 pr-2">
+                          {note.content}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full min-h-[220px] text-muted-foreground text-center p-4">
+                  <StickyNote className="w-10 h-10 mb-3 opacity-20 text-primary" />
+                  <p className="text-sm">No notes attached to today's date.</p>
+                  <Button 
+                    variant="link" 
+                    className="text-primary mt-1 text-sm p-0 h-auto" 
+                    onClick={() => {
+                      setSelectedCalendarNote(null);
+                      setCalendarNoteEditorOpen(true);
+                    }}
+                  >
+                    Add Today's Note
+                  </Button>
                 </div>
               )}
             </CardContent>
@@ -247,6 +367,11 @@ export default function DashboardPage() {
       
       <NoteEditor open={noteEditorOpen} onOpenChange={setNoteEditorOpen} note={null} />
       <ReminderEditor open={reminderEditorOpen} onOpenChange={setReminderEditorOpen} reminder={null} />
+      <CalendarNoteEditor 
+        open={calendarNoteEditorOpen} 
+        onOpenChange={setCalendarNoteEditorOpen} 
+        note={selectedCalendarNote} 
+      />
     </div>
   );
 }

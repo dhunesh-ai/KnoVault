@@ -14,6 +14,22 @@ from models.user import User
 from middleware.auth import get_current_user
 from utils.firebase import send_push_notification, send_push_to_user, send_push_to_multiple, is_firebase_ready
 from pydantic import BaseModel
+from datetime import datetime
+
+class NotificationResponse(BaseModel):
+    id: int
+    user_id: int
+    workspace_id: int | None
+    workspace_name: str | None
+    title: str
+    message: str
+    type: str
+    related_item_id: str | None
+    is_read: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 router = APIRouter(prefix="/api/notifications", tags=["Notifications"])
 
@@ -168,3 +184,113 @@ async def notification_status(
         "fcm_token_registered": bool(current_user.fcm_token),
         "user_id": current_user.id,
     }
+
+
+@router.get("", response_model=list[NotificationResponse])
+async def get_user_notifications(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Retrieve all notifications for the authenticated user."""
+    from models.notification import Notification
+    from models.workspace import Workspace
+    from sqlalchemy import delete, or_
+
+    # Delete obsolete biometric-related notifications
+    stmt_del = delete(Notification).where(
+        Notification.user_id == current_user.id,
+        or_(
+            Notification.title.ilike("%Biometrics%"),
+            Notification.title.ilike("%Keychain%"),
+            Notification.title.ilike("%Session Secured%"),
+            Notification.title.ilike("%Fingerprint%"),
+            Notification.title.ilike("%Device authentication%"),
+            Notification.title.ilike("%Keychain initialized%")
+        )
+    )
+    await db.execute(stmt_del)
+    await db.commit()
+    
+    stmt = (
+        select(Notification, Workspace.name.label("workspace_name"))
+        .outerjoin(Workspace, Notification.workspace_id == Workspace.id)
+        .where(Notification.user_id == current_user.id)
+        .order_by(Notification.created_at.desc())
+    )
+    res = await db.execute(stmt)
+    notifications_data = []
+    for row in res.all():
+        notif, ws_name = row[0], row[1]
+        notifications_data.append(NotificationResponse(
+            id=notif.id,
+            user_id=notif.user_id,
+            workspace_id=notif.workspace_id,
+            workspace_name=ws_name,
+            title=notif.title,
+            message=notif.message,
+            type=notif.type,
+            related_item_id=notif.related_item_id,
+            is_read=notif.is_read,
+            created_at=notif.created_at
+        ))
+    return notifications_data
+
+
+@router.put("/{notification_id}/read")
+async def mark_notification_read(
+    notification_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    from models.notification import Notification
+    stmt = select(Notification).where(Notification.id == notification_id, Notification.user_id == current_user.id)
+    res = await db.execute(stmt)
+    notif = res.scalar_one_or_none()
+    if not notif:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    notif.is_read = True
+    await db.commit()
+    return {"message": "Notification marked as read"}
+
+
+@router.put("/read-all")
+async def mark_all_read(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    from models.notification import Notification
+    from sqlalchemy import update
+    stmt = update(Notification).where(Notification.user_id == current_user.id).values(is_read=True)
+    await db.execute(stmt)
+    await db.commit()
+    return {"message": "All notifications marked as read"}
+
+
+@router.delete("/clear-all")
+async def clear_all_notifications(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    from models.notification import Notification
+    from sqlalchemy import delete
+    stmt = delete(Notification).where(Notification.user_id == current_user.id)
+    await db.execute(stmt)
+    await db.commit()
+    return {"message": "All notifications cleared"}
+
+
+@router.delete("/{notification_id}")
+async def delete_single_notification(
+    notification_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    from models.notification import Notification
+    stmt = select(Notification).where(Notification.id == notification_id, Notification.user_id == current_user.id)
+    res = await db.execute(stmt)
+    notif = res.scalar_one_or_none()
+    if not notif:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    await db.delete(notif)
+    await db.commit()
+    return {"message": "Notification deleted"}

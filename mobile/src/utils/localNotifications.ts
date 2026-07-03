@@ -4,6 +4,7 @@ import { useSettingsStore } from '../store/settingsStore';
 import { logNotificationToHistory } from '../store/notificationStore';
 import { getDB } from '../services/db';
 import { getAgeInfo, getReminderTriggerDate, getSmartNotificationMessage, EventReminder, ReminderType } from './important_day';
+import { workspacesApi, WorkspaceMeeting, WorkspaceEvent } from '../api/workspaces';
 
 // Configure how notifications are handled when the app is in the foreground
 Notifications.setNotificationHandler({
@@ -88,6 +89,15 @@ export const setupNotificationChannelsAndCategories = async () => {
       lightColor: '#FFB300',
       enableVibrate: enableVib,
       sound: enableSound ? 'default' : null,
+    });
+
+    await Notifications.setNotificationChannelAsync('workspace-alerts', {
+      name: 'Workspace Alerts & Reminders',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#7C4DFF',
+      enableVibrate: true,
+      sound: 'default',
     });
   }
 
@@ -329,5 +339,339 @@ export const scheduleSpecialDaysReminders = async () => {
     
   } catch (error) {
     console.error('[LocalNotifications] Error scheduling special days:', error);
+  }
+};
+
+export const cancelWorkspaceMeetingNotifications = async (meetingId: number) => {
+  console.log(`[LocalNotifications] Cancelling notifications for meeting ${meetingId}`);
+  await Notifications.cancelScheduledNotificationAsync(`workspace_meeting_5m_${meetingId}`);
+  await Notifications.cancelScheduledNotificationAsync(`workspace_meeting_start_${meetingId}`);
+};
+
+export const cancelWorkspaceEventNotifications = async (eventId: number) => {
+  console.log(`[LocalNotifications] Cancelling notifications for event ${eventId}`);
+  await Notifications.cancelScheduledNotificationAsync(`workspace_event_5m_${eventId}`);
+  await Notifications.cancelScheduledNotificationAsync(`workspace_event_start_${eventId}`);
+};
+
+export const scheduleWorkspaceMeetingNotifications = async (meeting: WorkspaceMeeting, workspaceName: string) => {
+  const nowMs = Date.now();
+  const date = new Date(meeting.date);
+  const reminderTime = new Date(date.getTime() - 5 * 60 * 1000);
+  const startTime = date;
+
+  if (reminderTime.getTime() > nowMs) {
+    await Notifications.scheduleNotificationAsync({
+      identifier: `workspace_meeting_5m_${meeting.id}`,
+      content: {
+        title: '📹 Meeting Reminder',
+        body: `Meeting "${meeting.title}" in "${workspaceName}" starts in 5 minutes.`,
+        sound: true,
+        priority: Notifications.AndroidNotificationPriority.HIGH,
+        data: {
+          type: 'workspace_meeting',
+          id: meeting.id,
+          workspaceId: meeting.workspace_id,
+          reminderType: '5m',
+          date: meeting.date,
+        },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: reminderTime,
+        channelId: 'workspace-alerts',
+      } as any,
+    });
+    console.log(`[LocalNotifications] Scheduled 5m reminder for meeting ${meeting.id} at ${reminderTime}`);
+  }
+
+  if (startTime.getTime() > nowMs) {
+    await Notifications.scheduleNotificationAsync({
+      identifier: `workspace_meeting_start_${meeting.id}`,
+      content: {
+        title: '📹 Meeting Started',
+        body: `Meeting "${meeting.title}" in "${workspaceName}" is starting now!`,
+        sound: true,
+        priority: Notifications.AndroidNotificationPriority.HIGH,
+        data: {
+          type: 'workspace_meeting',
+          id: meeting.id,
+          workspaceId: meeting.workspace_id,
+          reminderType: 'start',
+          date: meeting.date,
+        },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: startTime,
+        channelId: 'workspace-alerts',
+      } as any,
+    });
+    console.log(`[LocalNotifications] Scheduled start notification for meeting ${meeting.id} at ${startTime}`);
+  }
+};
+
+export const scheduleWorkspaceEventNotifications = async (event: WorkspaceEvent, workspaceName: string) => {
+  const nowMs = Date.now();
+  const date = new Date(event.date);
+  const reminderTime = new Date(date.getTime() - 5 * 60 * 1000);
+  const startTime = date;
+
+  if (reminderTime.getTime() > nowMs) {
+    await Notifications.scheduleNotificationAsync({
+      identifier: `workspace_event_5m_${event.id}`,
+      content: {
+        title: '📅 Event Reminder',
+        body: `Event "${event.title}" (${event.type}) in "${workspaceName}" starts in 5 minutes.`,
+        sound: true,
+        priority: Notifications.AndroidNotificationPriority.HIGH,
+        data: {
+          type: 'workspace_event',
+          id: event.id,
+          workspaceId: event.workspace_id,
+          reminderType: '5m',
+          date: event.date,
+        },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: reminderTime,
+        channelId: 'workspace-alerts',
+      } as any,
+    });
+    console.log(`[LocalNotifications] Scheduled 5m reminder for event ${event.id} at ${reminderTime}`);
+  }
+
+  if (startTime.getTime() > nowMs) {
+    await Notifications.scheduleNotificationAsync({
+      identifier: `workspace_event_start_${event.id}`,
+      content: {
+        title: '📅 Event Started',
+        body: `Event "${event.title}" (${event.type}) in "${workspaceName}" is starting now!`,
+        sound: true,
+        priority: Notifications.AndroidNotificationPriority.HIGH,
+        data: {
+          type: 'workspace_event',
+          id: event.id,
+          workspaceId: event.workspace_id,
+          reminderType: 'start',
+          date: event.date,
+        },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: startTime,
+        channelId: 'workspace-alerts',
+      } as any,
+    });
+    console.log(`[LocalNotifications] Scheduled start notification for event ${event.id} at ${startTime}`);
+  }
+};
+
+export const syncWorkspaceNotifications = async () => {
+  try {
+    console.log('[SyncWorkspaceNotifications] Starting local notification synchronization...');
+    const workspaces = await workspacesApi.getWorkspaces();
+    
+    const upcomingMeetingIds = new Set<number>();
+    const upcomingEventIds = new Set<number>();
+    const nowMs = Date.now();
+
+    const meetingsToSchedule: { meeting: WorkspaceMeeting; wsName: string }[] = [];
+    const eventsToSchedule: { event: WorkspaceEvent; wsName: string }[] = [];
+
+    for (const ws of workspaces) {
+      try {
+        const meetings = await workspacesApi.getMeetings(ws.id);
+        for (const meeting of meetings) {
+          const dateMs = new Date(meeting.date).getTime();
+          // Keep meetings in the future or started in the last 10 minutes
+          if (dateMs > nowMs - 10 * 60 * 1000) {
+            upcomingMeetingIds.add(meeting.id);
+            meetingsToSchedule.push({ meeting, wsName: ws.name });
+          }
+        }
+      } catch (e) {
+        console.warn(`[SyncWorkspaceNotifications] Failed to fetch meetings for workspace ${ws.id}`, e);
+      }
+
+      try {
+        const events = await workspacesApi.getEvents(ws.id);
+        for (const event of events) {
+          const dateMs = new Date(event.date).getTime();
+          if (dateMs > nowMs - 10 * 60 * 1000) {
+            upcomingEventIds.add(event.id);
+            eventsToSchedule.push({ event, wsName: ws.name });
+          }
+        }
+      } catch (e) {
+        console.warn(`[SyncWorkspaceNotifications] Failed to fetch events for workspace ${ws.id}`, e);
+      }
+    }
+
+    // Get all scheduled notifications on the device
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+
+    // 1. Cancel obsolete/deleted workspace reminders
+    for (const notif of scheduled) {
+      const id = notif.identifier;
+      if (id.startsWith('workspace_meeting_')) {
+        const match = id.match(/workspace_meeting_(?:5m|start)_(\d+)/);
+        if (match) {
+          const meetingId = parseInt(match[1], 10);
+          if (!upcomingMeetingIds.has(meetingId)) {
+            console.log(`[SyncWorkspaceNotifications] Cancelling obsolete meeting reminder: ${id}`);
+            await Notifications.cancelScheduledNotificationAsync(id);
+          }
+        }
+      } else if (id.startsWith('workspace_event_')) {
+        const match = id.match(/workspace_event_(?:5m|start)_(\d+)/);
+        if (match) {
+          const eventId = parseInt(match[1], 10);
+          if (!upcomingEventIds.has(eventId)) {
+            console.log(`[SyncWorkspaceNotifications] Cancelling obsolete event reminder: ${id}`);
+            await Notifications.cancelScheduledNotificationAsync(id);
+          }
+        }
+      }
+    }
+
+    // 2. Schedule/Reschedule upcoming meetings
+    for (const { meeting, wsName } of meetingsToSchedule) {
+      const date = new Date(meeting.date);
+      const reminderTime = new Date(date.getTime() - 5 * 60 * 1000);
+      const startTime = date;
+
+      // 5-minute reminder
+      if (reminderTime.getTime() > nowMs) {
+        const identifier = `workspace_meeting_5m_${meeting.id}`;
+        const existing = scheduled.find(n => n.identifier === identifier);
+        const shouldSchedule = !existing || existing.content.data?.date !== meeting.date || existing.content.body?.indexOf(meeting.title) === -1;
+        if (shouldSchedule) {
+          await Notifications.scheduleNotificationAsync({
+            identifier,
+            content: {
+              title: '📹 Meeting Reminder',
+              body: `Meeting "${meeting.title}" in "${wsName}" starts in 5 minutes.`,
+              sound: true,
+              priority: Notifications.AndroidNotificationPriority.HIGH,
+              data: {
+                type: 'workspace_meeting',
+                id: meeting.id,
+                workspaceId: meeting.workspace_id,
+                reminderType: '5m',
+                date: meeting.date,
+              },
+            },
+            trigger: {
+              type: Notifications.SchedulableTriggerInputTypes.DATE,
+              date: reminderTime,
+              channelId: 'workspace-alerts',
+            } as any,
+          });
+        }
+      }
+
+      // Start time
+      if (startTime.getTime() > nowMs) {
+        const identifier = `workspace_meeting_start_${meeting.id}`;
+        const existing = scheduled.find(n => n.identifier === identifier);
+        const shouldSchedule = !existing || existing.content.data?.date !== meeting.date || existing.content.body?.indexOf(meeting.title) === -1;
+        if (shouldSchedule) {
+          await Notifications.scheduleNotificationAsync({
+            identifier,
+            content: {
+              title: '📹 Meeting Started',
+              body: `Meeting "${meeting.title}" in "${wsName}" is starting now!`,
+              sound: true,
+              priority: Notifications.AndroidNotificationPriority.HIGH,
+              data: {
+                type: 'workspace_meeting',
+                id: meeting.id,
+                workspaceId: meeting.workspace_id,
+                reminderType: 'start',
+                date: meeting.date,
+              },
+            },
+            trigger: {
+              type: Notifications.SchedulableTriggerInputTypes.DATE,
+              date: startTime,
+              channelId: 'workspace-alerts',
+            } as any,
+          });
+        }
+      }
+    }
+
+    // 3. Schedule/Reschedule upcoming events
+    for (const { event, wsName } of eventsToSchedule) {
+      const date = new Date(event.date);
+      const reminderTime = new Date(date.getTime() - 5 * 60 * 1000);
+      const startTime = date;
+
+      // 5-minute reminder
+      if (reminderTime.getTime() > nowMs) {
+        const identifier = `workspace_event_5m_${event.id}`;
+        const existing = scheduled.find(n => n.identifier === identifier);
+        const shouldSchedule = !existing || existing.content.data?.date !== event.date || existing.content.body?.indexOf(event.title) === -1;
+        if (shouldSchedule) {
+          await Notifications.scheduleNotificationAsync({
+            identifier,
+            content: {
+              title: '📅 Event Reminder',
+              body: `Event "${event.title}" (${event.type}) in "${wsName}" starts in 5 minutes.`,
+              sound: true,
+              priority: Notifications.AndroidNotificationPriority.HIGH,
+              data: {
+                type: 'workspace_event',
+                id: event.id,
+                workspaceId: event.workspace_id,
+                reminderType: '5m',
+                date: event.date,
+              },
+            },
+            trigger: {
+              type: Notifications.SchedulableTriggerInputTypes.DATE,
+              date: reminderTime,
+              channelId: 'workspace-alerts',
+            } as any,
+          });
+        }
+      }
+
+      // Start time
+      if (startTime.getTime() > nowMs) {
+        const identifier = `workspace_event_start_${event.id}`;
+        const existing = scheduled.find(n => n.identifier === identifier);
+        const shouldSchedule = !existing || existing.content.data?.date !== event.date || existing.content.body?.indexOf(event.title) === -1;
+        if (shouldSchedule) {
+          await Notifications.scheduleNotificationAsync({
+            identifier,
+            content: {
+              title: '📅 Event Started',
+              body: `Event "${event.title}" (${event.type}) in "${wsName}" is starting now!`,
+              sound: true,
+              priority: Notifications.AndroidNotificationPriority.HIGH,
+              data: {
+                type: 'workspace_event',
+                id: event.id,
+                workspaceId: event.workspace_id,
+                reminderType: 'start',
+                date: event.date,
+              },
+            },
+            trigger: {
+              type: Notifications.SchedulableTriggerInputTypes.DATE,
+              date: startTime,
+              channelId: 'workspace-alerts',
+            } as any,
+          });
+        }
+      }
+    }
+
+    console.log('[SyncWorkspaceNotifications] Local notification synchronization completed successfully.');
+  } catch (error) {
+    console.error('[SyncWorkspaceNotifications] Error:', error);
   }
 };

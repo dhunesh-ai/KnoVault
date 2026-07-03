@@ -13,9 +13,11 @@ import {
   Linking,
   Modal,
   TouchableOpacity,
+  Share,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ScreenContainer from '../../src/components/ScreenContainer';
+import { NotebookBackground } from '../../src/components/NotebookBackground';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -38,6 +40,8 @@ import { useTheme } from '../../src/hooks/useTheme';
 import { typography, spacing, borderRadius } from '../../src/theme';
 import { useSettingsStore } from '../../src/store/settingsStore';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
+import { SecurityOverlay } from '../../src/components/SecurityOverlay';
+import { buildShareableNote } from '../../src/utils/shareHelper';
 
 const CATEGORIES = [
   'General', 'Work', 'Personal', 'Study', 'Ideas', 
@@ -235,9 +239,13 @@ export default function NoteEditorScreen() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [isCategoryModalVisible, setCategoryModalVisible] = useState(false);
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
+  const [securityVisible, setSecurityVisible] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'toggle_secure' | 'change_category' | null>(null);
+  const [pendingCategory, setPendingCategory] = useState<string>('');
   
   const [checklist, setChecklist] = useState<{ id: string, text: string, done: boolean }[]>([]);
   const [fields, setFields] = useState<{ id: string, label: string, value: string }[]>([]);
+  const [headerHeight, setHeaderHeight] = useState(180);
 
   // ── Edit Mode Animation Values & Handlers ───────────────────────
   const editScale = useSharedValue(1);
@@ -340,32 +348,8 @@ export default function NoteEditorScreen() {
     }
   };
 
-  // ── Copy Note States & Animation Values ─────────────────────────
+  // ── Toast States & Helpers ─────────────────────────
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'warning' | 'error' } | null>(null);
-  const [isCopying, setIsCopying] = useState(false);
-  const copyScale = useSharedValue(1);
-  const isCopyPressed = useSharedValue(false);
-  const rippleScale = useSharedValue(0.8);
-  const rippleOpacity = useSharedValue(0);
-
-  const animatedCopyBtnStyle = useAnimatedStyle(() => {
-    const glowOpacity = animationsEnabled ? withTiming(isCopyPressed.value ? 0.6 : 0, { duration: 150 }) : (isCopyPressed.value ? 0.6 : 0);
-    return {
-      transform: [{ scale: copyScale.value }],
-      shadowColor: '#7C4DFF',
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: glowOpacity,
-      shadowRadius: isCopyPressed.value ? 8 : 0,
-      elevation: isCopyPressed.value ? 4 : 0,
-    };
-  });
-
-  const animatedRippleStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: rippleScale.value }],
-      opacity: rippleOpacity.value,
-    };
-  });
 
   const showToast = (message: string, type: 'success' | 'warning' | 'error') => {
     setToast({ message, type });
@@ -380,77 +364,80 @@ export default function NoteEditorScreen() {
     }
   }, [toast]);
 
-  const getNoteTextToCopy = () => {
-    let text = '';
+  const handleSharePress = async () => {
+    console.log('[SHARE BUTTON PRESSED]');
     
-    if (noteType === 'standard') {
-      text = content;
-    } else if (noteType === 'checklist') {
-      text = checklist
-        .map(item => `${item.done ? '☑' : '☐'} ${item.text}`)
-        .join('\n');
-    } else if (noteType === 'field') {
-      text = fields
-        .map(f => `${f.label}: ${f.value}`)
-        .join('\n');
-    }
-
-    const trimmedTitle = title.trim();
-    const trimmedText = text.trim();
-
-    if (trimmedTitle) {
-      if (trimmedText) {
-        return `${trimmedTitle}\n\n${trimmedText}`;
-      }
-      return trimmedTitle;
-    }
-    return trimmedText;
-  };
-
-  const handleCopy = async () => {
-    console.log('[COPY BUTTON PRESSED]');
-    if (isCopying) return;
-    setIsCopying(true);
-
     if (isSecure) {
-      console.log('[COPY BLOCKED - SECURE NOTE]');
-      showToast('Copy disabled for secure notes 🔒', 'warning');
+      showToast('Sharing disabled for secure notes 🔒', 'warning');
       await triggerHaptic(Haptics.NotificationFeedbackType.Warning);
-      setTimeout(() => setIsCopying(false), 1500);
       return;
     }
 
-    const textToCopy = getNoteTextToCopy();
-    if (!textToCopy) {
-      console.log('[COPY FAILED] Content is empty');
-      showToast('Nothing to copy', 'warning');
+    const noteToShare = {
+      title,
+      category,
+      note_type: noteType,
+      content,
+      checklist_items: checklist.map((item, idx) => ({
+        text: item.text,
+        completed: item.done,
+        order: idx
+      })),
+      field_notes: fields.map((field, idx) => ({
+        label: field.label,
+        value: field.value,
+        order: idx
+      }))
+    };
+
+    const formattedNoteContent = buildShareableNote(noteToShare as any);
+
+    if (!formattedNoteContent.trim()) {
+      showToast('Nothing to share', 'warning');
       await triggerHaptic(Haptics.NotificationFeedbackType.Warning);
-      setTimeout(() => setIsCopying(false), 1500);
       return;
     }
 
-    // Trigger ripple animation
-    if (animationsEnabled) {
-      rippleScale.value = 0.8;
-      rippleOpacity.value = 0.6;
-      rippleScale.value = withTiming(1.6, { duration: 450 });
-      rippleOpacity.value = withTiming(0, { duration: 450 });
-    }
-
-    try {
-      await Clipboard.setStringAsync(textToCopy);
-      console.log('[NOTE COPIED]');
-      showToast('Note copied successfully ✨', 'success');
-      await triggerHaptic(Haptics.NotificationFeedbackType.Success);
-    } catch (error) {
-      console.log('[COPY FAILED]', error);
-      showToast('Failed to copy note', 'error');
-      await triggerHaptic(Haptics.NotificationFeedbackType.Error);
-    } finally {
-      setTimeout(() => {
-        setIsCopying(false);
-      }, 1500);
-    }
+    Alert.alert(
+      "Share Note",
+      "Choose a sharing option:",
+      [
+        {
+          text: "Share Note",
+          onPress: async () => {
+            try {
+              const result = await Share.share({
+                message: formattedNoteContent,
+              });
+              if (result.action === Share.sharedAction) {
+                showToast("Note shared successfully", "success");
+                await triggerHaptic(Haptics.NotificationFeedbackType.Success);
+              }
+            } catch (error) {
+              console.log('[SHARE FAILED]', error);
+              showToast('Failed to share note', 'error');
+            }
+          }
+        },
+        {
+          text: "Copy to Clipboard",
+          onPress: async () => {
+            try {
+              await Clipboard.setStringAsync(formattedNoteContent);
+              showToast("Copied to clipboard", "success");
+              await triggerHaptic(Haptics.NotificationFeedbackType.Success);
+            } catch (error) {
+              console.log('[COPY FAILED]', error);
+              showToast('Failed to copy to clipboard', 'error');
+            }
+          }
+        },
+        {
+          text: "Cancel",
+          style: "cancel"
+        }
+      ]
+    );
   };
 
   const handleCopyFieldValue = async (val: string) => {
@@ -512,75 +499,7 @@ export default function NoteEditorScreen() {
     }
   }, [isSecure, animationsEnabled]);
 
-  const animatedInputsStyle = useAnimatedStyle(() => {
-    const editBorderColor = interpolateColor(
-      editProgress.value,
-      [0, 1],
-      ['transparent', '#7C4DFF']
-    );
-    const secureBorderColor = interpolateColor(
-      secureProgress.value,
-      [0, 1],
-      ['transparent', '#A855F7']
-    );
-    
-    const borderColor = isSecure ? secureBorderColor : editBorderColor;
-    const borderWidth = interpolate(editProgress.value, [0, 1], [1, 2]);
 
-    const scale = interpolate(
-      editProgress.value,
-      [0, 1],
-      [0.995, 1.0]
-    );
-
-    const shadowOpacity = interpolate(
-      editProgress.value,
-      [0, 1],
-      [0, 0.08]
-    );
-
-    const shadowRadius = interpolate(
-      editProgress.value,
-      [0, 1],
-      [0, 10]
-    );
-
-    const cardBgColor = isDark ? '#182235' : '#FFFFFF';
-    const readModeBgColor = isDark ? '#0C1527' : '#F8FAFC';
-
-    const baseBackgroundColor = interpolateColor(
-      editProgress.value,
-      [0, 1],
-      [readModeBgColor, cardBgColor]
-    );
-
-    const backgroundColor = isSecure
-      ? interpolateColor(
-          secureProgress.value,
-          [0, 1],
-          [baseBackgroundColor, isDark ? '#1C152E' : '#FAF5FF']
-        )
-      : baseBackgroundColor;
-
-    return {
-      borderColor,
-      borderWidth,
-      borderRadius: 20,
-      padding: 16,
-      marginVertical: 10,
-      backgroundColor,
-      shadowColor: '#7C4DFF',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: isSecure
-        ? interpolate(secureProgress.value, [0, 1], [0, 0.12])
-        : shadowOpacity,
-      shadowRadius: isSecure
-        ? interpolate(secureProgress.value, [0, 1], [0, 12])
-        : shadowRadius,
-      elevation: interpolate(editProgress.value, [0, 1], [0, 3]),
-      transform: [{ scale }],
-    };
-  });
 
   const animatedLockStyle = useAnimatedStyle(() => {
     return {
@@ -620,16 +539,13 @@ export default function NoteEditorScreen() {
   // ── Sync Handlers ──────────────────────────────────────────────
   const handleToggleSecure = async () => {
     const nextSecure = !isSecure;
-    if (animationsEnabled) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    }
     if (nextSecure) {
-      console.log('[SECURE MODE ENABLED]');
-      console.log('[SECURE CATEGORY AUTO-SELECTED]');
-      setIsSecure(true);
-      setCategory('Secure');
-      await triggerHaptic(Haptics.NotificationFeedbackType.Success);
+      setPendingAction('toggle_secure');
+      setSecurityVisible(true);
     } else {
+      if (animationsEnabled) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      }
       console.log('[SECURE MODE DISABLED]');
       setIsSecure(false);
       setCategory(previousCategory);
@@ -638,18 +554,15 @@ export default function NoteEditorScreen() {
   };
 
   const handleCategoryChange = async (cat: string) => {
-    if (animationsEnabled) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    }
     if (cat === 'Secure') {
       if (!isSecure) {
-        console.log('[SECURE MODE ENABLED]');
-        console.log('[SECURE CATEGORY AUTO-SELECTED]');
-        setIsSecure(true);
-        setCategory('Secure');
-        await triggerHaptic(Haptics.NotificationFeedbackType.Success);
+        setPendingAction('change_category');
+        setSecurityVisible(true);
       }
     } else {
+      if (animationsEnabled) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      }
       setPreviousCategory(cat);
       if (isSecure) {
         console.log('[SECURE MODE DISABLED]');
@@ -658,6 +571,28 @@ export default function NoteEditorScreen() {
       }
       setCategory(cat);
     }
+  };
+
+  const handleSecureVerified = () => {
+    setSecurityVisible(false);
+    if (animationsEnabled) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
+    if (pendingAction === 'toggle_secure' || pendingAction === 'change_category') {
+      console.log('[SECURE MODE ENABLED]');
+      console.log('[SECURE CATEGORY AUTO-SELECTED]');
+      setIsSecure(true);
+      setCategory('Secure');
+      triggerHaptic(Haptics.NotificationFeedbackType.Success);
+    }
+    setPendingAction(null);
+    setPendingCategory('');
+  };
+
+  const handleCancelUnlock = () => {
+    setSecurityVisible(false);
+    setPendingAction(null);
+    setPendingCategory('');
   };
 
   const handleToggleFavorite = async () => {
@@ -843,26 +778,7 @@ export default function NoteEditorScreen() {
             </Animated.View>
           )}
 
-          <Pressable
-            onPress={handleCopy}
-            onPressIn={() => {
-              isCopyPressed.value = true;
-              if (animationsEnabled) copyScale.value = withTiming(0.92, { duration: 100 });
-            }}
-            onPressOut={() => {
-              isCopyPressed.value = false;
-              if (animationsEnabled) copyScale.value = withTiming(1, { duration: 100 });
-            }}
-            hitSlop={10}
-            accessibilityLabel="Copy note content"
-          >
-            <View style={ds.copyBtnContainer}>
-              <Animated.View style={[ds.rippleRing, animatedRippleStyle]} />
-              <Animated.View style={[ds.copyBtn, animatedCopyBtnStyle]}>
-                <Ionicons name="copy-outline" size={22} color={theme.primary} />
-              </Animated.View>
-            </View>
-          </Pressable>
+
 
           {/* Favorite Toggle Button */}
           <Pressable
@@ -875,6 +791,21 @@ export default function NoteEditorScreen() {
                 name={isFavorite ? "star" : "star-outline"} 
                 size={22} 
                 color={isFavorite ? "#F59E0B" : theme.primary} 
+              />
+            </View>
+          </Pressable>
+
+          {/* Share Button */}
+          <Pressable
+            onPress={handleSharePress}
+            hitSlop={10}
+            accessibilityLabel="Share note"
+          >
+            <View style={ds.copyBtn}>
+              <Ionicons 
+                name="share-outline" 
+                size={22} 
+                color={theme.primary} 
               />
             </View>
           </Pressable>
@@ -935,7 +866,14 @@ export default function NoteEditorScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <Pressable onPress={handleContentPress} style={{ flex: 1 }}>
-            <Animated.View pointerEvents={isEditing ? 'auto' : 'box-only'} style={animatedInputsStyle}>
+            <NotebookBackground
+              variant={noteType === 'standard' ? 'ruled' : 'blank'}
+              isSecure={isSecure}
+              headerHeight={headerHeight}
+              lineHeight={36}
+              pointerEvents={isEditing ? 'auto' : 'box-only'}
+            >
+              <View onLayout={(e) => setHeaderHeight(e.nativeEvent.layout.height)}>
               {/* Mode Badges & Metadata */}
               {isEditing ? (
                 <Animated.View 
@@ -1030,6 +968,8 @@ export default function NoteEditorScreen() {
                 </Animated.View>
               )}
 
+              </View>
+
               {/* Dynamic Content Areas */}
               <View style={ds.bodyArea}>
                 {noteType === 'standard' && (
@@ -1037,7 +977,7 @@ export default function NoteEditorScreen() {
                     ref={bodyInputRef}
                     style={[
                       ds.bodyInput,
-                      !isEditing && { lineHeight: 34, letterSpacing: 0.2, color: theme.textSecondary }
+                      !isEditing && { letterSpacing: 0.2, color: theme.textSecondary }
                     ]}
                     placeholder="Start writing..."
                     placeholderTextColor={colors.text.tertiary}
@@ -1209,7 +1149,7 @@ export default function NoteEditorScreen() {
                 </View>
               )}
             </View>
-          </Animated.View>
+          </NotebookBackground>
         </Pressable>
         </KeyboardAwareScrollView>
       </KeyboardAvoidingView>
@@ -1386,6 +1326,11 @@ export default function NoteEditorScreen() {
           </Animated.View>
         </KeyboardAvoidingView>
       </Modal>
+      <SecurityOverlay 
+        visible={securityVisible}
+        onAuthenticate={handleSecureVerified}
+        onCancel={handleCancelUnlock}
+      />
     </ScreenContainer>
   );
 }
@@ -1439,7 +1384,7 @@ const styles = (theme: any, isDark: boolean, colors: any) => StyleSheet.create({
     fontWeight: '700',
   },
   content: {
-    paddingHorizontal: 25,
+    paddingHorizontal: 4,
   },
   titleInput: {
     ...typography.displaySmall,
@@ -1577,9 +1522,11 @@ const styles = (theme: any, isDark: boolean, colors: any) => StyleSheet.create({
     minHeight: 400,
   },
   bodyInput: {
-    ...typography.bodyLarge,
+    fontSize: 16,
+    lineHeight: 36,
     color: theme.text,
-    lineHeight: 26,
+    paddingTop: 0,
+    paddingBottom: 0,
   },
   checkItem: {
     flexDirection: 'row',

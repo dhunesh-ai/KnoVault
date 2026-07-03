@@ -111,20 +111,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Sync FCM in background
       get().syncNotifications().catch(console.warn);
 
-      // Log Security notification to history
-      const { logNotificationToHistory } = await import('./notificationStore');
-      logNotificationToHistory(
-        '🔒 Session Secured',
-        `Logged in securely as ${email} (Protected session).`,
-        'security',
-        { type: 'security' }
-      );
-      logNotificationToHistory(
-        '🛡️ Biometrics & Keychain Active',
-        'Hardware encryption and secure sandbox keys are enabled on this device.',
-        'security',
-        { type: 'security' }
-      );
+
       
       return true;
     } catch (err: any) {
@@ -193,20 +180,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Sync FCM in background
       get().syncNotifications().catch(console.warn);
 
-      // Log Security notification to history
-      const { logNotificationToHistory } = await import('./notificationStore');
-      logNotificationToHistory(
-        '🔒 Session Secured',
-        `Logged in securely as ${user.email} (Protected session).`,
-        'security',
-        { type: 'security' }
-      );
-      logNotificationToHistory(
-        '🛡️ Biometrics & Keychain Active',
-        'Hardware encryption and secure sandbox keys are enabled on this device.',
-        'security',
-        { type: 'security' }
-      );
+
 
       return true;
     } catch (err: any) {
@@ -283,20 +257,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Sync FCM in background
       get().syncNotifications().catch(console.warn);
 
-      // Log Security notification to history
-      const { logNotificationToHistory } = await import('./notificationStore');
-      logNotificationToHistory(
-        '🔒 Session Secured',
-        `Logged in securely as ${email} (Protected session).`,
-        'security',
-        { type: 'security' }
-      );
-      logNotificationToHistory(
-        '🛡️ Biometrics & Keychain Active',
-        'Hardware encryption and secure sandbox keys are enabled on this device.',
-        'security',
-        { type: 'security' }
-      );
+
       
       return true;
     } catch (err: any) {

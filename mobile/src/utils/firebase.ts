@@ -22,6 +22,7 @@ export function configureGoogleSignIn() {
     // console.log('[Firebase] Configuring Google Sign-In with Web Client ID:', env.GOOGLE_WEB_CLIENT_ID);
     GoogleSignin.configure({
       webClientId: env.GOOGLE_WEB_CLIENT_ID,
+      scopes: ['https://www.googleapis.com/auth/drive.file'],
     });
     _googleSignInConfigured = true;
     // console.log('[Firebase] ✅ Google Sign-In configured');

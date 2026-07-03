@@ -1,0 +1,30 @@
+2084: <Modal animationType="slide" transparent visible={noteModalVisible} onRequestClose={() => setNoteModalVisible(false)}>
+2117: {/* ── DETAILED NOTE & COMMENTS MODAL ── */}
+2118: <Modal animationType="fade" transparent visible={!!selectedNote} onRequestClose={() => setSelectedNote(null)}>
+2243: {/* ── EDIT NOTE MODAL ── */}
+2244: <Modal animationType="slide" transparent visible={editNoteModalVisible} onRequestClose={() => setEditNoteModalVisible(false)}>
+2278: <Modal animationType="slide" transparent visible={taskModalVisible} onRequestClose={() => setTaskModalVisible(false)}>
+2384: {/* ── DETAILED TASK & COMMENTS MODAL ── */}
+2385: <Modal animationType="fade" transparent visible={!!selectedTask} onRequestClose={() => setSelectedTask(null)}>
+2540: {/* ── EDIT TASK MODAL ── */}
+2541: <Modal animationType="slide" transparent visible={editTaskModalVisible} onRequestClose={() => setEditTaskModalVisible(false)}>
+2648: <Modal animationType="slide" transparent visible={goalModalVisible} onRequestClose={() => setGoalModalVisible(false)}>
+2715: {/* ── EDIT GOAL MODAL ── */}
+2716: <Modal animationType="slide" transparent visible={editGoalModalVisible} onRequestClose={() => setEditGoalModalVisible(false)}>
+2778: <Modal animationType="slide" transparent visible={eventModalVisible} onRequestClose={() => setEventModalVisible(false)}>
+2838: {/* ── EDIT EVENT MODAL ── */}
+2839: <Modal animationType="slide" transparent visible={editEventModalVisible} onRequestClose={() => setEditEventModalVisible(false)}>
+2894: <Modal animationType="slide" transparent visible={discModalVisible} onRequestClose={() => setDiscModalVisible(false)}>
+2951: {/* ── EDIT DISCUSSION THREAD MODAL ── */}
+2952: <Modal animationType="slide" transparent visible={editDiscModalVisible} onRequestClose={() => setEditDiscModalVisible(false)}>
+3004: <Modal animationType="slide" transparent visible={knowModalVisible} onRequestClose={() => setKnowModalVisible(false)}>
+3043: {/* ── EDIT KNOWLEDGE MODAL ── */}
+3044: <Modal animationType="slide" transparent visible={editKnowModalVisible} onRequestClose={() => setEditKnowModalVisible(false)}>
+3078: <Modal animationType="slide" transparent visible={ideaModalVisible} onRequestClose={() => setIdeaModalVisible(false)}>
+3117: {/* ── EDIT IDEA MODAL ── */}
+3118: <Modal animationType="slide" transparent visible={editIdeaModalVisible} onRequestClose={() => setEditIdeaModalVisible(false)}>
+3152: <Modal animationType="slide" transparent visible={meetModalVisible} onRequestClose={() => setMeetModalVisible(false)}>
+3191: {/* ── EDIT MEETING MODAL ── */}
+3192: <Modal animationType="slide" transparent visible={editMeetModalVisible} onRequestClose={() => setEditMeetModalVisible(false)}>
+3225: {/* ── DETAILED MEETING & MINUTES GEN MODAL ── */}
+3226: <Modal animationType="fade" transparent visible={!!selectedMeeting} onRequestClose={() => setSelectedMeeting(null)}>

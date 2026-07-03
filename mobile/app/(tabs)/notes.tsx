@@ -32,7 +32,8 @@ import { SecurityOverlay } from '../../src/components/SecurityOverlay';
 import { useTheme } from '../../src/hooks/useTheme';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
 import { typography, spacing, borderRadius } from '../../src/theme';
-import { authenticateSecureAccess } from '../../src/utils/auth';
+import { useSettingsStore } from '../../src/store/settingsStore';
+import { showMicAccessDisabledAlert } from '../../src/utils/micAccessAlert';
 
 const CATEGORIES = [
   'All', 'General', 'Work', 'Personal', 'Study', 'Ideas', 
@@ -47,6 +48,7 @@ export default function NotesScreen() {
   const [pendingNote, setPendingNote] = useState<any>(null);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const queryClient = useQueryClient();
+  const { microphoneAccessEnabled } = useSettingsStore();
 
   const toggleFavoriteMutation = useMutation({
     mutationFn: async ({ id, is_favorite }: { id: number; is_favorite: boolean }) => {
@@ -129,7 +131,6 @@ export default function NotesScreen() {
     if (note.is_secure || note.category === 'Secure') {
       setPendingNote(note);
       setSecurityVisible(true);
-      handleAuthenticate(note);
       return;
     }
     router.push(`/note/${note.id}`);
@@ -139,14 +140,11 @@ export default function NotesScreen() {
     const note = noteOverride || pendingNote;
     if (!note) return;
     
-    const success = await authenticateSecureAccess();
-    if (success) {
-      setSecurityVisible(false);
-      setPendingNote(null);
-      setTimeout(() => {
-        router.push(`/note/${note.id}`);
-      }, 100);
-    }
+    setSecurityVisible(false);
+    setPendingNote(null);
+    setTimeout(() => {
+      router.push(`/note/${note.id}`);
+    }, 100);
   };
 
   const {
@@ -367,7 +365,13 @@ export default function NotesScreen() {
               ...getThemedShadow(theme, 'medium')
             }
           ]} 
-          onPress={() => router.push('/note/voice')}
+          onPress={() => {
+            if (!microphoneAccessEnabled) {
+              showMicAccessDisabledAlert();
+            } else {
+              router.push('/note/voice');
+            }
+          }}
         >
           <Ionicons name="mic" size={24} color={theme.primary} />
         </TouchableOpacity>

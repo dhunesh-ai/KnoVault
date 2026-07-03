@@ -1,7 +1,7 @@
 import CryptoJS from 'crypto-js';
 import * as SecureStore from 'expo-secure-store';
 import { getDB, localInsert, clearDB } from './db';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 

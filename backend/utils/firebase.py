@@ -224,6 +224,44 @@ def _verify_with_extended_clock_tolerance(id_token: str) -> dict | None:
 # FCM Push Notifications
 # ---------------------------------------------------------------------------
 
+def send_expo_push(
+    token: str,
+    title: str,
+    body: str,
+    data: dict | None = None,
+) -> str | None:
+    """Send a push notification via Expo Push Notification API."""
+    import requests
+    try:
+        payload = {
+            "to": token,
+            "title": title,
+            "body": body,
+            "sound": "default",
+            "channelId": "workspace-alerts",
+            "priority": "high",
+        }
+        if data:
+            payload["data"] = data
+            
+        res = requests.post(
+            "https://exp.host/--/api/v2/push/send",
+            json=payload,
+            headers={"Content-Type": "application/json"},
+            timeout=10
+        )
+        if res.status_code == 200:
+            res_data = res.json()
+            logger.info(f"[ExpoPush] Push sent successfully: {res_data}")
+            return "expo-success"
+        else:
+            logger.error(f"[ExpoPush] API failed with status {res.status_code}: {res.text}")
+            return None
+    except Exception as e:
+        logger.error(f"[ExpoPush] Error sending push: {e}")
+        return None
+
+
 def send_push_notification(
     fcm_token: str,
     title: str,
@@ -232,10 +270,13 @@ def send_push_notification(
     image_url: str | None = None,
 ) -> str | None:
     """
-    Send a push notification to a single device via FCM.
+    Send a push notification to a single device via FCM or Expo Push.
     
     Returns message ID on success, None on failure.
     """
+    if fcm_token and fcm_token.startswith("ExponentPushToken"):
+        return send_expo_push(fcm_token, title, body, data)
+
     if not is_firebase_ready():
         logger.warning("[Firebase] Cannot send push — SDK not initialized")
         return None
@@ -256,7 +297,7 @@ def send_push_notification(
                 icon="ic_notification",
                 color="#7C4DFF",
                 sound="default",
-                channel_id="knovault_default",
+                channel_id="workspace-alerts",
             ),
         )
 
@@ -332,7 +373,7 @@ def send_push_to_multiple(
                 icon="ic_notification",
                 color="#7C4DFF",
                 sound="default",
-                channel_id="knovault_default",
+                channel_id="workspace-alerts",
             ),
         )
 

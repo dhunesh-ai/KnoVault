@@ -1,0 +1,5 @@
+Line 2297: '      {/* ── DETAILED NOTE & COMMENTS MODAL ── */}\n'
+Line 2423: '      {/* ── EDIT NOTE MODAL ── */}\n'
+Line 2564: '      {/* ── DETAILED TASK & COMMENTS MODAL ── */}\n'
+Line 2720: '      {/* ── EDIT TASK MODAL ── */}\n'
+Line 3405: '      {/* ── DETAILED MEETING & MINUTES GEN MODAL ── */}\n'

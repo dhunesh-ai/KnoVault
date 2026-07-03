@@ -16,7 +16,7 @@ In the Render dashboard for your new Web Service, go to the **Environment** tab.
 | `DATABASE_URL` | `postgresql+asyncpg://...` (Ensure this exactly matches your Neon URL) |
 | `JWT_SECRET` | `super_secret_key_change_in_production` |
 | `GROQ_API_KEY` | `gsk_...` |
-| `GROQ_MODEL` | `llama-3.1-8b-instant` |
+| `GROQ_MODEL` | `gpt-oss-20b` |
 | `FERNET_SECRET_KEY`| `-4n4R...` (CRITICAL: Do not lose this key or you lose access to secure notes!) |
 | `SMTP_USER` | `thinkgood24hrs@gmail.com` |
 | `SMTP_PASSWORD`| `kyws...` |

@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     GROQ_API_KEY: str = "your_groq_api_key"
-    GROQ_MODEL: str = "llama-3.1-8b-instant"
+    GROQ_MODEL: str = "gpt-oss-20b"
     ALLOWED_ORIGINS: str = "*"
 
     # Brevo API Settings

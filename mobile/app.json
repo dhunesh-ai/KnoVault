@@ -35,7 +35,8 @@
         "backgroundColor": "#EAF6FF"
       },
       "package": "com.knovault.app",
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "bundler": "metro",
@@ -55,6 +56,13 @@
       ],
       "@react-native-community/datetimepicker",
       "expo-speech-recognition",
+      [
+        "@react-native-voice/voice",
+        {
+          "microphonePermission": "Allow KnoVault to access your microphone to transcribe speech to text.",
+          "speechRecognitionPermission": "Allow KnoVault to access speech recognition services."
+        }
+      ],
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       "@react-native-firebase/messaging",

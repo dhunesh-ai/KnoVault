@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { getFadeIn } from '../../utils/animations';
 import { useSettingsStore } from '../../store/settingsStore';
-import { View, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Dimensions, Keyboard, Platform } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { 
@@ -20,6 +20,7 @@ const TAB_WIDTH = TAB_BAR_WIDTH / 5;
 export const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
   const { colors, theme, isDark } = useTheme();
   const translateX = useSharedValue(0);
+  const [isKeyboardVisible, setIsKeyboardVisible] = React.useState(false);
 
   const { animationsEnabled } = useSettingsStore();
 
@@ -30,6 +31,23 @@ export const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) =>
   useEffect(() => {
     translateX.value = state.index * TAB_WIDTH;
   }, [state.index]);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showListener = Keyboard.addListener(showEvent, () => setIsKeyboardVisible(true));
+    const hideListener = Keyboard.addListener(hideEvent, () => setIsKeyboardVisible(false));
+
+    return () => {
+      showListener.remove();
+      hideListener.remove();
+    };
+  }, []);
+
+  if (isKeyboardVisible) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
@@ -80,7 +98,7 @@ export const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) =>
             switch (route.name) {
               case 'index': name = isFocused ? 'home' : 'home-outline'; break;
               case 'notes': name = isFocused ? 'document-text' : 'document-text-outline'; break;
-              case 'goals': name = isFocused ? 'rocket' : 'rocket-outline'; break;
+              case 'workspaces': name = isFocused ? 'people' : 'people-outline'; break;
               case 'ai': name = isFocused ? 'sparkles' : 'sparkles-outline'; break;
               default: name = 'help-circle';
             }

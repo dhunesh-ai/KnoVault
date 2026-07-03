@@ -94,8 +94,21 @@ export const syncWorkspace = async () => {
                 const { id: remoteId, created_at, updated_at, contact_relationship, person_name, birth_date, ...rest } = record as any;
                 const dbObj: any = { ...rest, remote_id: remoteId, created_at, updated_at };
                 
-                if (contact_relationship !== undefined) {
-                    dbObj.relationship = contact_relationship;
+                if (table === 'ImportantDays') {
+                    if (contact_relationship !== undefined) {
+                        dbObj.relationship = contact_relationship;
+                    } else if (record.relationship !== undefined) {
+                        dbObj.relationship = record.relationship;
+                    }
+                    if (record.reminders !== undefined) {
+                        dbObj.reminders_json = record.reminders ? JSON.stringify(record.reminders) : null;
+                    }
+                    delete dbObj.reminders;
+                    delete dbObj.contact_relationship;
+                } else {
+                    if (contact_relationship !== undefined) {
+                        dbObj.relationship = contact_relationship;
+                    }
                 }
                 
                 // Convert booleans to integers for SQLite
@@ -142,6 +155,17 @@ export const syncWorkspace = async () => {
 
         await db.runAsync('UPDATE SyncMetadata SET last_sync = ?', [timestamp]);
         console.log('[Sync Completion] Pull completed. Workspace synchronized.');
+
+        // After successful sync: schedule notifications, reminder alarms, etc.
+        try {
+            const { scheduleSpecialDaysReminders, syncWorkspaceNotifications } = require('../utils/localNotifications');
+            await scheduleSpecialDaysReminders();
+            await syncWorkspaceNotifications();
+            console.log('[Sync] Local notifications and workspace reminders rescheduled successfully');
+        } catch (scheduleErr) {
+            console.error('[Sync] Failed to reschedule notifications after sync:', scheduleErr);
+        }
+
         return true;
 
     } catch (e) {

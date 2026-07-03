@@ -12,6 +12,7 @@ import type { AIIntent } from './intentDetector';
 export const generateSystemPrompt = (
   recentTopics: string[] = [],
   intent?: AIIntent,
+  currentDate?: string,
 ): string => {
   let prompt = `You are KnoVault AI — a premium, intelligent, context-aware second-brain assistant.
 You are the user's personal knowledge assistant embedded inside their note-taking and productivity app.
@@ -62,10 +63,10 @@ FORMATTING:
         prompt += `SPECIAL INSTRUCTION: The user is asking about their FAVORITE notes. List all favorite notes with brief descriptions of their content.\n\n`;
         break;
       case 'create_reminder':
-        prompt += `SPECIAL INSTRUCTION: The user wants to CREATE a reminder. Acknowledge the request and suggest they use the Calendar tab to create it with: title, date, and time. Extract the details they mentioned.\n\n`;
+        prompt += `SPECIAL INSTRUCTION: The user wants to CREATE a reminder. You MUST formulate a JSON action block at the end of your response to persist this reminder.\n\n`;
         break;
       case 'create_special_day':
-        prompt += `SPECIAL INSTRUCTION: The user wants to ADD a special day/birthday. Acknowledge and suggest they use the Special Days section. Extract: name, date, and type (birthday/anniversary/etc).\n\n`;
+        prompt += `SPECIAL INSTRUCTION: The user wants to ADD a special day/birthday/anniversary. You MUST formulate a JSON action block at the end of your response to persist this special day.\n\n`;
         break;
       case 'productivity_analysis':
         prompt += `SPECIAL INSTRUCTION: The user wants a PRODUCTIVITY ANALYSIS. Use the PRODUCTIVITY STATS, DAILY GOALS, and ACTIVE PROJECTS data to give an insightful, motivational analysis.\n\n`;
@@ -89,6 +90,64 @@ FORMATTING:
   if (recentTopics.length > 0) {
     prompt += `RECENT CONVERSATION TOPICS: ${recentTopics.join(' → ')}\nUse these to understand follow-up questions. If the user says "it", "that", "there", or "the second one", they're referring to something from the recent context.\n\n`;
   }
+
+  if (currentDate) {
+    prompt += `CURRENT LOCAL TIME: ${currentDate}\nEnsure you correctly calculate relative dates (like "tomorrow at 10 AM", "in 2 hours", or "next Monday") based on this CURRENT LOCAL TIME.\n\n`;
+  }
+
+  prompt += `ACTION EXECUTION:
+If the user explicitly asks you to create, save, or add a reminder, note, goal, special day/event, or calendar note, you MUST append a JSON action block at the END of your response (after all conversational text). The JSON block must be formatted as a single json markdown codeblock containing EXACTLY one of the following structures:
+
+1. For Reminders:
+\`\`\`json
+{
+  "action": "create_reminder",
+  "title": "<Extracted Title>",
+  "description": "<Optional Description>",
+  "reminder_date": "<ISO 8601 Datetime string in local time, calculated using CURRENT LOCAL TIME>"
+}
+\`\`\`
+
+2. For Notes:
+\`\`\`json
+{
+  "action": "create_note",
+  "title": "<Extracted Title>",
+  "content": "<Extracted Content>",
+  "category": "<One of: General, Work, Personal, Study, Ideas, Shopping, Health, Finance, Travel, Secure>"
+}
+\`\`\`
+
+3. For Goals:
+\`\`\`json
+{
+  "action": "create_goal",
+  "title": "<Extracted Goal/Task Title>"
+}
+\`\`\`
+
+4. For Special Days:
+\`\`\`json
+{
+  "action": "create_special_day",
+  "title": "<Extracted Person's Name or Event Title>",
+  "date": "<YYYY-MM-DD Date string>",
+  "type": "<One of: Birthday, Wedding Anniversary, Engagement, Festival, Meeting, Achievement, Personal Memory, Custom Event>"
+}
+\`\`\`
+
+5. For Calendar Notes:
+\`\`\`json
+{
+  "action": "create_calendar_note",
+  "title": "<Extracted Title>",
+  "content": "<Extracted Description/Content>",
+  "note_date": "<YYYY-MM-DD Date string, calculated using CURRENT LOCAL TIME>"
+}
+\`\`\`
+
+Do NOT output any JSON action block if the user is just asking a question, listing items, or chatting. Only output it when they request to CREATE/SAVE/ADD an item.
+`;
 
   return prompt;
 };

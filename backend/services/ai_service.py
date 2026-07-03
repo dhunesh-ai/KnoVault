@@ -76,9 +76,13 @@ class AIService:
         Synchronous Groq API call - meant to be run via asyncio.to_thread
         """
         logger.info("[GROQ CALL] Sending request...")
+        api_model = self.model
+        if api_model == "gpt-oss-20b":
+            api_model = "openai/gpt-oss-20b"
+            
         completion = self.client.chat.completions.create(
             messages=messages,
-            model=self.model,
+            model=api_model,
             temperature=temperature,
             max_tokens=max_tokens,
         )
@@ -131,7 +135,7 @@ class AIService:
         try:
             # 3. Fetch Upcoming Reminders
             reminders_query = await db.execute(
-                select(Reminder).where(Reminder.user_id == user_id).limit(10)
+                select(Reminder).where(and_(Reminder.user_id == user_id, Reminder.is_deleted == False)).limit(10)
             )
             reminders = reminders_query.scalars().all()
             if reminders:
@@ -144,7 +148,7 @@ class AIService:
         try:
             # 4. Fetch Important Days
             important_days_query = await db.execute(
-                select(ImportantDay).where(ImportantDay.user_id == user_id).limit(10)
+                select(ImportantDay).where(and_(ImportantDay.user_id == user_id, ImportantDay.is_deleted == False)).limit(10)
             )
             important_days = important_days_query.scalars().all()
             if important_days:
@@ -185,14 +189,14 @@ class AIService:
 
         # Simple short questions
         if len(lower.split()) <= 6 and '?' not in lower:
-            return 400, 0.7, None
+            return 600, 0.7, None
 
         # Requests for summaries or analysis
         if any(kw in lower for kw in ['summarize', 'analyze', 'list all', 'detail', 'explain in detail']):
-            return 1024, 0.7, None
+            return 1536, 0.7, None
 
         # Default: moderate length
-        return 600, 0.7, None
+        return 1024, 0.7, None
 
     async def chat_with_ai(self, message: str, context: str, history: List[Dict[str, str]] = None, custom_system_prompt: str = None) -> str:
         """
@@ -260,6 +264,7 @@ class AIService:
             return result
         except Exception as e:
             logger.error(f"[AI SUMMARIZE ERROR] {e}")
+            traceback.print_exc()
             return "Unable to generate summary at this time."
 
     async def suggest_tasks(self, context: str) -> list:
@@ -288,6 +293,7 @@ class AIService:
             return json.loads(content)
         except Exception as e:
             logger.error(f"[AI TASK ERROR] {e}")
+            traceback.print_exc()
             return []
 
 

@@ -14,12 +14,12 @@ export interface AISuggestion {
 
 export const aiApi = {
   /** Send message to AI Assistant */
-  chat: async (message: string, context?: string, systemPrompt?: string): Promise<ChatResponse> => {
+  chat: async (message: string, context?: string, systemPrompt?: string, signal?: AbortSignal): Promise<ChatResponse> => {
     const response = await client.post('/api/ai/chat', { 
       message,
       context,
       system_prompt: systemPrompt
-    });
+    }, { signal });
     return response.data;
   },
 

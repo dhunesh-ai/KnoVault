@@ -27,18 +27,36 @@ export default function ReminderDetailScreen() {
 
   const { data: reminder, isLoading, error } = useQuery({
     queryKey: ['reminders', id],
-    queryFn: () => remindersApi.getReminder(Number(id)),
+    queryFn: async () => {
+      console.log(`[DEBUG LOG] Reminder detail requested for ID: ${id}`);
+      try {
+        const res = await remindersApi.getReminder(Number(id));
+        console.log(`[DEBUG LOG] Reminder found status: true, Title: '${res?.title}'`);
+        return res;
+      } catch (err) {
+        console.log(`[DEBUG LOG] Reminder found status: false, Error:`, err);
+        throw err;
+      }
+    },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => remindersApi.deleteReminder(Number(id)),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['upcoming-reminders'] });
-      queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
-      queryClient.invalidateQueries({ queryKey: ['reminders'] });
+    mutationFn: () => {
+      console.log(`[DEBUG LOG] Requesting deletion of reminder ID: ${id}`);
+      return remindersApi.deleteReminder(Number(id));
+    },
+    onSuccess: async () => {
+      console.log(`[DEBUG LOG] Reminder ID: ${id} successfully deleted. Invalidating queries...`);
+      await queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      await queryClient.invalidateQueries({ queryKey: ['upcoming-reminders'] });
+      await queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
+      await queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      await queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      console.log(`[DEBUG LOG] Cache invalidations completed. Navigating back.`);
       router.back();
     },
-    onError: () => {
+    onError: (err) => {
+      console.error(`[DEBUG LOG] Failed to delete reminder ID: ${id}. Error:`, err);
       Alert.alert('Error', 'Failed to delete reminder');
     },
   });

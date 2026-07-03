@@ -31,6 +31,15 @@ class ImportantDay(Base):
     delivery_type: Mapped[str] = mapped_column(String(20), nullable=False, default="notification")  # notification, email, both
     send_time: Mapped[str | None] = mapped_column(String(10), nullable=True, default="09:00")  # HH:MM format
     
+    # New Auto Email Wishes fields
+    auto_send_email: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    email_send_time: Mapped[str | None] = mapped_column(String(10), nullable=True, default="09:00")
+    last_email_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_sent_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    timezone: Mapped[str | None] = mapped_column(String(50), nullable=True, default="UTC")
+    email_status: Mapped[str | None] = mapped_column(String(20), nullable=True, default="PENDING")
+    email_retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    
     # Reminders JSON (stored as serialized JSON array)
     reminders_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     

@@ -5,6 +5,8 @@ import Animated, {
   useAnimatedProps, 
   withTiming, 
   useSharedValue,
+  useAnimatedReaction,
+  runOnJS,
 } from 'react-native-reanimated';
 import { useTheme } from '../hooks/useTheme';
 import { typography } from '../theme';
@@ -35,10 +37,22 @@ export const ExactProgressRing: React.FC<ProgressRingProps> = ({
   const animatedProgress = useSharedValue(0);
   const { animationsEnabled } = useSettingsStore();
 
+  const [displayPercentage, setDisplayPercentage] = React.useState(0);
+
   useEffect(() => {
     // console.log(`[RING UPDATED] Target: ${Math.round(targetProgress * 100)}% (${completed}/${total})`);
     animatedProgress.value = animationsEnabled ? withTiming(targetProgress, { duration: 1000 }) : targetProgress;
+    if (!animationsEnabled) {
+      setDisplayPercentage(Math.round(targetProgress * 100));
+    }
   }, [completed, total, animationsEnabled]);
+
+  useAnimatedReaction(
+    () => Math.round(animatedProgress.value * 100),
+    (nextVal) => {
+      runOnJS(setDisplayPercentage)(nextVal);
+    }
+  );
 
   const animatedProps = useAnimatedProps(() => {
     const strokeOffset = circumference * (1 - animatedProgress.value);
@@ -76,10 +90,10 @@ export const ExactProgressRing: React.FC<ProgressRingProps> = ({
       </Svg>
       <View style={styles.textContainer}>
         <Text style={[styles.percentageText, { color: activeTextColor }]}>
-          {Math.round(targetProgress * 100)}%
+          {displayPercentage}%
         </Text>
         <Text style={[styles.completedText, { color: activeTextColor + 'CC' }]}>
-          {completed} of {total} goals
+          {completed} OF {total} GOALS
         </Text>
       </View>
     </View>
@@ -108,5 +122,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 2,
     letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
 });

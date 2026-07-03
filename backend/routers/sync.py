@@ -27,6 +27,9 @@ async def push_sync(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    from routers.profile import check_storage_quota
+    await check_storage_quota(db, current_user.id)
+
     response = SyncPushResponse(timestamp=datetime.now(timezone.utc))
     
     # 1. Handle New Notes

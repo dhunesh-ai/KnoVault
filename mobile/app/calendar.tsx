@@ -8,6 +8,7 @@ import {
   Dimensions,
   ActivityIndicator,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -38,10 +39,16 @@ export default function CalendarScreen() {
   const { data: eventsMap, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['calendar-events', month, year],
     queryFn: async () => {
-      console.log(`[CALENDAR] Fetching events for ${month}/${year}`);
-      const data = await calendarApi.getCalendarEvents(month, year);
-      console.log("[CALENDAR EVENTS]", data);
-      return data;
+      console.log(`[DEBUG LOG] Calendar events fetch triggered. month: ${month}, year: ${year}`);
+      try {
+        const data = await calendarApi.getCalendarEvents(month, year);
+        const count = Object.values(data || {}).reduce((acc: number, val: any) => acc + (val as any[]).length, 0);
+        console.log(`[DEBUG LOG] Calendar events count fetched: ${count}`);
+        return data;
+      } catch (err) {
+        console.error(`[DEBUG LOG] Calendar events fetch failed:`, err);
+        throw err;
+      }
     },
   });
 
@@ -78,7 +85,10 @@ export default function CalendarScreen() {
   };
 
   const selectedDateStr = getLocalDateString(selectedDate);
-  const selectedEvents = eventsMap?.[selectedDateStr] || [];
+  const selectedEvents = useMemo(() => {
+    const rawEvents = eventsMap?.[selectedDateStr] || [];
+    return rawEvents.filter((e: any) => e && e.is_deleted !== true);
+  }, [eventsMap, selectedDateStr]);
 
   const getMedicinePeriod = (timeStr: string | null | undefined) => {
     if (!timeStr) return 'Morning 🌅';
@@ -130,11 +140,34 @@ export default function CalendarScreen() {
 
   const renderEventCard = (event: any) => {
     const isReminder = event.id.toString().startsWith('r-');
+    const isCalendarNote = event.id.toString().startsWith('cn-');
+    const isGoal = event.id.toString().startsWith('g-');
+    const isProject = event.id.toString().startsWith('p-');
+
     const titleText = isReminder ? getReminderTitle(event) : event.title;
-    const categoryText = isReminder ? getReminderCategory(event) : event.type;
+    const categoryText = isReminder 
+      ? getReminderCategory(event) 
+      : isCalendarNote 
+      ? 'Calendar Note' 
+      : isGoal 
+      ? 'Goal' 
+      : isProject 
+      ? 'Project' 
+      : event.type;
+      
     const isMed = categoryText.toLowerCase() === 'medicine';
     const medicineSummary = isMed ? getMedicineSummary(event) : null;
-    const subtitleText = isMed ? formatMedicineSubtitle(event) : (isReminder ? getReminderSubtitle(event) : (event.description || event.notes || ''));
+    const subtitleText = isMed 
+      ? formatMedicineSubtitle(event) 
+      : (isReminder 
+         ? getReminderSubtitle(event) 
+         : isCalendarNote 
+         ? (event.description || '') 
+         : isGoal 
+         ? (event.completed ? 'Completed ✓' : 'In Progress') 
+         : isProject 
+         ? `Priority: ${event.priority || 'Medium'} • Progress: ${event.progress || 0}%` 
+         : (event.description || event.notes || ''));
     
     const getCategoryColor = (category: string, defaultColor: string) => {
       switch (category.toLowerCase()) {
@@ -144,7 +177,10 @@ export default function CalendarScreen() {
         case 'birthday': return '#F59E0B';
         case 'medicine': return '#10B981';
         case 'custom': return '#6366F1';
-        default: return defaultColor;
+        case 'calendar note': return '#3B82F6';
+        case 'goal': return '#8B5CF6';
+        case 'project': return '#EF4444';
+        default: return defaultColor || '#3B82F6';
       }
     };
     
@@ -155,6 +191,11 @@ export default function CalendarScreen() {
         key={event.id} 
         style={[ds.eventCard, { backgroundColor: theme.card, borderColor: theme.border }]}
         onPress={() => {
+            if (event.is_deleted) {
+              console.warn("[CALENDAR] Attempted to navigate to a deleted event:", event.id);
+              Alert.alert("Event Removed", "This event has already been deleted.");
+              return;
+            }
             if (event.id.toString().startsWith('s-')) {
               const specialDayId = event.id.toString().replace('s-', '');
               console.log("[SPECIAL DAY DETAILS OPEN] From Calendar", specialDayId);
@@ -166,6 +207,16 @@ export default function CalendarScreen() {
               const reminderId = event.id.toString().replace('r-', '');
               console.log("[REMINDER DETAILS OPEN] From Calendar", reminderId);
               router.push(`/reminder/${reminderId}`);
+            } else if (event.id.toString().startsWith('cn-')) {
+              const noteId = event.id.toString().replace('cn-', '');
+              console.log("[CALENDAR NOTE DETAILS OPEN] From Calendar", noteId);
+              router.push(`/calendar_note/${noteId}`);
+            } else if (event.id.toString().startsWith('g-')) {
+              console.log("[DAILY GOALS OPEN] From Calendar");
+              router.push('/goals');
+            } else if (event.id.toString().startsWith('p-')) {
+              console.log("[PROJECTS OPEN] From Calendar");
+              router.push({ pathname: '/goals', params: { tab: 'projects' } });
             } else {
               console.warn("[CALENDAR] Unknown event ID format:", event.id);
             }
@@ -267,8 +318,9 @@ export default function CalendarScreen() {
               const isTod = date && isToday(date);
               const dateStr = date ? getLocalDateString(date) : null;
               const dayEvents = dateStr ? eventsMap?.[dateStr] || [] : [];
-              const dotsCount = Math.min(dayEvents.length, 4);
-              const eventDots = dayEvents.slice(0, dotsCount);
+              const activeEvents = dayEvents.filter((e: any) => e && e.is_deleted !== true);
+              const dotsCount = Math.min(activeEvents.length, 4);
+              const eventDots = activeEvents.slice(0, dotsCount);
 
               return (
                 <TouchableOpacity
@@ -318,12 +370,21 @@ export default function CalendarScreen() {
         {/* Events List */}
         <View style={ds.eventsSection}>
           <View style={ds.sectionHeader}>
-            <Text style={[ds.sectionTitle, { color: theme.text }]}>
-              {isToday(selectedDate) ? "Today's Schedule" : selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
-            </Text>
-            <View style={[ds.badge, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6' }]}>
-              <Text style={[ds.badgeText, { color: theme.textSecondary }]}>{selectedEvents.length} Events</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={[ds.sectionTitle, { color: theme.text, marginBottom: 0 }]}>
+                {isToday(selectedDate) ? "Today's Schedule" : selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+              </Text>
+              <View style={[ds.badge, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#F3F4F6' }]}>
+                <Text style={[ds.badgeText, { color: theme.textSecondary }]}>{selectedEvents.length} Events</Text>
+              </View>
             </View>
+            <TouchableOpacity 
+              style={[ds.addNoteHeaderBtn, { borderColor: theme.border }]}
+              onPress={() => router.push({ pathname: '/calendar_note/create', params: { initialDate: selectedDate.toISOString() } })}
+            >
+              <Ionicons name="document-text-outline" size={14} color={theme.primary} />
+              <Text style={[ds.addNoteHeaderBtnText, { color: theme.primary }]}>+ Note</Text>
+            </TouchableOpacity>
           </View>
 
           {isLoading ? (
@@ -625,5 +686,18 @@ const styles = (theme: any, isDark: boolean, colors: any) => StyleSheet.create({
     marginBottom: 6,
     marginLeft: 4,
     textTransform: 'uppercase',
+  },
+  addNoteHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1.2,
+    gap: 4,
+  },
+  addNoteHeaderBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
   },
 });

@@ -1,0 +1,147 @@
+=== Search for feedback or composer or comment related UI ===
+16: TouchableWithoutFeedback,
+74: const commentsScrollRef = useRef<ScrollView>(null);
+82: await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+196: const [noteCommentText, setNoteCommentText] = useState('');
+205: // Queries for Note Details & Comments (Issue 1 & 2 & 3)
+212: const { data: noteComments = [] } = useQuery<any[]>({
+213: queryKey: ['workspace-comments', selectedNote?.id],
+214: queryFn: () => selectedNote ? workspacesApi.getNoteComments(workspaceId, selectedNote.id) : Promise.resolve([]),
+247: const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
+249: const commentNoteMutation = useMutation({
+250: mutationFn: (data: { noteId: number; content: string }) => workspacesApi.commentOnNote(workspaceId, data.noteId, data.content),
+251: onMutate: async (newCommentData) => {
+252: await queryClient.cancelQueries({ queryKey: ['workspace-comments', newCommentData.noteId] });
+253: const previousComments = queryClient.getQueryData<any[]>(['workspace-comments', newCommentData.noteId]) || [];
+255: // Optimistically insert new comment
+256: const optimisticComment = {
+260: content: newCommentData.content,
+264: queryClient.setQueryData<any[]>(['workspace-comments', newCommentData.noteId], (old) => {
+265: return [...(old || []), optimisticComment];
+268: return { previousComments, noteId: newCommentData.noteId };
+270: onError: (err, newCommentData, context) => {
+272: queryClient.setQueryData(['workspace-comments', context.noteId], context.previousComments);
+276: queryClient.setQueryData<any[]>(['workspace-comments', updatedNote.id], updatedNote.comments || []);
+278: queryClient.invalidateQueries({ queryKey: ['workspace-comments', updatedNote.id] });
+282: setNoteCommentText('');
+284: commentsScrollRef.current?.scrollToEnd({ animated: true });
+289: const deleteCommentMutation = useMutation({
+290: mutationFn: (commentId: string) => workspacesApi.deleteCommentOnNote(workspaceId, selectedNote!.id, commentId),
+291: onMutate: async (commentId) => {
+292: setDeletingCommentId(commentId);
+294: await queryClient.cancelQueries({ queryKey: ['workspace-comments', noteId] });
+295: const previousComments = queryClient.getQueryData<any[]>(['workspace-comments', noteId]) || [];
+297: // Optimistically remove comment
+298: queryClient.setQueryData<any[]>(['workspace-comments', noteId], (old) => {
+299: return (old || []).filter(c => c.id !== commentId);
+302: return { previousComments, noteId };
+304: onError: (err, commentId, context) => {
+305: setDeletingCommentId(null);
+307: queryClient.setQueryData(['workspace-comments', context.noteId], context.previousComments);
+311: setDeletingCommentId(null);
+312: queryClient.setQueryData<any[]>(['workspace-comments', updatedNote.id], updatedNote.comments || []);
+314: queryClient.invalidateQueries({ queryKey: ['workspace-comments', updatedNote.id] });
+358: const handleSendComment = () => {
+359: const cleaned = noteCommentText.trim();
+361: commentNoteMutation.mutate({ noteId: selectedNote!.id, content: cleaned });
+364: const handleDeleteComment = (commentId: string) => {
+366: "Delete Comment",
+367: "Are you sure you want to delete this comment?",
+375: deleteCommentMutation.mutate(commentId);
+408: const [taskCommentText, setTaskCommentText] = useState('');
+429: const commentTaskMutation = useMutation({
+430: mutationFn: (data: { taskId: number; content: string }) => workspacesApi.commentOnTask(workspaceId, data.taskId, data.content),
+434: setTaskCommentText('');
+1266: setNoteCommentText('');
+1290: <View style={styles.commentsIndicator}>
+1292: <Text style={{ fontSize: 12, color: colors.text.tertiary }}>{note.comments?.length || 0}</Text>
+1339: setTaskCommentText('');
+2090: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+2113: </TouchableWithoutFeedback>
+2117: {/* ── DETAILED NOTE & COMMENTS MODAL ── */}
+2124: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+2158: <ScrollView ref={commentsScrollRef} style={{ flex: 1, paddingVertical: 15 }}>
+2171: {/* Comments Feed */}
+2172: <Text style={[styles.commentsLabelTitle, { color: theme.text }]}>Discussion & Feedback</Text>
+2173: <View style={styles.commentsList}>
+2174: {noteComments.map((c) => {
+2175: const canDeleteComment = c.user_id === currentUser?.id || currentUserRole === 'Owner' || currentUserRole === 'Admin';
+2176: const isDeletingThis = deleteCommentMutation.isPending && deletingCommentId === c.id;
+2178: <View key={c.id} style={[styles.commentItemBox, { borderBottomColor: theme.border }]}>
+2180: <Text style={[styles.commentAuthorName, { color: accentColor }]}>{c.full_name}</Text>
+2185: {canDeleteComment && (
+2187: onPress={() => handleDeleteComment(c.id)}
+2188: disabled={deleteCommentMutation.isPending}
+2200: <Text style={[styles.commentText, { color: theme.text }]}>{c.content}</Text>
+2207: {/* Comment Posting Input */}
+2208: <View style={[styles.commentInputBox, { borderTopWidth: 1, borderTopColor: theme.border }]}>
+2211: placeholder="Write a feedback response..."
+2213: value={noteCommentText}
+2214: onChangeText={setNoteCommentText}
+2215: editable={!commentNoteMutation.isPending}
+2216: style={[styles.commentTextInput, { color: theme.text, borderColor: theme.border, flex: 1 }]}
+2220: styles.commentSendBtn,
+2222: (commentNoteMutation.isPending || !noteCommentText.trim()) && { opacity: 0.5 }
+2224: onPress={handleSendComment}
+2225: disabled={commentNoteMutation.isPending || !noteCommentText.trim()}
+2227: {commentNoteMutation.isPending ? (
+2239: </TouchableWithoutFeedback>
+2250: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+2273: </TouchableWithoutFeedback>
+2284: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+2380: </TouchableWithoutFeedback>
+2384: {/* ── DETAILED TASK & COMMENTS MODAL ── */}
+2391: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+2500: {/* Task Comments */}
+2501: <Text style={[styles.commentsLabelTitle, { color: theme.text, marginTop: 20 }]}>Feedback & Activity Log</Text>
+2502: <View style={styles.commentsList}>
+2503: {selectedTask.comments?.map((c) => (
+2504: <View key={c.id} style={[styles.commentItemBox, { borderBottomColor: theme.border }]}>
+2506: <Text style={[styles.commentAuthorName, { color: accentColor }]}>{c.full_name}</Text>
+2511: <Text style={[styles.commentText, { color: theme.text }]}>{c.content}</Text>
+2517: {/* Comment Posting Input */}
+2518: <View style={[styles.commentInputBox, { borderTopWidth: 1, borderTopColor: theme.border }]}>
+2520: placeholder="Write a comment response..."
+2522: value={taskCommentText}
+2523: onChangeText={setTaskCommentText}
+2524: style={[styles.commentTextInput, { color: theme.text, borderColor: theme.border }]}
+2527: style={[styles.commentSendBtn, { backgroundColor: accentColor }]}
+2528: onPress={() => commentTaskMutation.mutate({ taskId: selectedTask.id, content: taskCommentText })}
+2536: </TouchableWithoutFeedback>
+2547: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+2643: </TouchableWithoutFeedback>
+2654: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+2711: </TouchableWithoutFeedback>
+2722: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+2773: </TouchableWithoutFeedback>
+2784: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+2834: </TouchableWithoutFeedback>
+2845: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+2889: </TouchableWithoutFeedback>
+2900: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+2947: </TouchableWithoutFeedback>
+2958: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+2999: </TouchableWithoutFeedback>
+3010: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+3039: </TouchableWithoutFeedback>
+3050: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+3073: </TouchableWithoutFeedback>
+3084: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+3113: </TouchableWithoutFeedback>
+3124: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+3147: </TouchableWithoutFeedback>
+3158: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+3187: </TouchableWithoutFeedback>
+3198: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+3221: </TouchableWithoutFeedback>
+3232: <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+3330: </TouchableWithoutFeedback>
+3481: commentsIndicator: {
+4129: commentsLabelTitle: {
+4135: commentsList: {
+4138: commentItemBox: {
+4142: commentAuthorName: {
+4146: commentText: {
+4150: commentInputBox: {
+4156: commentTextInput: {
+4164: commentSendBtn: {

@@ -74,3 +74,62 @@ async def send_otp_email(email: str, otp: str, purpose: str = "verification"):
         logger.error(f"CRITICAL ERROR: Failed to send email to {email} via Brevo HTTP API")
         logger.error(f"Error Details: {str(e)}")
         return False
+
+
+async def send_custom_email(email: str, subject: str, message: str) -> tuple[bool, str]:
+    """
+    Sends a custom email asynchronously using ONLY the Brevo HTTP API.
+    """
+    html = f"""
+    <html>
+        <body style="font-family: sans-serif; padding: 20px; background-color: #f8fafc;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                <h2 style="color: #6366F1; margin-bottom: 20px; text-align: center; font-size: 24px;">KnoVault Special Days</h2>
+                <div style="color: #475569; font-size: 16px; line-height: 1.6; white-space: pre-wrap;">
+{message}
+                </div>
+                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
+                <p style="color: #94a3b8; font-size: 12px; text-align: center;">This is an automated wish sent via KnoVault.</p>
+            </div>
+        </body>
+    </html>
+    """
+
+    if not settings.BREVO_API_KEY:
+        error_msg = "BREVO_API_KEY is not configured."
+        logger.error(f"CRITICAL ERROR: {error_msg}")
+        return False, error_msg
+
+    try:
+        logger.info(f"Attempting to send custom email to {email} via Brevo HTTP API...")
+        sender_email = settings.BREVO_SENDER_EMAIL
+        sender_name = settings.BREVO_SENDER_NAME
+
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(
+                "https://api.brevo.com/v3/smtp/email",
+                headers={
+                    "accept": "application/json",
+                    "api-key": settings.BREVO_API_KEY,
+                    "content-type": "application/json"
+                },
+                json={
+                    "sender": {"name": sender_name, "email": sender_email},
+                    "to": [{"email": email}],
+                    "subject": subject,
+                    "htmlContent": html
+                }
+            )
+            if response.status_code in (200, 201, 202):
+                logger.info(f"Successfully sent custom email to {email} via Brevo HTTP API")
+                return True, "Email sent successfully"
+            else:
+                error_msg = f"Brevo API failed with status {response.status_code}: {response.text}"
+                logger.error(error_msg)
+                return False, error_msg
+    except Exception as e:
+        error_msg = f"Failed to send custom email: {str(e)}"
+        logger.error(f"CRITICAL ERROR: Failed to send custom email to {email} via Brevo HTTP API")
+        logger.error(f"Error Details: {str(e)}")
+        return False, error_msg
+
