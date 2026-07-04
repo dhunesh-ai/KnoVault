@@ -306,8 +306,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   syncNotifications: async () => {
     try {
-      const granted = await requestNotificationPermission();
-      if (granted) {
+      const Notifications = require('expo-notifications');
+      const { status } = await Notifications.getPermissionsAsync();
+      if (status === 'granted') {
         await syncFCMToken();
       }
     } catch (error) {

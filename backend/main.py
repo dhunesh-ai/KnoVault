@@ -9,7 +9,7 @@ from routers import (
     reminders_router, birthdays_router, special_days_router, important_days_router,
     ai_chat_router, profile_router, backup_router, calendar_router,
     notifications_router, sync_router, files_router, calendar_notes_router,
-    workspaces_router, secure_notes_router
+    workspaces_router, secure_notes_router, scheduled_emails_router
 )
 from utils.firebase import initialize_firebase
 
@@ -87,6 +87,7 @@ app.include_router(sync_router)
 app.include_router(files_router)
 app.include_router(workspaces_router)
 app.include_router(secure_notes_router)
+app.include_router(scheduled_emails_router)
 
 
 

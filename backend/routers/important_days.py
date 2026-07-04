@@ -98,6 +98,7 @@ async def create_important_day(
             reminder_unit=data.reminder_unit,
             reminder_time=data.reminder_time,
             notification_ids=data.notification_ids,
+            timezone=data.timezone,
             user_id=current_user.id,
         )
         print("[DEBUG] Important Day created model instance:", important_day.__dict__)
@@ -107,6 +108,35 @@ async def create_important_day(
         print("[DEBUG] db.flush() success")
         await db.refresh(important_day)
         print("[DEBUG] db.refresh() success")
+        
+        # Schedule email if auto_send_email is active
+        if important_day.auto_send_email and important_day.recipient_email:
+            from services.email_scheduler import calculate_next_send_datetime
+            from models.scheduled_email import ScheduledEmail
+            next_send = calculate_next_send_datetime(
+                important_day.date,
+                important_day.email_send_time,
+                important_day.timezone or "UTC",
+                important_day.is_recurring,
+                schedule_for_tomorrow=data.schedule_for_tomorrow
+            )
+            if next_send is not None:
+                scheduled_email = ScheduledEmail(
+                    recipient_email=important_day.recipient_email,
+                    subject=important_day.email_subject or f"Happy {important_day.type}!",
+                    body=important_day.email_message or f"Best wishes on your {important_day.type}!",
+                    send_datetime=next_send,
+                    timezone=important_day.timezone or "UTC",
+                    status="scheduled",
+                    user_id=current_user.id,
+                    important_day_id=important_day.id
+                )
+                db.add(scheduled_email)
+                await db.flush()
+                print(f"[Scheduler] Email scheduled for {next_send.strftime('%Y-%m-%d %H:%M')}")
+                import logging
+                logging.getLogger("important_days").info(f"[Scheduler] Email scheduled for {next_send.strftime('%Y-%m-%d %H:%M')}")
+
         return ImportantDayResponse.model_validate(important_day)
     except Exception as e:
         import traceback
@@ -139,6 +169,46 @@ async def update_important_day(
         setattr(important_day, key, value)
     
     await db.flush()
+    
+    from models.scheduled_email import ScheduledEmail
+    from sqlalchemy import update, and_
+    # Cancel existing pending scheduled emails for this important day
+    await db.execute(
+        update(ScheduledEmail).where(
+            and_(
+                ScheduledEmail.important_day_id == important_day.id,
+                ScheduledEmail.status == "scheduled"
+            )
+        ).values(status="cancelled")
+    )
+    
+    # If auto_send_email is enabled, schedule a new one
+    if important_day.auto_send_email and important_day.recipient_email:
+        from services.email_scheduler import calculate_next_send_datetime
+        next_send = calculate_next_send_datetime(
+            important_day.date,
+            important_day.email_send_time,
+            important_day.timezone or "UTC",
+            important_day.is_recurring,
+            schedule_for_tomorrow=bool(data.schedule_for_tomorrow)
+        )
+        if next_send is not None:
+            scheduled_email = ScheduledEmail(
+                recipient_email=important_day.recipient_email,
+                subject=important_day.email_subject or f"Happy {important_day.type}!",
+                body=important_day.email_message or f"Best wishes on your {important_day.type}!",
+                send_datetime=next_send,
+                timezone=important_day.timezone or "UTC",
+                status="scheduled",
+                user_id=current_user.id,
+                important_day_id=important_day.id
+            )
+            db.add(scheduled_email)
+            await db.flush()
+            print(f"[Scheduler] Email scheduled for {next_send.strftime('%Y-%m-%d %H:%M')}")
+            import logging
+            logging.getLogger("important_days").info(f"[Scheduler] Email scheduled for {next_send.strftime('%Y-%m-%d %H:%M')}")
+
     await db.refresh(important_day)
     return ImportantDayResponse.model_validate(important_day)
 
@@ -156,6 +226,16 @@ async def delete_important_day(
     if not important_day:
         raise HTTPException(status_code=404, detail="Important Day not found")
     important_day.is_deleted = True
+    
+    from models.scheduled_email import ScheduledEmail
+    from sqlalchemy import delete
+    await db.execute(
+        delete(ScheduledEmail).where(
+            ScheduledEmail.important_day_id == important_day.id,
+            ScheduledEmail.status == "scheduled"
+        )
+    )
+    
     await db.flush()
 
 

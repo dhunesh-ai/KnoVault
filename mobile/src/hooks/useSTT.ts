@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Platform, Alert, Linking } from 'react-native';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
+import { handleMicrophonePermission } from '../utils/permissionHandler';
 
 interface UseSTTReturn {
   isListening: boolean;
@@ -28,8 +29,8 @@ export function useSTT(): UseSTTReturn {
 
   const requestAudioPermission = async (): Promise<boolean> => {
     try {
-      const response = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-      if (response.granted) {
+      const granted = await handleMicrophonePermission();
+      if (granted) {
         setPermissionState('granted');
         return true;
       } else {

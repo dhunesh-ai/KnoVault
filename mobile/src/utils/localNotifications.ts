@@ -20,10 +20,10 @@ Notifications.setNotificationHandler({
   },
 });
 
-export const requestLocalNotificationPermissions = async () => {
+export const requestLocalNotificationPermissions = async (request: boolean = false) => {
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
-  if (existingStatus !== 'granted') {
+  if (existingStatus !== 'granted' && request) {
     const { status } = await Notifications.requestPermissionsAsync();
     finalStatus = status;
   }

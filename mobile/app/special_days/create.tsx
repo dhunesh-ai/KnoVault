@@ -25,6 +25,7 @@ import { useTheme } from '../../src/hooks/useTheme';
 import { typography } from '../../src/theme';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
 import ScreenContainer from '../../src/components/ScreenContainer';
+import { handlePostSaveNotificationPermission } from '../../src/utils/permissionHandler';
 
 const CELEBRATION_TYPES = [
   { label: '🎂 Birthday', value: 'Birthday' },
@@ -172,7 +173,7 @@ export default function CreateSpecialDayScreen() {
   }, [existingDay]);
 
   const mutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (scheduleForTomorrow: boolean) => {
       const importantDayData = {
         title,
         date: date.toISOString().split('T')[0],
@@ -195,6 +196,7 @@ export default function CreateSpecialDayScreen() {
         email_message: autoSendEmail ? emailMessage : null,
         email_send_time: `${emailSendTime.getHours().toString().padStart(2, '0')}:${emailSendTime.getMinutes().toString().padStart(2, '0')}`,
         timezone: autoSendEmail ? (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC') : null,
+        schedule_for_tomorrow: scheduleForTomorrow,
       };
 
       if (isEditing) {
@@ -205,7 +207,7 @@ export default function CreateSpecialDayScreen() {
         await importantDaysApi.createImportantDay(importantDayData);
       }
     },
-    onSuccess: async () => {
+    onSuccess: async (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['important-days'] });
       queryClient.invalidateQueries({ queryKey: ['important-days', editId] });
       queryClient.invalidateQueries({ queryKey: ['today-important-days'] });
@@ -218,7 +220,81 @@ export default function CreateSpecialDayScreen() {
       await syncWorkspace();
       
       scheduleSpecialDaysReminders();
-      router.back();
+      
+      if (autoSendEmail) {
+        const displayDate = new Date(date);
+        const now = new Date();
+        const yearToCheck = isRecurring ? now.getFullYear() : date.getFullYear();
+        const targetTime = new Date(yearToCheck, date.getMonth(), date.getDate(), emailSendTime.getHours(), emailSendTime.getMinutes(), 0, 0);
+        
+        let isScheduled = true;
+        if (variables) { // variables is scheduleForTomorrow
+          const tomorrow = new Date(now);
+          tomorrow.setDate(now.getDate() + 1);
+          displayDate.setFullYear(tomorrow.getFullYear());
+          displayDate.setMonth(tomorrow.getMonth());
+          displayDate.setDate(tomorrow.getDate());
+        } else if (targetTime.getTime() < now.getTime()) {
+          if (isRecurring) {
+            displayDate.setFullYear(yearToCheck + 1);
+          } else {
+            isScheduled = false;
+          }
+        } else {
+          displayDate.setFullYear(yearToCheck);
+        }
+
+        if (isScheduled) {
+          const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+          const formattedDate = displayDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+          const formattedTime = emailSendTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+          
+          Alert.alert(
+            'Special Day Saved',
+            `✅ ${title || 'Special Day'} saved successfully.\n\n📧 Email scheduled for:\n${formattedDate}\n${formattedTime} (${tz})`,
+            [
+              {
+                text: 'OK',
+                onPress: async () => {
+                  await handlePostSaveNotificationPermission(() => {
+                    router.back();
+                  });
+                }
+              }
+            ]
+          );
+        } else {
+          Alert.alert(
+            'Special Day Saved',
+            `✅ ${title || 'Special Day'} saved successfully.`,
+            [
+              {
+                text: 'OK',
+                onPress: async () => {
+                  await handlePostSaveNotificationPermission(() => {
+                    router.back();
+                  });
+                }
+              }
+            ]
+          );
+        }
+      } else {
+        Alert.alert(
+          'Special Day Saved',
+          `✅ ${title || 'Special Day'} saved successfully.`,
+          [
+            {
+              text: 'OK',
+              onPress: async () => {
+                await handlePostSaveNotificationPermission(() => {
+                  router.back();
+                });
+              }
+            }
+          ]
+        );
+      }
     },
     onError: (error) => {
       console.error('Error saving special day:', error);
@@ -253,8 +329,35 @@ export default function CreateSpecialDayScreen() {
         Alert.alert('Missing Info', 'Please enter an email message.');
         return;
       }
+
+      const now = new Date();
+      const yearToCheck = isRecurring ? now.getFullYear() : date.getFullYear();
+      const targetTime = new Date(yearToCheck, date.getMonth(), date.getDate(), emailSendTime.getHours(), emailSendTime.getMinutes(), 0, 0);
+
+      if (targetTime.getTime() < now.getTime()) {
+        Alert.alert(
+          'Time Already Passed',
+          'This time has already passed.\nWould you like to schedule it for tomorrow?',
+          [
+            {
+              text: 'No',
+              onPress: () => {
+                mutation.mutate(false);
+              },
+              style: 'cancel'
+            },
+            {
+              text: 'Yes',
+              onPress: () => {
+                mutation.mutate(true);
+              }
+            }
+          ]
+        );
+        return;
+      }
     }
-    mutation.mutate();
+    mutation.mutate(false);
   };
 
   const handleGenerateWish = async () => {

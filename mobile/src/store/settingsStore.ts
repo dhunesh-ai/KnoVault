@@ -14,6 +14,8 @@ interface SettingsState {
   notificationSound: boolean;
   notificationVibration: boolean;
   microphoneAccessEnabled: boolean;
+  hasCreatedFirstNotificationItem: boolean;
+  hasTappedMicrophoneBefore: boolean;
 
   // Hybrid Storage System Settings
   storageMode: 'cloud' | 'cloud_gdrive' | 'cloud_local' | 'gdrive' | 'local';
@@ -29,6 +31,8 @@ interface SettingsState {
   completeOnboarding: () => Promise<void>;
   toggleNotificationSetting: (key: keyof SettingsState, storageKey: string, value: boolean) => Promise<void>;
   setMicrophoneAccessEnabled: (enabled: boolean) => Promise<void>;
+  setHasCreatedFirstNotificationItem: (value: boolean) => Promise<void>;
+  setHasTappedMicrophoneBefore: (value: boolean) => Promise<void>;
   setStorageMode: (mode: 'cloud' | 'cloud_gdrive' | 'cloud_local' | 'gdrive' | 'local') => Promise<void>;
   setAutoSwitchWhenFull: (enabled: boolean) => Promise<void>;
   setGoogleDriveConnected: (connected: boolean) => Promise<void>;
@@ -48,6 +52,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   notificationSound: true,
   notificationVibration: true,
   microphoneAccessEnabled: false,
+  hasCreatedFirstNotificationItem: false,
+  hasTappedMicrophoneBefore: false,
 
   // Hybrid Storage Defaults
   storageMode: 'cloud',
@@ -69,6 +75,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       const notifsSound = await SecureStore.getItemAsync('knovault_notif_sound');
       const notifsVibration = await SecureStore.getItemAsync('knovault_notif_vibration');
       const micEnabled = await SecureStore.getItemAsync('knovault_mic_enabled');
+      const hasCreatedFirstNotif = await SecureStore.getItemAsync('knovault_has_created_first_notif');
+      const hasTappedMic = await SecureStore.getItemAsync('knovault_has_tapped_mic');
 
       // Hybrid storage settings from SecureStore
       const mode = await SecureStore.getItemAsync('knovault_storage_mode') as SettingsState['storageMode'] || 'cloud';
@@ -88,6 +96,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         notificationSound: notifsSound !== 'false',
         notificationVibration: notifsVibration !== 'false',
         microphoneAccessEnabled: micEnabled === 'true', // Default to false
+        hasCreatedFirstNotificationItem: hasCreatedFirstNotif === 'true',
+        hasTappedMicrophoneBefore: hasTappedMic === 'true',
         storageMode: mode,
         autoSwitchWhenFull: autoSwitch,
         googleDriveConnected: gDriveConnected,
@@ -138,6 +148,24 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     } catch (e) {
       console.error('[SettingsStore] Failed to set microphone access', e);
       throw e;
+    }
+  },
+
+  setHasCreatedFirstNotificationItem: async (val: boolean) => {
+    try {
+      await SecureStore.setItemAsync('knovault_has_created_first_notif', val ? 'true' : 'false');
+      set({ hasCreatedFirstNotificationItem: val });
+    } catch (e) {
+      console.error('[SettingsStore] Failed to set hasCreatedFirstNotificationItem', e);
+    }
+  },
+
+  setHasTappedMicrophoneBefore: async (val: boolean) => {
+    try {
+      await SecureStore.setItemAsync('knovault_has_tapped_mic', val ? 'true' : 'false');
+      set({ hasTappedMicrophoneBefore: val });
+    } catch (e) {
+      console.error('[SettingsStore] Failed to set hasTappedMicrophoneBefore', e);
     }
   },
 

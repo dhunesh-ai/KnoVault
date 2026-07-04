@@ -39,8 +39,10 @@ import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from '../src/hooks/useTheme';
 import { getThemedShadow } from '../src/components/ThemedComponents';
 import { typography, spacing, borderRadius } from '../src/theme';
-import type { ProjectTaskCreate, ProjectTaskUpdate } from '../src/types/projects';
+import type { ProjectTaskCreate, ProjectTaskUpdate, SubTask } from '../src/types/projects';
 import { logNotificationToHistory } from '../src/store/notificationStore';
+import DateTimeField from '../components/DateTimeField';
+import { ProjectSubtasks } from '../src/components/ProjectSubtasks';
 
 export default function GoalsScreen() {
   const queryClient = useQueryClient();
@@ -105,7 +107,8 @@ export default function GoalsScreen() {
   const [newProjectTitle, setNewProjectTitle] = useState('');
   const [newProjectDesc, setNewProjectDesc] = useState('');
   const [newProjectPriority, setNewProjectPriority] = useState<string>('Medium');
-  const [newProjectDeadlineDays, setNewProjectDeadlineDays] = useState<number | null>(null); // null = No Deadline, 1 = Tomorrow, 3 = 3 days, 7 = 1 week
+  const [newProjectDeadline, setNewProjectDeadline] = useState<string | null>(null);
+  const [newProjectSubtasks, setNewProjectSubtasks] = useState<SubTask[]>([]);
   const [showAddProjectForm, setShowAddProjectForm] = useState(false);
 
   // Check if a new day has started on mount
@@ -293,7 +296,8 @@ export default function GoalsScreen() {
       setNewProjectTitle('');
       setNewProjectDesc('');
       setNewProjectPriority('Medium');
-      setNewProjectDeadlineDays(null);
+      setNewProjectDeadline(null);
+      setNewProjectSubtasks([]);
       setShowAddProjectForm(false);
       safeHaptic('success');
       queryClient.invalidateQueries({ queryKey: ['projects'] });
@@ -333,21 +337,14 @@ export default function GoalsScreen() {
       return;
     }
 
-    let deadlineIso: string | null = null;
-    if (newProjectDeadlineDays !== null) {
-      const d = new Date();
-      d.setDate(d.getDate() + newProjectDeadlineDays);
-      deadlineIso = d.toISOString();
-    }
-
     addProjectMutation.mutate({
       title: newProjectTitle.trim(),
       description: newProjectDesc.trim() || null,
       priority: newProjectPriority,
       status: 'Pending',
       progress: 0,
-      deadline: deadlineIso,
-      subtasks: [],
+      deadline: newProjectDeadline,
+      subtasks: newProjectSubtasks,
     });
   };
 
@@ -646,42 +643,43 @@ export default function GoalsScreen() {
                       ))}
                     </View>
 
-                    {/* Deadline Quick Select */}
+                    {/* Deadline Picker */}
                     <Text style={[styles.formLabel, { color: theme.textSecondary }]}>Deadline</Text>
-                    <View style={styles.prioRow}>
-                      {[
-                        { label: 'None', val: null },
-                        { label: 'Tomorrow', val: 1 },
-                        { label: '3 Days', val: 3 },
-                        { label: '1 Week', val: 7 },
-                      ].map((item) => (
-                        <TouchableOpacity
-                          key={item.label}
-                          style={[
-                            styles.prioBtn,
-                            { borderColor: theme.border },
-                            newProjectDeadlineDays === item.val && {
-                              backgroundColor: theme.primary + '15',
-                              borderColor: theme.primary,
-                            },
-                          ]}
-                          onPress={() => setNewProjectDeadlineDays(item.val)}
-                        >
-                          <Text
-                            style={[
-                              styles.prioBtnText,
-                              { color: theme.textSecondary },
-                              newProjectDeadlineDays === item.val && { color: theme.primary, fontWeight: '700' },
-                            ]}
-                          >
-                            {item.label}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
+                    <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', marginBottom: 6 }}>
+                      <View style={{ flex: 1 }}>
+                        <DateTimeField
+                          label="Select Date"
+                          mode="date"
+                          value={newProjectDeadline || undefined}
+                          onChange={(val) => setNewProjectDeadline(val)}
+                        />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <DateTimeField
+                          label="Select Time"
+                          mode="time"
+                          value={newProjectDeadline || undefined}
+                          onChange={(val) => setNewProjectDeadline(val)}
+                        />
+                      </View>
                     </View>
+                    {newProjectDeadline && (
+                      <TouchableOpacity
+                        style={{ alignSelf: 'flex-end', marginBottom: 15, marginTop: -4 }}
+                        onPress={() => setNewProjectDeadline(null)}
+                      >
+                        <Text style={{ fontSize: 12, color: '#EF4444', fontWeight: '700' }}>Clear Deadline</Text>
+                      </TouchableOpacity>
+                    )}
+
+                    {/* Subtasks Section */}
+                    <ProjectSubtasks
+                      subtasks={newProjectSubtasks}
+                      onChange={setNewProjectSubtasks}
+                    />
 
                     <TouchableOpacity
-                      style={[styles.submitProjectBtn, { backgroundColor: theme.primary }]}
+                      style={[styles.submitProjectBtn, { backgroundColor: theme.primary, marginTop: 10 }]}
                       onPress={handleAddProject}
                       disabled={addProjectMutation.isPending}
                     >

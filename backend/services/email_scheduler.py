@@ -1,126 +1,180 @@
 import asyncio
 import logging
 from zoneinfo import ZoneInfo
-from datetime import date, datetime, time, timezone
-from sqlalchemy import select, and_
+from datetime import date, datetime, time, timezone, timedelta
+from sqlalchemy import select, and_, delete
 from database.connection import async_session
-from models.important_day import ImportantDay
+from models.scheduled_email import ScheduledEmail
 from services.email import send_custom_email
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 logger = logging.getLogger("EmailScheduler")
 
-async def check_and_send_email_wishes():
+def calculate_next_send_datetime(
+    event_date: date, 
+    send_time_str: str, 
+    tz_name: str, 
+    is_recurring: bool,
+    schedule_for_tomorrow: bool = False
+) -> datetime | None:
+    tz_name = tz_name or "UTC"
+    try:
+        tz = ZoneInfo(tz_name)
+    except Exception:
+        tz = ZoneInfo("UTC")
+        
+    try:
+        h, m = map(int, (send_time_str or "09:00").split(':'))
+    except Exception:
+        h, m = 9, 0
+    
+    # Target date
+    target_date = event_date
+    if is_recurring:
+        current_year = datetime.now(tz).year
+        target_date = date(current_year, event_date.month, event_date.day)
+        
+    target_dt = datetime.combine(target_date, time(h, m))
+    localized_target = target_dt.replace(tzinfo=tz)
+    
+    # If the localized target is in the past, adjust accordingly
+    now_in_tz = datetime.now(tz)
+    if localized_target < now_in_tz:
+        if schedule_for_tomorrow:
+            tomorrow = now_in_tz + timedelta(days=1)
+            localized_target = datetime.combine(tomorrow.date(), time(h, m)).replace(tzinfo=tz)
+        elif is_recurring:
+            try:
+                target_date = date(target_date.year + 1, event_date.month, event_date.day)
+            except ValueError:
+                target_date = date(target_date.year + 1, event_date.month, event_date.day - 1)
+            target_dt = datetime.combine(target_date, time(h, m))
+            localized_target = target_dt.replace(tzinfo=tz)
+        else:
+            return None
+        
+    return localized_target
+
+async def process_email_sending(email_id: int):
+    # Verify status is exactly 'scheduled' on start and change to 'sending' to lock
+    async with async_session() as session:
+        email = await session.get(ScheduledEmail, email_id)
+        if not email:
+            return
+        if email.status != "scheduled":
+            logger.info(f"[Scheduler] Email id={email_id} current status is '{email.status}'. Aborting send.")
+            return
+            
+        email.status = "sending"
+        await session.commit()
+
+    for attempt in range(1, 4):
+        print("[Scheduler] Sending email...")
+        logger.info("[Scheduler] Sending email...")
+        
+        async with async_session() as session:
+            email = await session.get(ScheduledEmail, email_id)
+            if not email or email.status != "sending":
+                logger.info(f"[Scheduler] Email {email_id} has status '{email.status if email else 'None'}'. Aborting send.")
+                return
+                
+            success, error_msg = await send_custom_email(email.recipient_email, email.subject, email.body)
+            if success:
+                email.status = "sent"
+                email.sent_at = datetime.now(timezone.utc)
+                email.error_message = None
+                await session.commit()
+                print("[Scheduler] Email sent successfully.")
+                logger.info("[Scheduler] Email sent successfully.")
+                
+                # Automatically schedule next year's email if it's recurring
+                if email.important_day_id:
+                    from models.important_day import ImportantDay
+                    stmt = select(ImportantDay).where(ImportantDay.id == email.important_day_id)
+                    res = await session.execute(stmt)
+                    imp_day = res.scalar_one_or_none()
+                    if imp_day and imp_day.is_recurring and imp_day.auto_send_email and not imp_day.is_deleted:
+                        next_send = calculate_next_send_datetime(
+                            imp_day.date,
+                            imp_day.email_send_time,
+                            imp_day.timezone or "UTC",
+                            imp_day.is_recurring
+                        )
+                        if next_send is not None:
+                            next_email = ScheduledEmail(
+                                recipient_email=imp_day.recipient_email,
+                                subject=imp_day.email_subject or f"Happy {imp_day.type}!",
+                                body=imp_day.email_message or f"Best wishes on your {imp_day.type}!",
+                                send_datetime=next_send,
+                                timezone=imp_day.timezone or "UTC",
+                                status="scheduled",
+                                user_id=imp_day.user_id,
+                                important_day_id=imp_day.id
+                            )
+                            session.add(next_email)
+                            await session.commit()
+                            print(f"[Scheduler] Email scheduled for {next_send.strftime('%Y-%m-%d %H:%M')}")
+                            logger.info(f"[Scheduler] Email scheduled for {next_send.strftime('%Y-%m-%d %H:%M')}")
+                return
+            else:
+                email.retry_count = attempt
+                email.error_message = error_msg
+                if attempt < 3:
+                    await session.commit()
+                    backoff = 2 ** attempt
+                    logger.warning(f"[EmailScheduler] Attempt {attempt} failed for email {email_id}. Retrying in {backoff}s... Error: {error_msg}")
+                    await asyncio.sleep(backoff)
+                else:
+                    email.status = "failed"
+                    await session.commit()
+                    logger.error(f"[EmailScheduler] All 3 attempts failed for email {email_id}. Error: {error_msg}")
+
+async def send_pending_emails():
     """
-    Checks all ImportantDay entries in the database.
-    Sends auto-email wishes if enabled, scheduled for today, and not yet sent.
-    Evaluates timezone local time for scheduling accuracy.
+    Finds all emails where status = 'scheduled' and send_datetime <= current time,
+    and sends them concurrently.
     """
-    logger.info("[EMAIL SCHEDULER] Running check_and_send_email_wishes...")
+    print("[Scheduler] Running send_pending_emails job...")
+    logger.info("[Scheduler] Running send_pending_emails job...")
+    now = datetime.now(timezone.utc)
     
     async with async_session() as session:
         try:
-            # Query all active important days with auto send enabled
-            stmt = select(ImportantDay).where(
+            stmt = select(ScheduledEmail).where(
                 and_(
-                    ImportantDay.auto_send_email == True,
-                    ImportantDay.is_deleted == False
+                    ScheduledEmail.status == "scheduled",
+                    ScheduledEmail.send_datetime <= now
                 )
             )
             res = await session.execute(stmt)
-            important_days = res.scalars().all()
+            pending_emails = res.scalars().all()
             
-            processed_any = False
-            for item in important_days:
-                tz_name = item.timezone or "UTC"
-                try:
-                    tz = ZoneInfo(tz_name)
-                except Exception:
-                    tz = ZoneInfo("UTC")
+            if not pending_emails:
+                return
                 
-                # Get the current datetime in the item's local timezone
-                local_now = datetime.now(tz)
-                local_date = local_now.date()
-                local_time = local_now.time()
-                current_year = local_date.year
+            for email in pending_emails:
+                print(f"[Scheduler] Found scheduled email id={email.id}")
+                logger.info(f"[Scheduler] Found scheduled email id={email.id}")
                 
-                # 0. Handle recurring event year transition:
-                # If recurring and last_sent_year is less than the current local year, reset status to PENDING and retry count to 0.
-                if item.is_recurring:
-                    if item.last_sent_year is not None and item.last_sent_year < current_year:
-                        item.email_status = "PENDING"
-                        item.email_retry_count = 0
-                        
-                # 1. Check if email already sent successfully or failed all retries
-                if item.email_status == "SENT":
-                    continue
-                if item.email_retry_count >= 3:
-                    continue
-                    
-                # 2. Date matching (relative to localized date)
-                date_matches = False
-                if item.is_recurring:
-                    if item.date.month == local_date.month and item.date.day == local_date.day:
-                        date_matches = True
-                else:
-                    if item.date == local_date:
-                        date_matches = True
+            # Spawn processing tasks
+            for email in pending_emails:
+                asyncio.create_task(process_email_sending(email.id))
                 
-                if not date_matches:
-                    continue
-                    
-                # 3. Time matching (email_send_time e.g., "09:00")
-                send_time_str = item.email_send_time or "09:00"
-                try:
-                    h, m = map(int, send_time_str.split(':'))
-                    target_time = time(h, m)
-                except Exception:
-                    target_time = time(9, 0)
-                    
-                if local_time < target_time:
-                    continue
-                    
-                # 4. Recipient email present
-                if not item.recipient_email:
-                    logger.warning(f"[EMAIL SCHEDULER] ImportantDay {item.id} has auto_send_email enabled but no recipient_email.")
-                    continue
-                    
-                # We are attempting to send this email now.
-                # Increment retry count first, mark as FAILED by default until it succeeds.
-                item.email_retry_count += 1
-                logger.info(f"[EMAIL SCHEDULER] Attempting to send auto email to {item.recipient_email} for event '{item.title}' (Attempt {item.email_retry_count}/3)...")
-                
-                subject = item.email_subject or f"Happy {item.type}!"
-                message = item.email_message or f"Best wishes on your {item.type}!"
-                
-                success, error_msg = await send_custom_email(item.recipient_email, subject, message)
-                if success:
-                    item.email_status = "SENT"
-                    item.last_email_sent_at = local_now
-                    item.last_sent_year = current_year
-                    logger.info(f"[EMAIL SCHEDULER] Successfully sent email to {item.recipient_email} on attempt {item.email_retry_count}.")
-                else:
-                    item.email_status = "FAILED"
-                    logger.error(f"[EMAIL SCHEDULER] Failed to send email to {item.recipient_email} on attempt {item.email_retry_count}. Reason: {error_msg}")
-                    
-                processed_any = True
-                # Commit immediately per item to prevent duplicate attempts if the loop crashes or runs in parallel
-                await session.commit()
-                
-            if not processed_any:
-                logger.info("[EMAIL SCHEDULER] No pending email wishes to send.")
         except Exception as e:
-            logger.error(f"[EMAIL SCHEDULER] Error during execution: {e}", exc_info=True)
-
+            logger.error(f"[EmailScheduler] Error in send_pending_emails job: {e}", exc_info=True)
 
 async def auto_email_wishes_scheduler():
     """
-    Infinite loop running check_and_send_email_wishes every 60 seconds.
+    Runs send_pending_emails every minute using AsyncIOScheduler.
     """
-    logger.info("[EMAIL SCHEDULER] Starting background scheduler loop...")
-    while True:
-        try:
-            await check_and_send_email_wishes()
-        except Exception as e:
-            logger.error(f"[EMAIL SCHEDULER] Loop iteration error: {e}", exc_info=True)
-        # Sleep for 60 seconds before next run
-        await asyncio.sleep(60)
+    logger.info("[EmailScheduler] Starting background scheduler loop using APScheduler...")
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(send_pending_emails, 'interval', minutes=1, id='send_pending_emails_job')
+    scheduler.start()
+    
+    try:
+        while True:
+            await asyncio.sleep(3600)
+    except asyncio.CancelledError:
+        logger.info("[EmailScheduler] Stopping background scheduler loop...")
+        scheduler.shutdown()

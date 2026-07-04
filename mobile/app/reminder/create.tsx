@@ -33,6 +33,7 @@ import { typography, borderRadius } from '../../src/theme';
 import { getLocalDateString, formatTimeStringTo12Hour } from '../../src/utils/date';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
 import ScreenContainer from '../../src/components/ScreenContainer';
+import { handlePostSaveNotificationPermission } from '../../src/utils/permissionHandler';
 
 const { width } = Dimensions.get('window');
 
@@ -342,7 +343,9 @@ export default function CreateReminderScreen() {
       await queryClient.invalidateQueries({ queryKey: ['upcoming-reminders'] });
       await queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
       await queryClient.invalidateQueries({ queryKey: ['reminders'] });
-      router.back();
+      await handlePostSaveNotificationPermission(() => {
+        router.back();
+      });
     },
     onError: (error) => {
       console.error('[SAVE-REMINDER] Error:', error);

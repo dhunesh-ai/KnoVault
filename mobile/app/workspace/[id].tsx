@@ -48,6 +48,7 @@ import {
   WorkspaceInvite,
 } from '../../src/api/workspaces';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
+import { handlePostSaveNotificationPermission } from '../../src/utils/permissionHandler';
 import DateTimeField from '../../components/DateTimeField';
 import * as Haptics from 'expo-haptics';
 
@@ -1076,6 +1077,7 @@ export default function WorkspaceDetailScreen() {
       if (newEvent && workspace) {
         scheduleWorkspaceEventNotifications(newEvent, workspace.name).catch(console.error);
       }
+      handlePostSaveNotificationPermission(() => {});
     }
   });
 
@@ -1454,6 +1456,7 @@ export default function WorkspaceDetailScreen() {
       if (newMeeting && workspace) {
         scheduleWorkspaceMeetingNotifications(newMeeting, workspace.name).catch(console.error);
       }
+      handlePostSaveNotificationPermission(() => {});
     }
   });
 

@@ -15,6 +15,7 @@ from models.workspace import (
 from models.notification import Notification
 from models.secure_note_security import SecureNoteSecurity
 from models.support import BugReport, FeatureSuggestion
+from models.scheduled_email import ScheduledEmail
 
 __all__ = [
     "User", "Note", "ChecklistItem", "FieldNote", "VoiceNote",
@@ -22,7 +23,7 @@ __all__ = [
     "Workspace", "WorkspaceMember", "WorkspaceNote", "WorkspaceTask", "WorkspaceGoal",
     "WorkspaceDiscussion", "WorkspaceKnowledge", "WorkspaceMeeting", "WorkspaceIdea",
     "WorkspaceActivity", "WorkspaceAnalytics", "WorkspaceEvent", "WorkspaceInvite",
-    "Notification", "SecureNoteSecurity", "BugReport", "FeatureSuggestion"
+    "Notification", "SecureNoteSecurity", "BugReport", "FeatureSuggestion", "ScheduledEmail"
 ]
 
 

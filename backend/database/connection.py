@@ -169,7 +169,7 @@ def run_migrations(connection):
 async def init_db():
     print("[DB] Connecting to Neon PostgreSQL...")
     async with engine.begin() as conn:
-        from models import user, note, goal, daily_goal, project_task, reminder, important_day, ai_chat, otp, workspace, notification, secure_note_security, support  # noqa
+        from models import user, note, goal, daily_goal, project_task, reminder, important_day, ai_chat, otp, workspace, notification, secure_note_security, support, scheduled_email  # noqa
         await conn.run_sync(run_migrations)
         await conn.run_sync(Base.metadata.create_all)
     print("[DB] All tables created / verified on Neon PostgreSQL")

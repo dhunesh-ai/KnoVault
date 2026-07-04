@@ -36,6 +36,8 @@ class ImportantDayCreate(BaseModel):
     reminder_unit: str | None = None
     reminder_time: str | None = None
     notification_ids: str | None = None
+    schedule_for_tomorrow: bool = False
+
     @model_validator(mode='before')
     @classmethod
     def handle_legacy_fields(cls, data: Any) -> Any:
@@ -79,6 +81,7 @@ class ImportantDayUpdate(BaseModel):
     reminder_unit: str | None = None
     reminder_time: str | None = None
     notification_ids: str | None = None
+    schedule_for_tomorrow: bool | None = False
     @model_validator(mode='before')
     @classmethod
     def handle_legacy_fields(cls, data: Any) -> Any:

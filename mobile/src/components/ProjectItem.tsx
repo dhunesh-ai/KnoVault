@@ -21,6 +21,7 @@ import { useSettingsStore } from '../store/settingsStore';
 import { getThemedShadow } from './ThemedComponents';
 import { typography, spacing, borderRadius } from '../theme';
 import { ProjectTask, SubTask } from '../types/projects';
+import { ProjectSubtasks } from './ProjectSubtasks';
 
 // Enable LayoutAnimation for Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -36,7 +37,6 @@ interface ProjectItemProps {
 export const ProjectItem: React.FC<ProjectItemProps> = ({ project, onUpdate, onDelete }) => {
   const { colors, theme, isDark } = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(project.title);
   const [editedDesc, setEditedDesc] = useState(project.description || '');
@@ -67,44 +67,6 @@ export const ProjectItem: React.FC<ProjectItemProps> = ({ project, onUpdate, onD
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     }
     setIsExpanded(!isExpanded);
-  };
-
-  const handleSubtaskToggle = (subtaskId: string | number) => {
-    const updatedSubtasks = (project.subtasks || []).map((st) => {
-      if (st.id === subtaskId) {
-        const nextCompleted = !st.completed;
-        if (nextCompleted) {
-          safeHaptic('success');
-        } else {
-          safeHaptic('light');
-        }
-        return { ...st, completed: nextCompleted };
-      }
-      return st;
-    });
-
-    onUpdate(project.id, { subtasks: updatedSubtasks });
-  };
-
-  const handleAddSubtask = () => {
-    if (!newSubtaskTitle.trim()) return;
-
-    const newSub: SubTask = {
-      id: Date.now().toString(),
-      title: newSubtaskTitle.trim(),
-      completed: false,
-    };
-
-    const updatedSubtasks = [...(project.subtasks || []), newSub];
-    onUpdate(project.id, { subtasks: updatedSubtasks });
-    setNewSubtaskTitle('');
-    safeHaptic('medium');
-  };
-
-  const handleSubtaskDelete = (subtaskId: string | number) => {
-    const updatedSubtasks = (project.subtasks || []).filter((st) => st.id !== subtaskId);
-    onUpdate(project.id, { subtasks: updatedSubtasks });
-    safeHaptic('light');
   };
 
   const handleSaveInfo = () => {
@@ -305,59 +267,12 @@ export const ProjectItem: React.FC<ProjectItemProps> = ({ project, onUpdate, onD
           </View>
 
           {/* Subtasks */}
-          <View style={styles.subtasksSection}>
-            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-              Subtasks ({project.subtasks?.length || 0})
-            </Text>
-
-            {project.subtasks && project.subtasks.map((st) => (
-              <View key={st.id} style={styles.subtaskItem}>
-                <TouchableOpacity
-                  style={styles.subtaskCheck}
-                  onPress={() => handleSubtaskToggle(st.id)}
-                >
-                  <Ionicons
-                    name={st.completed ? 'checkbox' : 'square-outline'}
-                    size={20}
-                    color={st.completed ? theme.primary : theme.textSecondary}
-                  />
-                </TouchableOpacity>
-                <Text
-                  style={[
-                    styles.subtaskTitle,
-                    { color: theme.text },
-                    st.completed && styles.completedText,
-                  ]}
-                >
-                  {st.title}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => handleSubtaskDelete(st.id)}
-                  style={styles.subtaskDelete}
-                >
-                  <Ionicons name="trash-outline" size={16} color="#EF4444" />
-                </TouchableOpacity>
-              </View>
-            ))}
-
-            {/* Quick Add Subtask */}
-            <View style={[styles.addSubtaskContainer, { borderColor: theme.border }]}>
-              <TextInput
-                style={[styles.addSubtaskInput, { color: theme.text }]}
-                placeholder="Add subtask..."
-                placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
-                value={newSubtaskTitle}
-                onChangeText={setNewSubtaskTitle}
-                onSubmitEditing={handleAddSubtask}
-              />
-              <TouchableOpacity
-                onPress={handleAddSubtask}
-                style={[styles.addSubtaskBtn, { backgroundColor: theme.primary }]}
-              >
-                <Ionicons name="add" size={20} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-          </View>
+          <ProjectSubtasks
+            subtasks={project.subtasks || []}
+            onChange={(updatedSubtasks) => {
+              onUpdate(project.id, { subtasks: updatedSubtasks });
+            }}
+          />
 
           {/* Project Control Selectors */}
           <View style={styles.controlRow}>

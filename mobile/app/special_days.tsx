@@ -178,7 +178,9 @@ export default function SpecialDaysScreen() {
           <Ionicons name="chevron-back" size={24} color={theme.text} />
         </TouchableOpacity>
         <Text style={ds.headerTitle}>✨ Special Days</Text>
-        <View style={{ width: 44 }} />
+        <TouchableOpacity onPress={() => router.push('/special_days/scheduled_emails')} style={ds.iconBtn}>
+          <Ionicons name="mail-outline" size={24} color={theme.text} />
+        </TouchableOpacity>
       </View>
 
       {/* horizontal filter bar */}

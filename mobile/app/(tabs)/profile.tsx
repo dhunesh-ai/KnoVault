@@ -4,7 +4,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Switch, Modal, TextInput, ActivityIndicator, Platform,
   BackHandler, TouchableWithoutFeedback, Dimensions, Linking, Alert, Share,
-  DeviceEventEmitter
+  DeviceEventEmitter, AppState
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -116,12 +116,62 @@ export default function ProfileScreen() {
   const [passcodeStep, setPasscodeStep] = useState(1);
   const [passcodeInput, setPasscodeInput] = useState('');
   
-  // Custom Toast State
   const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'error' | 'info' }>({
     visible: false,
     message: '',
     type: 'success',
   });
+
+  const [notificationPermissionGranted, setNotificationPermissionGranted] = useState(false);
+  const [microphonePermissionGranted, setMicrophonePermissionGranted] = useState(false);
+  const [micPermissionDetails, setMicPermissionDetails] = useState<{ status: string; canAskAgain: boolean | null }>({
+    status: 'undetermined',
+    canAskAgain: true,
+  });
+
+  const checkPermissions = async () => {
+    try {
+      const Notifications = require('expo-notifications');
+      const notifPerm = await Notifications.getPermissionsAsync();
+      setNotificationPermissionGranted(notifPerm.status === 'granted');
+      
+      const micPerm = await ExpoSpeechRecognitionModule.getPermissionsAsync();
+      const isGranted = !!(micPerm.granted || micPerm.status === 'granted');
+      setMicrophonePermissionGranted(isGranted);
+      setMicPermissionDetails({
+        status: micPerm.status || 'undetermined',
+        canAskAgain: micPerm.canAskAgain !== undefined ? micPerm.canAskAgain : true
+      });
+
+      // Keep toggle state in sync with OS permission status
+      const storeState = useSettingsStore.getState();
+      if (isGranted && !storeState.microphoneAccessEnabled) {
+        await storeState.setMicrophoneAccessEnabled(true);
+      } else if (!isGranted && storeState.microphoneAccessEnabled) {
+        await storeState.setMicrophoneAccessEnabled(false);
+      }
+    } catch (e) {
+      console.warn('[ProfileScreen] checkPermissions error:', e);
+    }
+  };
+
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === 'active') {
+        checkPermissions();
+      }
+    };
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      checkPermissions();
+    }, [])
+  );
 
   // Secure Notes Security states using React Query
   const { data: snStatus, refetch: refetchSnStatus } = useQuery<SecureNotesStatus>({
@@ -1043,29 +1093,44 @@ export default function ProfileScreen() {
   };
 
   // Microphone toggle
-  const handleMicrophoneToggle = async (val: boolean) => {
+  const handleMicrophoneToggle = async () => {
     triggerHaptic();
-    if (val) {
-      try {
-        const isAvailable = ExpoSpeechRecognitionModule.isRecognitionAvailable();
-        if (!isAvailable) {
-          showToast('Speech recognition not available on this device', 'error');
-          return;
-        }
-        const permission = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-        if (permission.granted) {
-          await setMicrophoneAccessEnabled(true);
-          showToast('Microphone access granted', 'success');
-        } else {
-          showToast('Microphone permission denied', 'error');
-        }
-      } catch (e) {
-        showToast('Failed to request microphone permission', 'error');
-      }
+    const micPerm = await ExpoSpeechRecognitionModule.getPermissionsAsync();
+    const isGranted = !!(micPerm.granted || micPerm.status === 'granted');
+    
+    if (isGranted) {
+      // Toggle store configuration
+      const targetState = !microphoneAccessEnabled;
+      await setMicrophoneAccessEnabled(targetState);
+      showToast(targetState ? 'Microphone access enabled' : 'Microphone access disabled', 'info');
     } else {
-      await setMicrophoneAccessEnabled(false);
-      showToast('Microphone access disabled', 'info');
+      // If permanently denied, prompt user to go to settings
+      const isPermanentlyDenied = micPerm.status === 'denied' && micPerm.canAskAgain === false;
+      if (isPermanentlyDenied) {
+        showToast('Please enable microphone access in settings', 'info');
+        Linking.openSettings();
+      } else {
+        // Request the permission
+        try {
+          const isAvailable = ExpoSpeechRecognitionModule.isRecognitionAvailable();
+          if (!isAvailable) {
+            showToast('Speech recognition not available on this device', 'error');
+            return;
+          }
+          const req = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+          if (req.granted || req.status === 'granted') {
+            await setMicrophoneAccessEnabled(true);
+            showToast('Microphone access enabled', 'success');
+          } else {
+            await setMicrophoneAccessEnabled(false);
+            showToast('Microphone permission denied', 'error');
+          }
+        } catch (e) {
+          showToast('Failed to request microphone permission', 'error');
+        }
+      }
     }
+    await checkPermissions();
   };
 
   const handleContactSupport = () => {
@@ -1278,9 +1343,11 @@ export default function ProfileScreen() {
             />
           </View>
 
-          <View 
+          <TouchableOpacity 
+            activeOpacity={0.95}
+            onPress={handleMicrophoneToggle}
             style={[
-              dynamicStyles.menuItem,
+              dynamicStyles.menuItemCol,
               shouldHighlightMic && {
                 borderColor: accentColor || '#7C4DFF',
                 borderWidth: 1.5,
@@ -1296,21 +1363,78 @@ export default function ProfileScreen() {
               micItemYRef.current = e.nativeEvent.layout.y;
             }}
           >
-            <View style={[dynamicStyles.iconBox, { backgroundColor: '#EF444415' }]}>
-              <Ionicons name="mic-outline" size={20} color="#EF4444" />
+            <View style={dynamicStyles.menuItemRow}>
+              <View style={[dynamicStyles.iconBox, { backgroundColor: '#EF444415' }]}>
+                <Ionicons name="mic-outline" size={20} color="#EF4444" />
+              </View>
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={dynamicStyles.menuText}>Microphone Access</Text>
+                <Text style={[typography.caption, { color: theme.textSecondary }]}>Required for Voice Notes, STT, and AI Assistant</Text>
+                <Text style={[
+                  typography.caption, 
+                  { 
+                    color: microphonePermissionGranted ? '#10B981' : '#EF4444', 
+                    marginTop: 2, 
+                    fontWeight: '600' 
+                  }
+                ]}>
+                  Permission: {microphonePermissionGranted ? 'Enabled' : 'Disabled'}
+                </Text>
+              </View>
+              <Switch
+                value={microphoneAccessEnabled}
+                onValueChange={handleMicrophoneToggle}
+                trackColor={{ false: theme.border, true: accentColor }}
+                thumbColor="#FFFFFF"
+              />
             </View>
-            <View style={{ flex: 1, marginLeft: 10 }}>
-              <Text style={dynamicStyles.menuText}>Microphone Access</Text>
-              <Text style={[typography.caption, { color: theme.textSecondary }]}>Required for Voice Notes and Speech-to-Text</Text>
-              <Text style={[typography.caption, { color: theme.textSecondary, marginTop: 2, fontWeight: '600' }]}>{microphoneAccessEnabled ? 'Enabled' : 'Disabled'}</Text>
-            </View>
-            <Switch
-              value={microphoneAccessEnabled}
-              onValueChange={handleMicrophoneToggle}
-              trackColor={{ false: theme.border, true: accentColor }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
+
+            {/* Expandable Permission Panel */}
+            {!microphonePermissionGranted && (
+              <Animated.View entering={getFadeInDown(0, 300)} style={dynamicStyles.permPanel}>
+                {micPermissionDetails.status === 'denied' && micPermissionDetails.canAskAgain === false ? (
+                  // Permanently Denied State
+                  <View style={[dynamicStyles.permBanner, { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.06)' }]}>
+                    <Ionicons name="warning-outline" size={18} color="#EF4444" style={{ marginRight: 8, marginTop: 2 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[dynamicStyles.permBannerTitle, { color: '#EF4444' }]}>Permission Permanently Disabled</Text>
+                      <Text style={[dynamicStyles.permBannerText, { color: theme.textSecondary }]}>
+                        Microphone access has been disabled in your device settings. Enable it to use voice features.
+                      </Text>
+                      <TouchableOpacity 
+                        style={[dynamicStyles.permButton, { backgroundColor: accentColor }]}
+                        onPress={() => {
+                          triggerHaptic();
+                          Linking.openSettings();
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={dynamicStyles.permButtonText}>Open App Settings</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : (
+                  // Denied / Undetermined State
+                  <View style={[dynamicStyles.permBanner, { backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : 'rgba(245, 158, 11, 0.06)' }]}>
+                    <Ionicons name="information-circle-outline" size={18} color="#F59E0B" style={{ marginRight: 8, marginTop: 2 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[dynamicStyles.permBannerTitle, { color: '#F59E0B' }]}>Permission: Disabled</Text>
+                      <Text style={[dynamicStyles.permBannerText, { color: theme.textSecondary }]}>
+                        Microphone access is required for Voice Notes, Speech-to-Text, and AI Voice Assistant.
+                      </Text>
+                      <TouchableOpacity 
+                        style={[dynamicStyles.permButton, { backgroundColor: accentColor }]}
+                        onPress={handleMicrophoneToggle}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={dynamicStyles.permButtonText}>Grant Permission</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+              </Animated.View>
+            )}
+          </TouchableOpacity>
         </View>
 
         {/* ── NOTIFICATION CENTER ──────────────────────────────────── */}
@@ -1326,11 +1450,14 @@ export default function ProfileScreen() {
               <View style={[dynamicStyles.iconBox, { backgroundColor: '#F59E0B15' }]}>
                 <Ionicons name="notifications-outline" size={20} color="#F59E0B" />
               </View>
-              <Text style={[dynamicStyles.menuText, { marginLeft: 10, flex: 1 }]}>Master Notifications</Text>
+              <View style={{ flex: 1, marginLeft: 10 }}>
+                <Text style={dynamicStyles.menuText}>Master Notifications</Text>
+                <Text style={[typography.caption, { color: notificationPermissionGranted ? '#10B981' : '#EF4444', marginTop: 2, fontWeight: '600' }]}>Permission: {notificationPermissionGranted ? 'Enabled' : 'Disabled'}</Text>
+              </View>
               
               <Switch
                 value={notificationsEnabled}
-                onValueChange={(val) => { triggerHaptic(); toggleNotificationSetting('notificationsEnabled', 'knovault_notifications', val); }}
+                onValueChange={async (val) => { triggerHaptic(); await toggleNotificationSetting('notificationsEnabled', 'knovault_notifications', val); await checkPermissions(); }}
                 trackColor={{ false: theme.border, true: accentColor }}
                 thumbColor="#FFFFFF"
                 style={{ marginRight: 15 }}
@@ -3573,6 +3700,40 @@ const styles = (theme: any, isDark: boolean, colors: any, accentColor: string) =
     iconBox: { width: 42, height: 42, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
     menuText: { flex: 1, ...typography.bodyMedium, color: theme.text, fontWeight: '700' },
     menuValue: { ...typography.bodySmall, color: theme.textSecondary, marginRight: 8, fontWeight: '600' },
+    permPanel: {
+      marginTop: 12,
+      width: '100%',
+    },
+    permBanner: {
+      borderRadius: 12,
+      padding: 12,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+    },
+    permBannerTitle: {
+      ...typography.titleSmall,
+      fontWeight: '700',
+      fontSize: 13,
+      marginBottom: 4,
+    },
+    permBannerText: {
+      ...typography.bodySmall,
+      fontSize: 12,
+      lineHeight: 16,
+      marginBottom: 10,
+    },
+    permButton: {
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      alignSelf: 'flex-start',
+    },
+    permButtonText: {
+      ...typography.caption,
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+      fontSize: 11,
+    },
 
     // Security health status box
     securityHealthBox: {

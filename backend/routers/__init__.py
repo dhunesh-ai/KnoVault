@@ -13,6 +13,7 @@ from routers.files import router as files_router
 from routers.calendar_notes import router as calendar_notes_router
 from routers.workspaces import router as workspaces_router
 from routers.secure_notes import router as secure_notes_router
+from routers.scheduled_emails import router as scheduled_emails_router
 
 from routers.sync import router as sync_router
 
@@ -24,6 +25,6 @@ __all__ = [
     "reminders_router", "birthdays_router", "special_days_router", "important_days_router",
     "ai_chat_router", "profile_router", "backup_router", "calendar_router",
     "notifications_router", "sync_router", "files_router", "calendar_notes_router",
-    "workspaces_router", "secure_notes_router"
+    "workspaces_router", "secure_notes_router", "scheduled_emails_router"
 ]
 

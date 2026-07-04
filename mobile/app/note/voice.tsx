@@ -18,6 +18,7 @@ import { notesApi } from '../../src/api/notes';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useSettingsStore } from '../../src/store/settingsStore';
 import { showMicAccessDisabledAlert } from '../../src/utils/micAccessAlert';
+import { handleMicrophonePermission } from '../../src/utils/permissionHandler';
 import { typography, spacing, borderRadius } from '../../src/theme';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
 
@@ -112,9 +113,8 @@ export default function VoiceNoteScreen() {
         setIsPaused(false);
         await ExpoSpeechRecognitionModule.stop();
       } else {
-        const permission = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-        if (!permission.granted) {
-          Alert.alert("Permission Denied", "Microphone access is required for voice notes.");
+        const granted = await handleMicrophonePermission();
+        if (!granted) {
           return;
         }
 

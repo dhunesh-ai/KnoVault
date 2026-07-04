@@ -15,45 +15,86 @@ const { width } = Dimensions.get('window');
 const SLIDES: OnboardingSlideData[] = [
   {
     id: '1',
-    title: 'Welcome to Your Second Brain',
-    subtitle: 'Capture ideas, organize knowledge, and never forget important moments.',
-    content: 'Welcome to KnoVault, the ultimate productivity hub designed to keep your life structured.',
-    highlights: ['• Smart Notes', '• Reminders', '• Secure Storage', '• Offline First'],
-    showMascot: true,
+    title: 'Welcome to Your',
+    titleAccent: 'Second Brain',
+    content: 'Capture ideas, organize knowledge, and never forget important moments.',
+    image: require('../assets/kovi.jpg'),
+    layout: 'grid',
+    features: [
+      { icon: 'document-text-outline', label: 'Smart Notes' },
+      { icon: 'notifications-outline', label: 'Reminders' },
+      { icon: 'shield-half-outline', label: 'Secure Storage' },
+      { icon: 'cloud-offline-outline', label: 'Offline First' },
+    ],
   },
   {
     id: '2',
-    title: 'Store What Matters',
+    title: 'Store',
+    titleAccent: 'What Matters',
     content: 'Create notes, reminders, birthdays, anniversaries, and goals in one beautiful workspace.',
-    highlights: ['📒 Notes', '⏰ Reminders', '🎂 Special Days', '🎯 Goals'],
-    showMascot: true,
+    image: require('../assets/onboarding_store.png'),
+    layout: 'grid',
+    features: [
+      { icon: 'book-outline', label: 'Notes' },
+      { icon: 'alarm-outline', label: 'Reminders' },
+      { icon: 'calendar-outline', label: 'Special Days' },
+      { icon: 'trophy-outline', label: 'Goals' },
+    ],
   },
   {
     id: '3',
-    title: 'Find Everything Instantly',
+    title: 'Find Everything',
+    titleAccent: 'Instantly',
     content: 'Organize your knowledge using categories, search, favorites, and smart organization tools.',
-    highlights: ['📁 Categories', '⭐ Favorites', '🔍 Search', '🗂 Organization'],
-    showMascot: true,
+    image: require('../assets/onboarding_find.png'),
+    layout: 'grid',
+    features: [
+      { icon: 'folder-open-outline', label: 'Categories' },
+      { icon: 'star-outline', label: 'Favorites' },
+      { icon: 'search-outline', label: 'Search' },
+      { icon: 'layers-outline', label: 'Organization' },
+    ],
   },
   {
     id: '4',
-    title: 'Your Data. Your Control.',
+    title: 'Your Data.',
+    titleAccent: 'Your Control.',
     content: 'Your information stays secure with passcode protection, encrypted storage, and cloud backup support.',
-    highlights: ['🔐 Passcode Lock', '☁ Cloud Storage', '📱 Offline Access', '🛡 Privacy First'],
-    showMascot: true,
+    image: require('../assets/onboarding_security.png'),
+    layout: 'grid',
+    features: [
+      { icon: 'key-outline', label: 'Passcode Lock' },
+      { icon: 'cloud-done-outline', label: 'Cloud Storage' },
+      { icon: 'phone-portrait-outline', label: 'Offline Access' },
+      { icon: 'lock-closed-outline', label: 'Privacy First' },
+    ],
   },
   {
     id: '5',
-    title: 'Meet Kovi',
+    title: 'Meet',
+    titleAccent: 'Kovi',
     content: 'Kovi helps you build a trusted second brain where your notes, memories, plans, and ideas stay safe and organized.',
-    showMascot: true,
+    image: require('../assets/kovi.jpg'),
+    layout: 'list',
+    features: [
+      { icon: 'help-buoy-outline', label: 'Smart Assistant', subtext: 'Always here to help you.' },
+      { icon: 'heart-outline', label: 'Understands You', subtext: 'Learns and adapts to your needs.' },
+      { icon: 'flash-outline', label: 'Works With You', subtext: 'Boosts your productivity every day.' },
+    ],
   },
   {
     id: '6',
-    title: "Let's Build Something Amazing",
+    title: "Let's Build",
+    titleAccent: 'Something Amazing',
     content: 'Start your productivity journey with KnoVault today.',
-    showMascot: true,
-  }
+    image: require('../assets/onboarding_kovi_flag.png'),
+    layout: 'list',
+    features: [
+      { icon: 'apps-outline', label: 'All-in-One Workspace', subtext: 'Everything you need, in one place.' },
+      { icon: 'trending-up-outline', label: 'Built for Productivity', subtext: 'Focus more, accomplish more.' },
+      { icon: 'person-outline', label: 'Made for You', subtext: 'Personal, private, and powerful.' },
+    ],
+  },
 ];
 
 export default function OnboardingScreen() {
@@ -134,10 +175,10 @@ export default function OnboardingScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <LinearGradient
-        colors={isDark ? ['#1e1b4b', theme.background] : ['#EDE9FE', theme.background]}
+        colors={isDark ? ['#1A1230', '#120C1F', theme.background] : ['#E0D7FF', '#FAF9FF', '#FFFFFF']}
         style={StyleSheet.absoluteFill}
         start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 0.5 }}
+        end={{ x: 0.5, y: 1 }}
       />
       
       {/* Skip Button */}
@@ -167,27 +208,34 @@ export default function OnboardingScreen() {
 
       {/* Bottom Controls */}
       <View style={styles.bottomContainer}>
-        {renderPagination()}
-        
-        <View style={styles.actionContainer}>
-          {isLastSlide ? (
-            <Animated.View entering={getFadeIn(0, 300)} style={{ width: '100%' }}>
+        {isLastSlide ? (
+          <View style={{ width: '100%', alignItems: 'center' }}>
+            {renderPagination()}
+            <Animated.View entering={getFadeIn(0, 300)} style={{ width: '100%', marginTop: 10 }}>
               <TouchableOpacity 
                 style={[styles.getStartedButton, { backgroundColor: theme.primary }]} 
                 onPress={handleGetStarted}
               >
-                <Text style={styles.getStartedText}>Get Started</Text>
+                <View style={styles.getStartedContent}>
+                  <Text style={styles.getStartedText}>Get Started</Text>
+                  <Ionicons name="arrow-forward" size={20} color="#FFF" style={{ marginLeft: 8 }} />
+                </View>
               </TouchableOpacity>
             </Animated.View>
-          ) : (
+          </View>
+        ) : (
+          <View style={styles.controlsRow}>
+            {/* Left Spacer to balance the nextButton on the right, keeping dots centered */}
+            <View style={styles.spacer} />
+            {renderPagination()}
             <TouchableOpacity 
               style={[styles.nextButton, { backgroundColor: theme.primary }]} 
               onPress={scrollToNext}
             >
               <Ionicons name="arrow-forward" size={24} color="#FFF" />
             </TouchableOpacity>
-          )}
-        </View>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -214,31 +262,33 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 50,
     width: '100%',
-    paddingHorizontal: 30,
+    paddingHorizontal: 24,
     alignItems: 'center',
+  },
+  controlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  spacer: {
+    width: 56, // Equal to nextButton width to perfectly center the dots
   },
   paginationContainer: {
     flexDirection: 'row',
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
   },
   dot: {
     height: 8,
     borderRadius: 4,
     marginHorizontal: 4,
   },
-  actionContainer: {
-    width: '100%',
-    alignItems: 'flex-end',
-    minHeight: 60,
-    justifyContent: 'center',
-  },
   nextButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#7C4DFF',
@@ -249,8 +299,8 @@ const styles = StyleSheet.create({
   },
   getStartedButton: {
     width: '100%',
-    paddingVertical: 18,
-    borderRadius: 30,
+    paddingVertical: 16,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#7C4DFF',
@@ -259,9 +309,13 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5,
   },
+  getStartedContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   getStartedText: {
     color: '#FFF',
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 'bold',
   }
 });

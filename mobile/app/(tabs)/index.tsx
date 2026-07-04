@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   Pressable,
   Modal,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -43,6 +44,7 @@ import { FeatureCard } from '../../src/components/FeatureCard';
 import { SectionHeader } from '../../src/components/SectionHeader';
 import { formatLocalTime, getLocalDateString } from '../../src/utils/date';
 import { calendarApi } from '../../src/api/calendar';
+import { useSettingsStore } from '../../src/store/settingsStore';
 import { SecurityOverlay } from '../../src/components/SecurityOverlay';
 import { useNotificationStore, logNotificationToHistory } from '../../src/store/notificationStore';
 import * as Haptics from 'expo-haptics';
@@ -83,6 +85,8 @@ export default function HomeScreen() {
   const { user } = useAuthStore();
   const { colors, theme, isDark, setMode } = useTheme();
   const { setSwipeEnabled } = useSwipe();
+  
+  const { notificationsEnabled } = useSettingsStore();
   
   const [securityVisible, setSecurityVisible] = React.useState(false);
   const [pendingNote, setPendingNote] = React.useState<any>(null);
@@ -648,6 +652,8 @@ export default function HomeScreen() {
           </LinearGradient>
 
           <View style={ds.content}>
+            
+            {/* Notifications warning card removed */}
             
             {/* Overview Dashboard (Grid of 6 Cards) */}
             <View style={ds.overviewGrid}>
@@ -1997,6 +2003,37 @@ const styles = (theme: any, isDark: boolean) => StyleSheet.create({
     width: 1,
     height: 14,
     backgroundColor: 'rgba(255, 255, 255, 0.25)',
+  },
+  warningBanner: {
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    marginBottom: 16,
+    flexDirection: 'column',
+    gap: 12,
+  },
+  warningBannerHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  warningBannerText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 18,
+  },
+  warningBannerBtn: {
+    alignSelf: 'flex-start',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  warningBannerBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
   },
   overviewGrid: {
     marginBottom: 20,
