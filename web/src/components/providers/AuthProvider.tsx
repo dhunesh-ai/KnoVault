@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePathname, useRouter } from "next/navigation";
 
-const publicRoutes = ["/login", "/register", "/forgot-password"];
+const publicRoutes = ["/", "/login", "/register", "/forgot-password"];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { checkAuth, isAuthenticated, isLoading } = useAuthStore();
@@ -19,7 +19,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!isLoading) {
       if (!isAuthenticated && !publicRoutes.includes(pathname)) {
         router.push("/login");
-      } else if (isAuthenticated && publicRoutes.includes(pathname)) {
+      } else if (isAuthenticated && ["/login", "/register", "/forgot-password"].includes(pathname)) {
         router.push("/dashboard");
       }
     }
