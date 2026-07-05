@@ -12,6 +12,7 @@ import {
   Pill,
   Gift,
   Target,
+  Users,
   Sparkles,
   Settings,
   User,
@@ -35,6 +36,7 @@ const navItems = [
   { name: "Medicine", href: "/medicine", icon: Pill },
   { name: "Special Days", href: "/special-days", icon: Gift },
   { name: "Goals", href: "/goals", icon: Target },
+  { name: "Workspaces", href: "/workspaces", icon: Users },
   { name: "KnoVault AI", href: "/ai", icon: Sparkles, highlight: true },
 ];
 

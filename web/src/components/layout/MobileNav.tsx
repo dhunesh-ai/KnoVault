@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, StickyNote, Bell, MoreHorizontal, Sparkles } from "lucide-react";
+import { LayoutDashboard, StickyNote, Users, MoreHorizontal, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const mobileNavItems = [
   { name: "Home", href: "/dashboard", icon: LayoutDashboard },
   { name: "Notes", href: "/notes", icon: StickyNote },
   { name: "AI", href: "/ai", icon: Sparkles, highlight: true },
-  { name: "Reminders", href: "/reminders", icon: Bell },
+  { name: "Workspaces", href: "/workspaces", icon: Users },
   { name: "More", href: "/menu", icon: MoreHorizontal },
 ];
 

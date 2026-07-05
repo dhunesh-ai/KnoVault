@@ -11,7 +11,9 @@ import {
   Gift, 
   Settings, 
   LogOut,
-  ChevronRight
+  ChevronRight,
+  Bell,
+  Users
 } from "lucide-react";
 
 export default function MenuPage() {
@@ -25,6 +27,8 @@ export default function MenuPage() {
 
   const menuItems = [
     { name: "Secure Notes", href: "/secure-notes", icon: Shield, color: "text-purple-500", bg: "bg-purple-500/10" },
+    { name: "Workspaces", href: "/workspaces", icon: Users, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+    { name: "Reminders", href: "/reminders", icon: Bell, color: "text-yellow-500", bg: "bg-yellow-500/10" },
     { name: "Medicine", href: "/medicine", icon: Pill, color: "text-blue-500", bg: "bg-blue-500/10" },
     { name: "Special Days", href: "/special-days", icon: Gift, color: "text-pink-500", bg: "bg-pink-500/10" },
     { name: "Goals", href: "/goals", icon: Target, color: "text-orange-500", bg: "bg-orange-500/10" },
