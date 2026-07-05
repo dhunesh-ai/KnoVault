@@ -18,7 +18,7 @@ const SLIDES: OnboardingSlideData[] = [
     title: 'Welcome to Your',
     titleAccent: 'Second Brain',
     content: 'Capture ideas, organize knowledge, and never forget important moments.',
-    image: require('../assets/kovi.jpg'),
+    image: require('../assets/kovi.jpg.png'),
     layout: 'grid',
     features: [
       { icon: 'document-text-outline', label: 'Smart Notes' },
@@ -74,7 +74,7 @@ const SLIDES: OnboardingSlideData[] = [
     title: 'Meet',
     titleAccent: 'Kovi',
     content: 'Kovi helps you build a trusted second brain where your notes, memories, plans, and ideas stay safe and organized.',
-    image: require('../assets/kovi.jpg'),
+    image: require('../assets/kovi.jpg.png'),
     layout: 'list',
     features: [
       { icon: 'help-buoy-outline', label: 'Smart Assistant', subtext: 'Always here to help you.' },

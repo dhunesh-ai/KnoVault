@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useIsFocused } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Markdown from 'react-native-markdown-display';
@@ -134,6 +135,7 @@ const DEFAULT_QUICK_ACTIONS = [
 function AIScreen() {
   const { colors, theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
   const queryClient = useQueryClient();
   const params = useLocalSearchParams<{ initialPrompt?: string }>();
   let tabBarHeight = 0;
@@ -188,6 +190,18 @@ function AIScreen() {
       setInputText(prefix ? `${prefix} ${sttTranscript}` : sttTranscript);
     }
   }, [sttTranscript]);
+
+  // Clean up STT state when AI Chat screen focus changes
+  useEffect(() => {
+    if (isFocused) {
+      setInputText('');
+      initialTextRef.current = '';
+      clearTranscript();
+    } else {
+      stopListening();
+      clearTranscript();
+    }
+  }, [isFocused, stopListening, clearTranscript]);
 
   // Show voice errors gracefully to the user
   useEffect(() => {
@@ -340,6 +354,43 @@ function AIScreen() {
     const textToSend = textOverride || inputText;
     if (!textToSend.trim()) return;
 
+    // ═══ PHASE 0: Pre-flight Security Checks for Secure Notes ═══
+    const lowerInput = textToSend.toLowerCase();
+    const secureKeywords = [
+      'secure note', 'secure notes',
+      'private note', 'private notes',
+      'locked note', 'locked notes',
+      'secure category', 'private category'
+    ];
+    let hasSecureKeywords = secureKeywords.some(kw => lowerInput.includes(kw));
+    
+    if (!hasSecureKeywords) {
+      const hasSecure = lowerInput.includes('secure') || lowerInput.includes('private') || lowerInput.includes('locked');
+      const hasNote = lowerInput.includes('note') || lowerInput.includes('notes');
+      if (hasSecure && hasNote) {
+        hasSecureKeywords = true;
+      }
+    }
+      
+    let isTargetingSecureNote = hasSecureKeywords;
+    
+    if (!isTargetingSecureNote) {
+      try {
+        const allNotes = await notesApi.getNotes();
+        const secureNotes = allNotes.filter((n: any) => n.is_secure || n.category === 'Secure');
+        
+        for (const sn of secureNotes) {
+          const normalizedTitle = sn.title.toLowerCase().trim();
+          if (normalizedTitle && lowerInput.includes(normalizedTitle)) {
+            isTargetingSecureNote = true;
+            break;
+          }
+        }
+      } catch (e) {
+        console.warn("[AI Security Check] Failed to fetch notes for security check", e);
+      }
+    }
+
     stopSpeech();
     Keyboard.dismiss();
 
@@ -378,6 +429,19 @@ function AIScreen() {
       if (!textOverride) setInputText('');
       setIsAITyping(true);
       await addMessage(currentThreadId!, placeholderMsg);
+    }
+
+    if (isTargetingSecureNote) {
+      setIsAITyping(false);
+      const warningResponse = "For your privacy, Secure Notes are protected with end-to-end encryption and are not accessible to KnoVault AI. Please unlock and view them directly from the Secure Notes section.";
+      if (isTemporaryChat) {
+        await simulateTemporaryStreaming(warningResponse, aiMsgId, controller.signal);
+      } else {
+        await simulateStreaming(warningResponse, currentThreadId!, aiMsgId, controller.signal);
+      }
+      setIsGenerating(false);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      return;
     }
 
     try {
@@ -790,6 +854,13 @@ function AIScreen() {
             <Animated.View entering={FadeInDown.delay(100).duration(500)} style={ds.emptyHero}>
               <KnoMascot state="happy" size={42} />
               <Text style={ds.emptyTitle}>How can I help today?</Text>
+              
+              <View style={[ds.secureIndicator, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.08)' : '#ECFDF5', borderColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#D1FAE5' }]}>
+                <Ionicons name="lock-closed" size={14} color="#10B981" style={{ marginRight: 8 }} />
+                <Text style={[ds.secureIndicatorText, { color: isDark ? '#A7F3D0' : '#065F46' }]}>
+                  Secure Notes are private and are never accessible by AI.
+                </Text>
+              </View>
             </Animated.View>
           </ScrollView>
         ) : (
@@ -1206,6 +1277,13 @@ function AIScreen() {
               Kno remembers these preferences and details about you to personalize its responses:
             </Text>
 
+            <View style={[ds.secureIndicatorModal, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.08)' : '#ECFDF5', borderColor: isDark ? 'rgba(16, 185, 129, 0.15)' : '#D1FAE5' }]}>
+              <Ionicons name="lock-closed" size={13} color="#10B981" style={{ marginRight: 6 }} />
+              <Text style={[ds.secureIndicatorTextModal, { color: isDark ? '#A7F3D0' : '#065F46' }]}>
+                Secure Notes are private and are never accessible by AI.
+              </Text>
+            </View>
+
             {/* Memory list */}
             <FlatList
               data={memories}
@@ -1360,6 +1438,35 @@ const dsFunc = (theme: any, colors: any, isDark: boolean) => StyleSheet.create({
     fontWeight: '800',
     color: theme.text,
     marginTop: 3,
+  },
+  secureIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 12,
+    maxWidth: '90%',
+  },
+  secureIndicatorText: {
+    fontSize: 11,
+    fontWeight: '600',
+    lineHeight: 15,
+  },
+  secureIndicatorModal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginVertical: 4,
+  },
+  secureIndicatorTextModal: {
+    fontSize: 11,
+    fontWeight: '600',
+    flex: 1,
   },
   emptySubtitle: {
     fontSize: 12,

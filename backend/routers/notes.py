@@ -25,6 +25,16 @@ def _prepare_note_response(note: Note) -> NoteResponse:
     return resp
 
 
+def _prepare_note_response_list(note: Note) -> NoteResponse:
+    resp = NoteResponse.model_validate(note)
+    if resp.is_secure:
+        # Keep content encrypted, but empty details/lists
+        resp.checklist_items = []
+        resp.field_notes = []
+        resp.voice_note = None
+    return resp
+
+
 def _note_query(user_id: int):
     return (
         select(Note)
@@ -64,7 +74,7 @@ async def get_notes(
     query = query.order_by(Note.is_favorite.desc(), Note.updated_at.desc()).offset(skip).limit(limit)
     result = await db.execute(query)
     notes = result.scalars().unique().all()
-    return [_prepare_note_response(n) for n in notes]
+    return [_prepare_note_response_list(n) for n in notes]
 
 
 @router.get("/favorites", response_model=list[NoteResponse])
@@ -76,7 +86,7 @@ async def get_favorite_notes(
     query = query.order_by(Note.updated_at.desc())
     result = await db.execute(query)
     notes = result.scalars().unique().all()
-    return [_prepare_note_response(n) for n in notes]
+    return [_prepare_note_response_list(n) for n in notes]
 
 
 @router.get("/categories", response_model=list[CategoryResponse])

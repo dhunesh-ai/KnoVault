@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useIsFocused } from '@react-navigation/native';
 import { notesApi } from '../../src/api/notes';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useSettingsStore } from '../../src/store/settingsStore';
@@ -27,6 +28,7 @@ export default function VoiceNoteScreen() {
   const { microphoneAccessEnabled } = useSettingsStore();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const isFocused = useIsFocused();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -39,6 +41,7 @@ export default function VoiceNoteScreen() {
 
   // Listen to speech results in real time
   useSpeechRecognitionEvent('result', (event) => {
+    if (!isFocused) return;
     if (event.results && event.results.length > 0) {
       const currentSessionText = event.results[0]?.transcript || '';
       const prefix = accumulatedText.current;
@@ -53,6 +56,7 @@ export default function VoiceNoteScreen() {
   });
 
   useSpeechRecognitionEvent('error', (event) => {
+    if (!isFocused) return;
     console.log('Voice Error:', event.error);
     isRecordingRef.current = false;
     isPausedRef.current = false;
@@ -62,6 +66,7 @@ export default function VoiceNoteScreen() {
 
   // Keep listening continuously by restarting the speech engine if it ends automatically
   useSpeechRecognitionEvent('end', () => {
+    if (!isFocused) return;
     if (isRecordingRef.current && !isPausedRef.current) {
       console.log('Speech recognition session ended automatically. Restarting...');
       ExpoSpeechRecognitionModule.start({
@@ -72,7 +77,23 @@ export default function VoiceNoteScreen() {
     }
   });
 
-  // Stop recording if the user leaves the screen
+  // Stop recording if the user leaves the screen or it loses focus
+  useEffect(() => {
+    if (!isFocused) {
+      try {
+        isRecordingRef.current = false;
+        isPausedRef.current = false;
+        setIsRecording(false);
+        setIsPaused(false);
+        ExpoSpeechRecognitionModule.stop();
+      } catch (e) {
+        // Ignore unmount/blur errors
+      }
+      setContent('');
+      accumulatedText.current = '';
+    }
+  }, [isFocused]);
+
   useEffect(() => {
     return () => {
       try {

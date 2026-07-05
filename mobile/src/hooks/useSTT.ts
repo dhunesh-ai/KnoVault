@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Platform, Alert, Linking } from 'react-native';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
+import { useIsFocused } from '@react-navigation/native';
 import { handleMicrophonePermission } from '../utils/permissionHandler';
 
 interface UseSTTReturn {
@@ -18,6 +19,7 @@ interface UseSTTReturn {
 }
 
 export function useSTT(): UseSTTReturn {
+  const isFocused = useIsFocused();
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [speechVolume, setSpeechVolume] = useState(0);
@@ -48,6 +50,7 @@ export function useSTT(): UseSTTReturn {
 
   // Register events from expo-speech-recognition
   useSpeechRecognitionEvent('start', () => {
+    if (!isFocused) return;
     console.log('[STT] Speech Started');
     setIsListening(true);
     isListeningRef.current = true;
@@ -56,6 +59,7 @@ export function useSTT(): UseSTTReturn {
   });
 
   useSpeechRecognitionEvent('end', () => {
+    if (!isFocused) return;
     console.log('[STT] Speech End');
     setIsListening(false);
     isListeningRef.current = false;
@@ -63,6 +67,7 @@ export function useSTT(): UseSTTReturn {
   });
 
   useSpeechRecognitionEvent('error', (e) => {
+    if (!isFocused) return;
     console.log('[STT] Speech Error', e);
     const errMsg = e.error || e.message || '';
     const isMinorError = 
@@ -83,6 +88,7 @@ export function useSTT(): UseSTTReturn {
   });
 
   useSpeechRecognitionEvent('result', (e) => {
+    if (!isFocused) return;
     console.log('[STT] Speech Results', e.results);
     if (e.results && e.results.length > 0) {
       const recognizedText = e.results[0]?.transcript || '';
@@ -94,6 +100,7 @@ export function useSTT(): UseSTTReturn {
   });
 
   useSpeechRecognitionEvent('volumechange', (e) => {
+    if (!isFocused) return;
     setSpeechVolume(e.value || 0);
   });
 
@@ -153,6 +160,28 @@ export function useSTT(): UseSTTReturn {
   const clearTranscript = useCallback(() => {
     setTranscript('');
   }, []);
+
+  // Monitor screen focus. Reset or cancel recognition session when focus changes.
+  useEffect(() => {
+    if (isFocused) {
+      setTranscript('');
+      setIsListening(false);
+      isListeningRef.current = false;
+      setSpeechVolume(0);
+      setError(null);
+      setStatus('idle');
+    } else {
+      if (isListeningRef.current) {
+        cancelListening();
+      }
+      setTranscript('');
+      setIsListening(false);
+      isListeningRef.current = false;
+      setSpeechVolume(0);
+      setError(null);
+      setStatus('idle');
+    }
+  }, [isFocused, cancelListening]);
 
   return {
     isListening,

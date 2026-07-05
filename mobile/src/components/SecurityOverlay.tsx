@@ -352,7 +352,7 @@ export const SecurityOverlay: React.FC<SecurityOverlayProps> = ({
             <Image 
               source={{ uri: 'https://img.icons8.com/color/96/google-logo.png' }}
               style={styles.logo}
-              defaultSource={require('../../assets/icon.png')}
+              defaultSource={require('../../assets/icon.png.png')}
             />
             <Text style={[styles.brand, { color: theme.textSecondary }]}>KnoVault Security</Text>
           </View>

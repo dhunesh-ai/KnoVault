@@ -22849,3 +22849,9 @@ Hi...' | max_tokens=200
 2026-07-04 10:38:13,895 - NotificationScheduler - INFO - [TIMEZONE CONVERTED] event_id=31 workspace_id=15 target_time=2026-07-03 08:45:00+00:00 current_time=2026-07-04 05:08:12.664654+00:00 timezone=UTC
 2026-07-04 10:38:13,896 - NotificationScheduler - INFO - [TIMEZONE CONVERTED] event_id=31 workspace_id=15 target_time=2026-07-03 08:15:00+00:00 current_time=2026-07-04 05:08:12.664654+00:00 timezone=UTC
 2026-07-04 10:38:13,896 - NotificationScheduler - INFO - [TIMEZONE CONVERTED] event_id=31 workspace_id=15 target_time=2026-07-02 09:15:00+00:00 current_time=2026-07-04 05:08:12.664654+00:00 timezone=UTC
+2026-07-05 11:34:19,783 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-05 11:34:42,566 - utils.encryption - INFO - [Encryption] Secure note encrypted successfully
+2026-07-05 11:34:44,533 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully
+2026-07-05 11:35:20,737 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-05 11:35:43,493 - utils.encryption - INFO - [Encryption] Secure note encrypted successfully
+2026-07-05 11:35:45,847 - utils.encryption - INFO - [Encryption] Secure note decrypted successfully

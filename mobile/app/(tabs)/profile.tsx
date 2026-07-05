@@ -206,12 +206,15 @@ export default function ProfileScreen() {
   // Dynamic Security Score
   const securityScore = useMemo(() => {
     let score = 0;
-    if (user?.is_verified) score += 25;
-    if (snStatus?.is_password_set) score += 25;
-    if (googleDriveConnected) score += 25;
-    if (storageMode) score += 25;
-    return score;
-  }, [user?.is_verified, snStatus?.is_password_set, googleDriveConnected, storageMode]);
+    if (snStatus?.is_password_set) score += 1;
+    if (googleDriveConnected) score += 1;
+    if (storageMode) score += 1;
+    
+    if (score === 3) return 100;
+    if (score === 2) return 67;
+    if (score === 1) return 33;
+    return 0;
+  }, [snStatus?.is_password_set, googleDriveConnected, storageMode]);
 
   const [storageInfoExpanded, setStorageInfoExpanded] = useState(false);
   const [localDbSize, setLocalDbSize] = useState(0);
@@ -256,7 +259,7 @@ export default function ProfileScreen() {
       case 'cloud_gdrive':
         return {
           title: '☁️ Cloud + Google Drive',
-          desc: 'Data is synchronized with Neon Cloud and backed up to Google Drive.',
+          desc: 'Data is synchronized with Cloud and backed up to Google Drive.',
         };
       case 'gdrive':
         return {
@@ -266,12 +269,12 @@ export default function ProfileScreen() {
       case 'cloud_local':
         return {
           title: '☁️ Cloud + Local Strategy',
-          desc: 'Data is synchronized with Neon Cloud with local device backup caching.',
+          desc: 'Data is synchronized with Cloud with local device backup caching.',
         };
       case 'cloud':
       default:
         return {
-          title: '☁️ Neon Cloud Storage',
+          title: '☁️ Cloud Storage',
           desc: 'Your notes are securely stored in KnoVault Cloud and automatically synchronized across your devices.',
         };
     }
@@ -2060,7 +2063,7 @@ export default function ProfileScreen() {
                 </View>
                 <Text style={dynamicStyles.modalTitle}>Cloud Storage Limit Reached</Text>
                 <Text style={dynamicStyles.signOutDescText}>
-                  Your Neon Cloud storage is 100% full (5.0 MB quota). Choose how you would like to proceed with your data:
+                  Your Cloud storage is 100% full (5.0 MB quota). Choose how you would like to proceed with your data:
                 </Text>
                 
                 <View style={{ width: '100%', gap: 10, marginTop: 15 }}>
@@ -2478,7 +2481,7 @@ export default function ProfileScreen() {
                   { title: 'Secure Notes', desc: 'Dedicated password separate from account login.', icon: 'lock-closed-outline', color: '#A78BFA' },
                   { title: 'Smart Cloud', desc: '5 MB secure cloud storage with automatic storage switching.', icon: 'cloud-done-outline', color: '#3B82F6' },
                   { title: 'Offline Access', desc: 'Continue working without internet.', icon: 'wifi-off-outline', color: '#10B981' },
-                  { title: 'Flexible Storage', desc: 'Choose between Neon Cloud, Local, Google Drive, or Hybrid.', icon: 'swap-horizontal-outline', color: '#F59E0B' },
+                  { title: 'Flexible Storage', desc: 'Choose between Cloud, Local, Google Drive, or Hybrid.', icon: 'swap-horizontal-outline', color: '#F59E0B' },
                   { title: 'Password Reset', desc: 'Secure password reset using OTP verification.', icon: 'key-outline', color: '#EC4899' },
                   { title: 'Backup & Restore', desc: 'JSON Export, JSON Import, and Google Drive Backup.', icon: 'archive-outline', color: '#06B6D4' },
                   { title: 'Privacy First', desc: 'Your data belongs only to you. No selling. No third-party ads.', icon: 'shield-checkmark-outline', color: '#EF4444' },
@@ -2873,12 +2876,6 @@ export default function ProfileScreen() {
                       {lastDriveSync ? new Date(lastDriveSync).toLocaleDateString() : 'Never'}
                     </Text>
                   </View>
-                  <View style={dynamicStyles.statusGridRow}>
-                    <Text style={dynamicStyles.gridLabel}>Email Status</Text>
-                    <Text style={[dynamicStyles.gridVal, { color: user?.is_verified ? '#10B981' : '#F59E0B' }]}>
-                      {user?.is_verified ? 'Verified ✅' : 'Unverified ⚠️'}
-                    </Text>
-                  </View>
                 </View>
               </View>
 
@@ -2897,7 +2894,7 @@ export default function ProfileScreen() {
                   key: 'cloud', 
                   title: '☁️ Cloud Storage Privacy', 
                   content: [
-                    '• Cloud data is stored securely on protected Neon PostgreSQL instances.',
+                    '• Cloud data is stored securely on protected PostgreSQL instances.',
                     '• Every user account receives a free cloud storage quota of 5 MB.',
                     '• When storage is full, writes route dynamically to your selected secondary storage (Local SQLite or Google Drive).',
                     '• No user data is ever deleted automatically when reaching limits.'
@@ -2946,7 +2943,6 @@ export default function ProfileScreen() {
                   content: [
                     '• Create a strong, unique Secure Notes password that differs from your login password.',
                     '• Connect your Google Drive to enable automated cloud backups.',
-                    '• Keep your account email verified to ensure access to password resets.',
                     '• Regularly export a local JSON backup of your database as an extra safeguard.',
                     '• Never share your Secure Notes password or account credentials with anyone.'
                   ]
@@ -3027,7 +3023,7 @@ export default function ProfileScreen() {
               <Text style={dynamicStyles.policySectionHeader}>3. Data Ownership & Storage Choice</Text>
               <Text style={dynamicStyles.policyBody}>
                 You retain 100% ownership of your data. We support multiple flexible storage options:
-                {"\n"}• Neon Cloud Storage (Primary secure backend database with a 5 MB quota limit)
+                {"\n"}• Cloud Storage (Primary secure backend database with a 5 MB quota limit)
                 {"\n"}• Google Drive Storage (Linked dynamically via secure OAuth scoped strictly to the KnoVault directory)
                 {"\n"}• Local Device Storage (Client-side SQLite database keeping your notes completely offline)
               </Text>

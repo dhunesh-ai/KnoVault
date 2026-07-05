@@ -99,6 +99,7 @@ Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK).catch(e => console
 
 
 import { ThemeProvider } from '../src/context/ThemeContext';
+import { RichLoadingScreen } from '../src/components/RichLoadingScreen';
 
 // QueryClient is initialized inside RootLayout to survive fast refresh
 
@@ -316,10 +317,7 @@ function RootLayoutContent() {
       </Stack>
       
       {!isAppReady && (
-        <View style={[StyleSheet.absoluteFill, styles.startupLoadingContainer]}>
-          <ActivityIndicator size="large" color={colors.primary} style={{ marginBottom: 20 }} />
-          <Text style={styles.startupLoadingText}>Connecting to KnoVault...</Text>
-        </View>
+        <RichLoadingScreen message="Connecting to KnoVault..." />
       )}
 
       {bootError && (

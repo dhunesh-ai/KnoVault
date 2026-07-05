@@ -248,10 +248,10 @@ export default function StorageSettingsScreen() {
             <ActivityIndicator size="small" color="#6C4EFF" style={{ marginVertical: 20 }} />
           ) : (
             <View>
-              {/* Neon Cloud Progress */}
+              {/* Cloud Progress */}
               <View style={styles.statRow}>
                 <View style={styles.statLabelRow}>
-                  <Text style={[styles.statName, { color: theme.text }]}>⚡ Neon Cloud Storage</Text>
+                  <Text style={[styles.statName, { color: theme.text }]}>⚡ Cloud Storage</Text>
                   <Text style={[styles.statValue, { color: theme.textSecondary }]}>
                     {formatBytes(cloudStats.used)} / {formatBytes(cloudStats.limit)}
                   </Text>
@@ -308,9 +308,9 @@ export default function StorageSettingsScreen() {
                 {storageMode === 'cloud' && <View style={styles.radioInner} />}
               </View>
             </View>
-            <Text style={[styles.modeTitle, { color: theme.text }]}>Neon Cloud Only</Text>
+            <Text style={[styles.modeTitle, { color: theme.text }]}>Cloud Only</Text>
             <Text style={[styles.modeDesc, { color: theme.textSecondary }]}>
-              Save primary data to Neon cloud databases. Offline mode queues sync.
+              Save primary data to cloud databases. Offline mode queues sync.
             </Text>
           </TouchableOpacity>
 
@@ -330,7 +330,7 @@ export default function StorageSettingsScreen() {
             </View>
             <Text style={[styles.modeTitle, { color: theme.text }]}>Cloud + Google Drive</Text>
             <Text style={[styles.modeDesc, { color: theme.textSecondary }]}>
-              Sync with Neon Cloud and auto-backup files/records to Google Drive.
+              Sync with Cloud and auto-backup files/records to Google Drive.
             </Text>
           </TouchableOpacity>
 
@@ -380,7 +380,7 @@ export default function StorageSettingsScreen() {
           <View style={styles.toggleTextCol}>
             <Text style={[styles.toggleTitle, { color: theme.text }]}>Auto-Switch on Cloud Full</Text>
             <Text style={[styles.toggleDesc, { color: theme.textSecondary }]}>
-              Automatically fall back to GDrive or Local when Neon hits 100%.
+              Automatically fall back to GDrive or Local when Cloud hits 100%.
             </Text>
           </View>
           <Switch 

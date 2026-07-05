@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from database import get_db
 from models.user import User
 from models.ai_chat import AIChat
@@ -19,6 +19,44 @@ async def chat(
     current_user: User = Depends(get_current_user),
 ):
     try:
+        # Pre-flight security check for secure notes
+        lower_msg = data.message.lower()
+        has_secure_kw = any(kw in lower_msg for kw in ["secure note", "private note", "locked note", "secure notes", "private notes", "locked notes"])
+        if not has_secure_kw:
+            # Check combinations
+            has_sec = any(w in lower_msg for w in ["secure", "private", "locked"])
+            has_not = any(w in lower_msg for w in ["note", "notes"])
+            if has_sec and has_not:
+                has_secure_kw = True
+
+        if not has_secure_kw:
+            # Check if user message mentions any secure note title
+            secure_notes_query = await db.execute(
+                select(Note.title).where(
+                    Note.user_id == current_user.id,
+                    or_(Note.is_secure == True, Note.category == "Secure")
+                )
+            )
+            secure_titles = secure_notes_query.scalars().all()
+            for title in secure_titles:
+                if title.lower().strip() and title.lower().strip() in lower_msg:
+                    has_secure_kw = True
+                    break
+
+        if has_secure_kw:
+            warning_msg = "For your privacy, Secure Notes are protected with end-to-end encryption and are not accessible to KnoVault AI. Please unlock and view them directly from the Secure Notes section."
+            
+            # Save to history
+            chat_entry = AIChat(
+                user_id=current_user.id,
+                message=data.message,
+                response=warning_msg,
+            )
+            db.add(chat_entry)
+            await db.commit()
+            await db.refresh(chat_entry)
+            return AIChatResponse.model_validate(chat_entry)
+
         # 1. Fetch User Context (Non-Secure data only)
         if data.context:
             context = data.context
@@ -130,8 +168,8 @@ async def summarize_note(
         if not note or note.user_id != current_user.id:
             raise HTTPException(status_code=404, detail="Note not found")
         
-        if note.category == "Secure":
-            return {"summary": "Secure notes are protected and cannot be summarized by AI."}
+        if note.category == "Secure" or note.is_secure:
+            return {"summary": "For your privacy, Secure Notes are protected with end-to-end encryption and are not accessible to KnoVault AI. Please unlock and view them directly from the Secure Notes section."}
         
         text = note.content
     
