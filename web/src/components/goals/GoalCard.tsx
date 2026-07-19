@@ -53,41 +53,41 @@ export function GoalCard({ goal, onClick, onEdit, onDelete }: GoalCardProps) {
       <div
         onClick={() => onClick(goal)}
         className={cn(
-          "h-full p-5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between group",
+          "h-full p-5 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between group",
           isCompleted 
-            ? "bg-emerald-500/10 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.05)]" 
-            : "bg-gradient-to-br from-card to-emerald-950/20 border-border hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.1)]"
+            ? "bg-emerald-500/10 border-emerald-500/20 shadow-[0_4px_16px_rgba(16,185,129,0.04)]" 
+            : "bg-card/50 backdrop-blur-md border-border/40 hover:border-emerald-500/30 hover:shadow-[0_4px_20px_rgba(16,185,129,0.06)]"
         )}
       >
         <div>
           <div className="flex items-start justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className={cn("p-2 rounded-lg", isCompleted ? "bg-emerald-500 text-white" : "bg-blue-500/20 text-blue-400")}>
-                <TargetIcon className="w-5 h-5" />
+            <div className="flex items-center gap-2.5">
+              <div className={cn("p-2 rounded-xl shrink-0 transition-all", isCompleted ? "bg-emerald-500 text-white" : "bg-emerald-500/10 text-emerald-500")}>
+                <TargetIcon className="w-4 h-4" />
               </div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Daily Habit</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/90">Daily Habit</span>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity rounded-xl">
                   <MoreHorizontal className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-card border-border">
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(goal); }} className="cursor-pointer">
-                  <Edit className="w-4 h-4 mr-2" /> Edit
+              <DropdownMenuContent align="end" className="bg-card/90 backdrop-blur-xl border-border/50 rounded-2xl p-1.5 shadow-lg">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(goal); }} className="cursor-pointer rounded-xl text-xs py-2">
+                  <Edit className="w-4 h-4 mr-2" /> Edit Details
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(goal.id, "daily_goal"); }} className="cursor-pointer text-red-500 hover:text-red-600 focus:text-red-600">
-                  <Trash2 className="w-4 h-4 mr-2" /> Delete
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(goal.id, "daily_goal"); }} className="cursor-pointer rounded-xl text-xs py-2 text-red-500 focus:text-red-500 focus:bg-red-500/10">
+                  <Trash2 className="w-4 h-4 mr-2" /> Delete Habit
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
           
-          <h3 className={cn("font-semibold text-lg line-clamp-1", isCompleted && "text-muted-foreground line-through")}>
+          <h3 className={cn("font-bold text-sm tracking-tight text-foreground line-clamp-1", isCompleted && "text-muted-foreground line-through")}>
             {goal.title}
           </h3>
-          <p className="text-sm text-muted-foreground mt-1 font-medium">
+          <p className="text-xs text-muted-foreground mt-1 font-semibold">
             Target: {goal.daily_target || 1} {goal.target_unit || 'times'}
           </p>
         </div>
@@ -95,14 +95,14 @@ export function GoalCard({ goal, onClick, onEdit, onDelete }: GoalCardProps) {
         <div className="mt-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="flex flex-col">
-              <span className="text-[10px] text-muted-foreground uppercase font-bold">Today</span>
-              <span className={cn("text-sm font-bold", isCompleted ? "text-emerald-500" : "text-foreground")}>
+              <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">Today</span>
+              <span className={cn("text-xs font-extrabold", isCompleted ? "text-emerald-500" : "text-foreground")}>
                 {isCompleted ? "100%" : "0%"}
               </span>
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] text-muted-foreground uppercase font-bold">Time</span>
-              <span className="text-sm font-bold text-foreground">
+              <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">Time</span>
+              <span className="text-xs font-extrabold text-foreground">
                 {goal.reminder_time || 'Anytime'}
               </span>
             </div>
@@ -112,10 +112,10 @@ export function GoalCard({ goal, onClick, onEdit, onDelete }: GoalCardProps) {
             onClick={handleToggleComplete}
             variant={isCompleted ? "default" : "outline"}
             className={cn(
-              "h-10 w-10 p-0 rounded-full shrink-0",
+              "h-10 w-10 p-0 rounded-full shrink-0 cursor-pointer transition-all",
               isCompleted 
-                ? "bg-emerald-500 hover:bg-emerald-600 text-white border-transparent" 
-                : "border-border hover:border-emerald-500 text-muted-foreground hover:text-emerald-500"
+                ? "bg-emerald-500 hover:bg-emerald-600 text-white border-transparent shadow-sm" 
+                : "border-border/40 hover:border-emerald-500 text-muted-foreground hover:text-emerald-500 bg-card"
             )}
           >
             {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <Circle className="w-5 h-5" />}
@@ -133,45 +133,45 @@ export function GoalCard({ goal, onClick, onEdit, onDelete }: GoalCardProps) {
   return (
     <div
       onClick={() => onClick(goal)}
-      className="h-full p-5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between group bg-gradient-to-br from-card to-purple-950/10 border-border hover:border-purple-500/50 hover:shadow-[0_0_20px_rgba(147,51,234,0.1)]"
+      className="h-full p-5 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between group bg-card/50 backdrop-blur-md border-border/40 hover:border-primary/30 hover:shadow-[0_4px_20px_rgba(124,77,255,0.06)]"
     >
       <div>
         <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-purple-500/20 text-purple-400">
-              <Layers className="w-5 h-5" />
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500 shrink-0">
+              <Layers className="w-4 h-4" />
             </div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Project</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/90">Project</span>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity rounded-xl">
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-card border-border">
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(goal); }} className="cursor-pointer">
-                <Edit className="w-4 h-4 mr-2" /> Edit
+            <DropdownMenuContent align="end" className="bg-card/90 backdrop-blur-xl border-border/50 rounded-2xl p-1.5 shadow-lg">
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(goal); }} className="cursor-pointer rounded-xl text-xs py-2">
+                <Edit className="w-4 h-4 mr-2" /> Edit Details
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(goal.id, "project"); }} className="cursor-pointer text-red-500 hover:text-red-600 focus:text-red-600">
-                <Trash2 className="w-4 h-4 mr-2" /> Delete
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(goal.id, "project"); }} className="cursor-pointer rounded-xl text-xs py-2 text-red-500 focus:text-red-500 focus:bg-red-500/10">
+                <Trash2 className="w-4 h-4 mr-2" /> Delete Project
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
         
-        <h3 className={cn("font-semibold text-lg line-clamp-1", goal.completed && "text-muted-foreground line-through")}>
+        <h3 className={cn("font-bold text-sm tracking-tight text-foreground line-clamp-1", goal.completed && "text-muted-foreground line-through")}>
           {goal.title}
         </h3>
         
-        <div className="flex items-center gap-3 mt-3">
+        <div className="flex items-center gap-2 mt-3">
           {hasDeadline && (
-            <div className={cn("flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md", isOverdue ? "bg-red-500/10 text-red-500" : "bg-muted text-muted-foreground")}>
-              <Calendar className="w-3 h-3" />
+            <div className={cn("flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg border", isOverdue ? "bg-red-500/5 text-red-500 border-red-500/10" : "bg-accent/40 text-muted-foreground border-border/30")}>
+              <Calendar className="w-3 h-3 text-primary" />
               {format(new Date(goal.deadline!), "MMM d")}
             </div>
           )}
-          <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md bg-orange-500/10 text-orange-400">
+          <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg bg-orange-500/5 text-orange-500 border border-orange-500/10">
             <Flag className="w-3 h-3" />
             {goal.priority || "Medium"}
           </div>
@@ -180,14 +180,14 @@ export function GoalCard({ goal, onClick, onEdit, onDelete }: GoalCardProps) {
 
       <div className="mt-4">
         <div className="flex justify-between items-end mb-2">
-          <span className="text-xs text-muted-foreground font-medium">
+          <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
             {goal.subtasks?.length || 0} Milestones
           </span>
-          <span className="text-sm font-bold text-foreground">{progress}%</span>
+          <span className="text-xs font-extrabold text-foreground">{progress}%</span>
         </div>
-        <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+        <div className="w-full h-2 bg-accent/30 rounded-full overflow-hidden">
           <div 
-            className="h-full bg-gradient-to-r from-purple-500 to-orange-400 transition-all duration-500 ease-out" 
+            className="h-full bg-gradient-to-r from-primary to-purple-400 transition-all duration-500 ease-out" 
             style={{ width: `${progress}%` }} 
           />
         </div>

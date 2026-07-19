@@ -8,7 +8,7 @@ interface SecureNotesState {
   isLoading: boolean;
   error: string | null;
   isUnlocked: boolean;
-  unlockSession: (password: string, email: string) => Promise<boolean>;
+  unlockSession: (password: string) => Promise<boolean>;
   lockSession: () => void;
   fetchSecureNotes: (search?: string) => Promise<void>;
   createSecureNote: (data: Partial<Note>) => Promise<Note>;
@@ -23,14 +23,15 @@ export const useSecureNotesStore = create<SecureNotesState>((set) => ({
   error: null,
   isUnlocked: false,
 
-  unlockSession: async (password: string, email: string) => {
+  unlockSession: async (password: string) => {
     try {
-      // Verify password using dedicated secure endpoint
-      await api.post("/api/auth/verify-password", { email, password });
+      // Verify password using dedicated secure notes verification endpoint
+      await api.post("/api/secure-notes/verify-password", { password });
       set({ isUnlocked: true, error: null });
       return true;
-    } catch (error) {
-      set({ error: "Invalid password" });
+    } catch (error: any) {
+      const msg = error.response?.data?.detail || "Invalid password";
+      set({ error: msg });
       return false;
     }
   },

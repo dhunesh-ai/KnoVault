@@ -675,3 +675,85 @@ export const syncWorkspaceNotifications = async () => {
     console.error('[SyncWorkspaceNotifications] Error:', error);
   }
 };
+
+export const syncRemindersNotifications = async () => {
+  const { notificationsEnabled, notificationReminders } = useSettingsStore.getState();
+  if (!notificationsEnabled || !notificationReminders) return;
+
+  const hasPermission = await requestLocalNotificationPermissions();
+  if (!hasPermission) return;
+
+  try {
+    const db = getDB();
+    const nowIso = new Date().toISOString();
+    
+    // Fetch future active reminders
+    const activeReminders = await db.getAllAsync(
+      'SELECT * FROM Reminders WHERE is_deleted = 0 AND is_completed = 0 AND reminder_date > ? ORDER BY reminder_date ASC LIMIT 50',
+      [nowIso]
+    );
+    console.log("[LocalNotifications] Active future reminders count:", activeReminders.length);
+
+    // Get all scheduled notifications
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+
+    // Cancel existing scheduled notifications of type 'reminder'
+    for (const notif of scheduled) {
+      if (notif.content.data?.type === 'reminder') {
+        await Notifications.cancelScheduledNotificationAsync(notif.identifier);
+      }
+    }
+
+    // Schedule fresh notifications for future active reminders
+    for (const reminder of activeReminders as any[]) {
+      const triggerDate = new Date(reminder.reminder_date);
+      if (triggerDate.getTime() <= Date.now()) continue;
+
+      let title = reminder.title;
+      let body = reminder.description || "You have a scheduled reminder.";
+
+      const descStr = (reminder.description || "").trim();
+      if (descStr.startsWith("{")) {
+        try {
+          const parsed = JSON.parse(descStr);
+          if (parsed.isMedicine) {
+            const medName = parsed.medName || reminder.title;
+            const dosage = parsed.dosage ? ` • ${parsed.dosage}` : "";
+            const foodTiming = parsed.foodTiming ? ` • ${parsed.foodTiming}` : "";
+            const timingLabel = parsed.timing ? ` [${parsed.timing.split(" ")[0]}]` : "";
+
+            title = `💊 Take ${medName}${timingLabel}`;
+            body = `Time to take your medication:${dosage}${foodTiming}. ${parsed.notes || ""}`;
+          } else if (parsed.isCustom) {
+            const customIcon = parsed.customIcon ? parsed.customIcon.split(" ")[0] : "🎯";
+            const customName = parsed.customName || reminder.title;
+            title = `${customIcon} ${customName}`;
+            body = parsed.notes || "Custom reminder schedule alert.";
+          }
+        } catch (e) {
+          // Graceful fallback
+        }
+      }
+
+      try {
+        const notifId = await scheduleLocalReminder(
+          title,
+          body,
+          triggerDate,
+          { type: 'reminder', id: reminder.remote_id || reminder.id },
+          'reminders',
+          'REMINDER_ACTION'
+        );
+        if (notifId) {
+          await db.runAsync('UPDATE Reminders SET notification_id = ? WHERE id = ?', [notifId, reminder.id]);
+        }
+      } catch (scheduleErr) {
+        console.error(`[LocalNotifications] Failed to schedule reminder for ${reminder.title}:`, scheduleErr);
+      }
+    }
+    console.log('[LocalNotifications] Reminders notifications sync completed.');
+  } catch (error) {
+    console.error('[LocalNotifications] Error syncing reminders notifications:', error);
+  }
+};
+

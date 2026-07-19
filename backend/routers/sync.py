@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
@@ -18,8 +18,91 @@ from schemas.note import NoteResponse
 from schemas.goal import GoalResponse
 from schemas.reminder import ReminderResponse
 from schemas.important_day import ImportantDayResponse
+from utils.auth import decode_token
+from utils.firebase import verify_firebase_token, is_firebase_ready
 
 router = APIRouter(prefix="/api/sync", tags=["Sync Engine"])
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: dict[int, list[WebSocket]] = {}
+
+    async def connect(self, websocket: WebSocket, user_id: int):
+        await websocket.accept()
+        if user_id not in self.active_connections:
+            self.active_connections[user_id] = []
+        self.active_connections[user_id].append(websocket)
+        print(f"[WS] User {user_id} connected. Total active connections: {len(self.active_connections[user_id])}")
+
+    def disconnect(self, websocket: WebSocket, user_id: int):
+        if user_id in self.active_connections:
+            if websocket in self.active_connections[user_id]:
+                self.active_connections[user_id].remove(websocket)
+            if not self.active_connections[user_id]:
+                del self.active_connections[user_id]
+        print(f"[WS] User {user_id} disconnected.")
+
+    async def broadcast_to_user(self, user_id: int, message: dict):
+        if user_id in self.active_connections:
+            for connection in self.active_connections[user_id]:
+                try:
+                    await connection.send_json(message)
+                except Exception as e:
+                    print(f"[WS] Error sending message to user {user_id}: {e}")
+
+manager = ConnectionManager()
+
+async def notify_user_devices(user_id: int, event_type: str = "reminders_changed"):
+    await manager.broadcast_to_user(user_id, {"event": event_type})
+
+@router.websocket("/ws")
+async def sync_websocket(
+    websocket: WebSocket,
+    token: str | None = None,
+    db: AsyncSession = Depends(get_db)
+):
+    if not token:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    user_id_int = None
+    payload = decode_token(token)
+    if payload is not None:
+        user_id_val = payload.get("sub")
+        if user_id_val:
+            try:
+                user_id_int = int(user_id_val)
+            except ValueError:
+                pass
+    else:
+        if is_firebase_ready():
+            try:
+                firebase_claims = verify_firebase_token(token)
+                if firebase_claims is not None:
+                    firebase_uid = firebase_claims.get("uid")
+                    firebase_email = firebase_claims.get("email")
+                    if firebase_uid:
+                        result = await db.execute(select(User).where(User.firebase_uid == firebase_uid))
+                        user = result.scalar_one_or_none()
+                        if not user and firebase_email:
+                            result = await db.execute(select(User).where(User.email == firebase_email))
+                            user = result.scalar_one_or_none()
+                        if user:
+                            user_id_int = user.id
+            except Exception:
+                pass
+
+    if user_id_int is None:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    await manager.connect(websocket, user_id_int)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, user_id_int)
+
 
 @router.post("/push", response_model=SyncPushResponse)
 async def push_sync(
@@ -145,6 +228,8 @@ async def push_sync(
                     setattr(iday, key, value)
 
     await db.commit()
+    if payload.new_reminders or payload.updated_reminders:
+        await notify_user_devices(current_user.id)
     return response
 
 

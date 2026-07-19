@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { Note, Category } from "@/types/Note";
 import { toast } from "sonner";
 import { notesService } from "@/services/notes";
+import { NOTE_CATEGORIES } from "@/constants/noteCategories";
 
 interface NotesState {
   notes: Note[];
@@ -22,7 +23,7 @@ interface NotesState {
 
 export const useNotesStore = create<NotesState>((set, get) => ({
   notes: [],
-  categories: [],
+  categories: NOTE_CATEGORIES.map(cat => ({ name: cat.name, count: 0, is_custom: false })),
   isLoading: false,
   isSaving: false,
   error: null,
@@ -31,7 +32,11 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const notes = await notesService.getNotes(params);
-      set({ notes, isLoading: false });
+      const categories = NOTE_CATEGORIES.map(cat => {
+        const count = notes.filter(n => n.category === cat.name || (cat.name === "Secure" && n.is_secure)).length;
+        return { name: cat.name, count, is_custom: false };
+      });
+      set({ notes, categories, isLoading: false });
     } catch (error) {
       set({ error: error instanceof Error ? error.message : "Failed to fetch notes", isLoading: false });
     }
@@ -39,19 +44,14 @@ export const useNotesStore = create<NotesState>((set, get) => ({
 
   fetchCategories: async () => {
     try {
-      const categories = await notesService.getCategories();
+      const { notes } = get();
+      const categories = NOTE_CATEGORIES.map(cat => {
+        const count = notes.filter(n => n.category === cat.name || (cat.name === "Secure" && n.is_secure)).length;
+        return { name: cat.name, count, is_custom: false };
+      });
       set({ categories });
     } catch (error) {
       console.error("Failed to fetch categories", error);
-      toast.error("Failed to fetch categories. Using defaults.");
-      // Fallback to defaults
-      const defaults = ["General", "Personal", "Work", "Study", "Finance", "Passwords", "Ideas"];
-      const fallbackCats = defaults.map(name => ({
-        name,
-        count: 0,
-        is_custom: false
-      }));
-      set({ categories: fallbackCats });
     }
   },
 
@@ -59,10 +59,18 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     set({ isSaving: true, error: null });
     try {
       const newNote = await notesService.createNote(data);
-      set((state) => ({
-        notes: [newNote, ...state.notes],
-        isSaving: false,
-      }));
+      set((state) => {
+        const updatedNotes = [newNote, ...state.notes];
+        const categories = NOTE_CATEGORIES.map(cat => {
+          const count = updatedNotes.filter(n => n.category === cat.name || (cat.name === "Secure" && n.is_secure)).length;
+          return { name: cat.name, count, is_custom: false };
+        });
+        return {
+          notes: updatedNotes,
+          categories,
+          isSaving: false,
+        };
+      });
       return newNote;
     } catch (error) {
       set({ error: error instanceof Error ? error.message : "Failed to create note", isSaving: false });
@@ -74,10 +82,18 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     set({ isSaving: true, error: null });
     try {
       const updatedNote = await notesService.updateNote(id, data);
-      set((state) => ({
-        notes: state.notes.map((note) => (note.id === id ? updatedNote : note)),
-        isSaving: false,
-      }));
+      set((state) => {
+        const updatedNotes = state.notes.map((note) => (note.id === id ? updatedNote : note));
+        const categories = NOTE_CATEGORIES.map(cat => {
+          const count = updatedNotes.filter(n => n.category === cat.name || (cat.name === "Secure" && n.is_secure)).length;
+          return { name: cat.name, count, is_custom: false };
+        });
+        return {
+          notes: updatedNotes,
+          categories,
+          isSaving: false,
+        };
+      });
       return updatedNote;
     } catch (error) {
       set({ error: error instanceof Error ? error.message : "Failed to update note", isSaving: false });
@@ -89,9 +105,17 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     set({ error: null });
     try {
       await notesService.deleteNote(id);
-      set((state) => ({
-        notes: state.notes.filter((note) => note.id !== id),
-      }));
+      set((state) => {
+        const updatedNotes = state.notes.filter((note) => note.id !== id);
+        const categories = NOTE_CATEGORIES.map(cat => {
+          const count = updatedNotes.filter(n => n.category === cat.name || (cat.name === "Secure" && n.is_secure)).length;
+          return { name: cat.name, count, is_custom: false };
+        });
+        return {
+          notes: updatedNotes,
+          categories,
+        };
+      });
     } catch (error) {
       set({ error: error instanceof Error ? error.message : "Failed to delete note" });
       throw error;
@@ -119,46 +143,11 @@ export const useNotesStore = create<NotesState>((set, get) => ({
   },
 
   createCategory: async (name: string) => {
-    try {
-      const newCat = await notesService.createCategory(name);
-      set((state) => {
-        // Prevent duplicates in state
-        if (state.categories.find(c => c.name.toLowerCase() === name.toLowerCase())) {
-          return state;
-        }
-        const newCats = [...state.categories, newCat].sort((a, b) => a.name.localeCompare(b.name));
-        return { categories: newCats };
-      });
-      return newCat;
-    } catch (error) {
-      console.error("Failed to create category", error);
-      throw error;
-    }
+    const newCat = { name, count: 0, is_custom: false };
+    return newCat;
   },
 
-  renameCategory: async (oldName, newName) => {
-    try {
-      const updatedCat = await notesService.renameCategory(oldName, newName);
-      set((state) => ({
-        categories: state.categories.map((c) => (c.name === oldName ? updatedCat : c)).sort((a, b) => a.name.localeCompare(b.name)),
-        notes: state.notes.map((n) => (n.category === oldName ? { ...n, category: newName } : n))
-      }));
-    } catch (error) {
-      console.error("Failed to rename category", error);
-      throw error;
-    }
-  },
+  renameCategory: async () => {},
 
-  deleteCategory: async (name) => {
-    try {
-      await notesService.deleteCategory(name);
-      set((state) => ({
-        categories: state.categories.filter((c) => c.name !== name),
-        notes: state.notes.map((n) => (n.category === name ? { ...n, category: "General" } : n))
-      }));
-    } catch (error) {
-      console.error("Failed to delete category", error);
-      throw error;
-    }
-  },
+  deleteCategory: async () => {},
 }));

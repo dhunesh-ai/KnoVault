@@ -283,35 +283,35 @@ export default function AIPage() {
   const todayMedsCount = medicineReminders.filter((r) => isToday(new Date(r.reminder_date)) && !r.is_completed).length;
 
   return (
-    <div className="flex gap-6 h-[calc(100vh-6rem)] overflow-hidden -mx-4 sm:mx-0 px-4 sm:px-0">
+    <div className="flex gap-6 h-[calc(100vh-6.5rem)] overflow-hidden -mx-4 sm:mx-0 px-4 sm:px-0 pb-6">
       
       {/* Threads Sidebar Panel */}
-      <div className="w-80 shrink-0 bg-card/40 border border-border/80 rounded-2xl p-4 flex flex-col justify-between overflow-hidden hidden md:flex">
+      <div className="w-80 shrink-0 bg-card/45 backdrop-blur-md border border-border/40 rounded-3xl p-4 flex flex-col justify-between overflow-hidden hidden md:flex shadow-sm">
         <div className="space-y-4 flex-1 flex flex-col min-h-0">
           
           {/* Sidebar Header & Create button */}
-          <div className="flex items-center justify-between gap-3 pb-3 border-b border-border/40 shrink-0">
-            <h2 className="font-bold text-foreground text-sm flex items-center gap-1.5">
-              <MessageSquare className="w-4 h-4 text-primary" /> Conversations
+          <div className="flex items-center justify-between gap-3 pb-3 border-b border-border/20 shrink-0">
+            <h2 className="font-extrabold text-foreground text-sm flex items-center gap-1.5">
+              <MessageSquare className="w-4.5 h-4.5 text-primary" /> Conversations
             </h2>
-            <Button size="icon" variant="ghost" onClick={handleCreateNewThread} className="w-8 h-8 rounded-lg">
+            <Button size="icon" variant="ghost" onClick={handleCreateNewThread} className="w-8 h-8 rounded-xl hover:bg-primary/10">
               <Plus className="w-4 h-4 text-foreground" />
             </Button>
           </div>
 
           {/* Search bar */}
           <div className="relative shrink-0">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/80" />
             <Input
               placeholder="Search chat history..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 bg-card border-border text-xs focus-visible:ring-primary/50"
+              className="pl-9.5 bg-card border-border/40 text-xs h-9 rounded-xl focus-visible:ring-primary/40"
             />
           </div>
 
           {/* Threads List */}
-          <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 min-h-0">
+          <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-0 scrollbar-hide">
             {filteredThreads.map((t) => {
               const isActive = t.id === activeThreadId;
               const isEditing = editingThreadId === t.id;
@@ -320,10 +320,10 @@ export default function AIPage() {
                 <div
                   key={t.id}
                   onClick={() => !isEditing && setActiveThreadId(t.id)}
-                  className={`group relative rounded-xl border p-3 flex flex-col justify-between transition-all cursor-pointer ${
+                  className={`group relative rounded-2xl border p-3.5 flex flex-col justify-between transition-all cursor-pointer ${
                     isActive
-                      ? "bg-primary/5 border-primary/50 text-foreground"
-                      : "bg-card/40 border-border/40 text-muted-foreground hover:bg-accent/40"
+                      ? "bg-primary/10 border-primary/30 text-foreground shadow-[0_4px_12px_rgba(124,77,255,0.05)]"
+                      : "bg-card/20 border-border/30 text-muted-foreground hover:bg-accent/30"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -332,19 +332,19 @@ export default function AIPage() {
                         <Input
                           value={renameText}
                           onChange={(e) => setRenameText(e.target.value)}
-                          className="bg-card text-xs h-7 py-0 px-2"
+                          className="bg-card text-xs h-7 py-0 px-2 rounded-lg"
                           autoFocus
                           maxLength={35}
                         />
-                        <Button size="icon" variant="ghost" onClick={() => handleRenameSubmit(t.id)} className="w-6 h-6 shrink-0">
+                        <Button size="icon" variant="ghost" onClick={() => handleRenameSubmit(t.id)} className="w-6 h-6 shrink-0 rounded-lg">
                           <Check className="w-3.5 h-3.5 text-emerald-400" />
                         </Button>
-                        <Button size="icon" variant="ghost" onClick={() => setEditingThreadId(null)} className="w-6 h-6 shrink-0">
+                        <Button size="icon" variant="ghost" onClick={() => setEditingThreadId(null)} className="w-6 h-6 shrink-0 rounded-lg">
                           <X className="w-3.5 h-3.5 text-destructive" />
                         </Button>
                       </div>
                     ) : (
-                      <span className="font-bold text-xs truncate max-w-[180px] text-foreground">
+                      <span className="font-bold text-xs truncate max-w-[170px] text-foreground">
                         {t.title}
                       </span>
                     )}
@@ -383,10 +383,10 @@ export default function AIPage() {
                     )}
                   </div>
 
-                  <div className="flex justify-between items-center text-[10px] text-muted-foreground mt-2">
+                  <div className="flex justify-between items-center text-[10px] text-muted-foreground mt-2 font-medium">
                     <span>{t.messages.length} messages</span>
                     {t.isPinned && (
-                      <span className="flex items-center gap-0.5 text-primary uppercase font-bold text-[8px] tracking-wider bg-primary/10 px-1 rounded">
+                      <span className="flex items-center gap-0.5 text-primary uppercase font-bold text-[8px] tracking-wider bg-primary/10 px-1.5 py-0.5 rounded-lg">
                         Pinned
                       </span>
                     )}
@@ -398,25 +398,29 @@ export default function AIPage() {
         </div>
 
         {/* Sidebar Footer */}
-        <div className="shrink-0 pt-4 border-t border-border/40 mt-4">
-          <Button onClick={() => setMemoryOpen(true)} variant="outline" className="w-full border-border bg-card">
-            <Brain className="w-4 h-4 mr-2 text-purple-400" /> AI Memory Box
+        <div className="shrink-0 pt-4 border-t border-border/20 mt-4">
+          <Button 
+            onClick={() => setMemoryOpen(true)} 
+            variant="outline" 
+            className="w-full border-border/50 bg-card rounded-2xl font-bold text-xs hover:bg-accent/40"
+          >
+            <Brain className="w-4 h-4 mr-2 text-purple-500" /> AI Memory Box
           </Button>
         </div>
       </div>
 
       {/* Main Chat Assistant Board */}
-      <div className="flex-1 bg-card/20 border border-border/60 rounded-2xl flex flex-col overflow-hidden relative">
+      <div className="flex-1 bg-card/35 backdrop-blur-md border border-border/40 rounded-3xl flex flex-col overflow-hidden relative shadow-sm">
         
         {/* Top Header Bar */}
-        <div className="shrink-0 p-4 border-b border-border/40 flex items-center justify-between bg-card/60 backdrop-blur-md z-10">
+        <div className="shrink-0 p-4 border-b border-border/20 flex items-center justify-between bg-card/60 backdrop-blur-md z-10">
           <div className="flex items-center gap-3">
             <KnoMascot state={mascotState} className="w-10 h-10 shrink-0" />
             <div>
-              <h1 className="text-base font-bold text-foreground truncate max-w-[200px]">
+              <h1 className="text-sm font-extrabold text-foreground truncate max-w-[200px]">
                 {activeThread?.title || "KnoVault AI Assistant"}
               </h1>
-              <p className="text-[10px] text-muted-foreground">Always active, secure assistant</p>
+              <p className="text-[10px] text-muted-foreground font-semibold">Always active, secure assistant</p>
             </div>
           </div>
 
@@ -425,9 +429,9 @@ export default function AIPage() {
               variant="outline"
               size="sm"
               onClick={() => setMemoryOpen(true)}
-              className="border-border bg-card md:hidden flex"
+              className="border-border/50 bg-card md:hidden flex rounded-xl text-xs"
             >
-              <Brain className="w-3.5 h-3.5 mr-1 text-purple-400" /> Memory
+              <Brain className="w-3.5 h-3.5 mr-1 text-purple-500" /> Memory
             </Button>
             {activeThread && activeThread.messages.length > 0 && (
               <>
@@ -435,14 +439,14 @@ export default function AIPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => handleExport(activeThread.id)}
-                  className="border-border bg-card"
+                  className="border-border/50 bg-card rounded-xl text-xs"
                 >
                   <Download className="w-3.5 h-3.5 mr-1 text-blue-400" /> Export MD
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl"
                   onClick={() => deleteThread(activeThread.id)}
                 >
                   <Trash2 className="w-4 h-4" />
@@ -453,7 +457,7 @@ export default function AIPage() {
               variant="outline"
               size="sm"
               onClick={handleCreateNewThread}
-              className="border-border bg-card hidden sm:flex"
+              className="border-border/50 bg-card hidden sm:flex rounded-xl text-xs font-semibold"
             >
               <Plus className="w-3.5 h-3.5 mr-1" /> New Chat
             </Button>
@@ -461,7 +465,7 @@ export default function AIPage() {
         </div>
 
         {/* Message Feed Grid */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 min-h-0" ref={scrollRef}>
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 min-h-0 scrollbar-hide" ref={scrollRef}>
           {(!activeThread || activeThread.messages.length === 0) ? (
             <motion.div
               initial={{ opacity: 0, y: 15 }}
@@ -469,40 +473,40 @@ export default function AIPage() {
               className="flex flex-col items-center justify-center pt-8 pb-8 text-center"
             >
               <KnoMascot state="idle" className="w-20 h-20 mb-4" />
-              <h3 className="text-xl font-bold text-foreground mb-1">Welcome to KnoVault AI</h3>
-              <p className="text-sm text-muted-foreground max-w-sm mb-6">
+              <h3 className="text-lg font-extrabold text-foreground mb-1">Welcome to KnoVault AI</h3>
+              <p className="text-xs text-muted-foreground max-w-sm mb-6 leading-relaxed">
                 I can summarize medicines, check streaks, log goals, and lookup files.
               </p>
 
               {/* Context Summary Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-2xl mb-8">
                 <div
-                  className="bg-card border border-border/80 hover:border-rose-500/50 rounded-xl p-4 text-left hover:bg-muted/40 transition-all cursor-pointer"
+                  className="bg-card/50 border border-border/40 hover:border-rose-500/30 rounded-2xl p-4.5 text-left hover:bg-accent/20 transition-all cursor-pointer shadow-sm"
                   onClick={() => handleSendMessage("What is my medicine schedule for today?")}
                 >
-                  <Activity className="w-5 h-5 text-rose-400 mb-2" />
-                  <h4 className="font-semibold text-foreground text-sm mb-0.5">Medicines</h4>
-                  <p className="text-xs text-muted-foreground">
+                  <Activity className="w-5 h-5 text-rose-500 mb-2" />
+                  <h4 className="font-bold text-foreground text-xs mb-0.5">Medicines</h4>
+                  <p className="text-[10px] text-muted-foreground/80 font-medium">
                     {todayMedsCount > 0 ? `${todayMedsCount} doses remaining` : "All caught up"}
                   </p>
                 </div>
                 <div
-                  className="bg-card border border-border/80 hover:border-purple-500/50 rounded-xl p-4 text-left hover:bg-muted/40 transition-all cursor-pointer"
+                  className="bg-card/50 border border-border/40 hover:border-purple-500/30 rounded-2xl p-4.5 text-left hover:bg-accent/20 transition-all cursor-pointer shadow-sm"
                   onClick={() => handleSendMessage("What are my goal analytics looking like?")}
                 >
-                  <Target className="w-5 h-5 text-purple-400 mb-2" />
-                  <h4 className="font-semibold text-foreground text-sm mb-0.5">Goal Streak</h4>
-                  <p className="text-xs text-muted-foreground">
+                  <Target className="w-5 h-5 text-purple-500 mb-2" />
+                  <h4 className="font-bold text-foreground text-xs mb-0.5">Goal Streak</h4>
+                  <p className="text-[10px] text-muted-foreground/80 font-medium">
                     {goalStats?.streak ? `${goalStats.streak} day streak` : "Check progress"}
                   </p>
                 </div>
                 <div
-                  className="bg-card border border-border/80 hover:border-pink-500/50 rounded-xl p-4 text-left hover:bg-muted/40 transition-all cursor-pointer"
+                  className="bg-card/50 border border-border/40 hover:border-pink-500/30 rounded-2xl p-4.5 text-left hover:bg-accent/20 transition-all cursor-pointer shadow-sm"
                   onClick={() => handleSendMessage("Are there any upcoming special days?")}
                 >
-                  <PartyPopper className="w-5 h-5 text-pink-400 mb-2" />
-                  <h4 className="font-semibold text-foreground text-sm mb-0.5">Special Days</h4>
-                  <p className="text-xs text-muted-foreground">
+                  <PartyPopper className="w-5 h-5 text-pink-500 mb-2" />
+                  <h4 className="font-bold text-foreground text-xs mb-0.5">Special Days</h4>
+                  <p className="text-[10px] text-muted-foreground/80 font-medium">
                     {specialDays.length > 0 ? `${specialDays.length} logs saved` : "Track events"}
                   </p>
                 </div>
@@ -518,7 +522,7 @@ export default function AIPage() {
                   <button
                     key={idx}
                     onClick={() => handleSendMessage(sug)}
-                    className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors"
+                    className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-200"
                   >
                     {sug}
                   </button>
@@ -535,13 +539,13 @@ export default function AIPage() {
                   return (
                     <motion.div
                       key={msg.id}
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
                       className={`flex items-start gap-3.5 ${isUser ? "flex-row-reverse" : "flex-row"}`}
                     >
                       <div className="shrink-0 mt-0.5">
                         {isUser ? (
-                          <div className="w-8 h-8 rounded-full bg-accent border border-border flex items-center justify-center shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-accent border border-border/40 flex items-center justify-center shrink-0">
                             <User className="w-4 h-4 text-muted-foreground" />
                           </div>
                         ) : (
@@ -550,16 +554,16 @@ export default function AIPage() {
                       </div>
 
                       <div className="space-y-1.5 max-w-[85%] sm:max-w-[75%]">
-                        <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap shadow-sm ${
+                        <div className={`rounded-2xl px-4 py-3 text-xs leading-relaxed whitespace-pre-wrap shadow-sm font-medium ${
                           isUser
                             ? "bg-primary text-primary-foreground rounded-tr-sm"
                             : isSecurityAlert
                             ? "bg-red-500/10 border border-red-500/25 text-foreground rounded-tl-sm"
-                            : "bg-card border border-border text-foreground rounded-tl-sm"
+                            : "bg-card border border-border/40 text-foreground rounded-tl-sm"
                         }`}>
                           {!isUser && (
-                            <span className="text-[9px] uppercase font-bold tracking-wider text-purple-400 block mb-1">
-                              {isSecurityAlert ? "🔒 Privacy shield blocker" : "✨ KnoVault AI"}
+                            <span className="text-[9px] uppercase font-extrabold tracking-wider text-purple-500 block mb-1">
+                              {isSecurityAlert ? "🔒 Security Shield Block" : "✨ KnoVault AI"}
                             </span>
                           )}
                           {msg.content}
@@ -570,16 +574,16 @@ export default function AIPage() {
                             <button
                               onClick={() => {
                                 navigator.clipboard.writeText(msg.content);
-                                toast.success("Copied!");
+                                toast.success("Copied to clipboard");
                               }}
-                              className="text-muted-foreground hover:text-foreground p-0.5 rounded"
+                              className="text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors"
                               title="Copy text"
                             >
                               <Copy className="w-3 h-3" />
                             </button>
                             <button
                               onClick={() => handleSpeak(msg.content)}
-                              className="text-muted-foreground hover:text-foreground p-0.5 rounded"
+                              className="text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors"
                               title="Speak out loud"
                             >
                               <Volume2 className="w-3 h-3" />
@@ -595,7 +599,7 @@ export default function AIPage() {
               {isSending && (
                 <div className="flex items-start gap-3.5">
                   <KnoMascot state="thinking" className="w-8 h-8 rounded-xl" />
-                  <div className="bg-card border border-border rounded-2xl px-4 py-3 flex items-center gap-1.5 w-16 h-10">
+                  <div className="bg-card border border-border/40 rounded-2xl px-4 py-3.5 flex items-center gap-1.5 w-16 h-10">
                     <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                     <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
                     <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
@@ -607,7 +611,7 @@ export default function AIPage() {
         </div>
 
         {/* Input Bar Docked to Bottom */}
-        <div className="shrink-0 p-4 border-t border-border/40 bg-card/60 backdrop-blur-md">
+        <div className="shrink-0 p-4 border-t border-border/20 bg-card/60 backdrop-blur-md">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -620,23 +624,23 @@ export default function AIPage() {
               variant="outline"
               size="icon"
               onClick={toggleSpeechRecognition}
-              className={`rounded-xl border-border shrink-0 transition-colors ${
+              className={`rounded-2xl border-border/40 shrink-0 h-11 w-11 transition-colors ${
                 isListening ? "bg-red-500/20 border-red-500 text-red-500 animate-pulse" : "bg-card"
               }`}
             >
-              {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              {isListening ? <MicOff className="w-4.5 h-4.5" /> : <Mic className="w-4.5 h-4.5" />}
             </Button>
 
             <Input
               placeholder="Ask a question about medicines, streak, goals..."
               value={inputVal}
               onChange={(e) => setInputVal(e.target.value)}
-              className="flex-1 bg-card border-border rounded-xl text-sm"
+              className="flex-1 bg-card border-border/40 rounded-2xl text-xs h-11 focus-visible:ring-primary/30"
               disabled={isSending}
             />
 
-            <Button type="submit" size="icon" disabled={isSending} className="bg-primary hover:bg-primary-hover text-white rounded-xl shrink-0">
-              {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            <Button type="submit" size="icon" disabled={isSending} className="bg-primary hover:bg-primary/90 text-white rounded-2xl shrink-0 h-11 w-11">
+              {isSending ? <Loader2 className="w-4.5 h-4.5 animate-spin" /> : <Send className="w-4.5 h-4.5" />}
             </Button>
           </form>
         </div>
@@ -644,12 +648,12 @@ export default function AIPage() {
 
       {/* Memory Profile Box Modal */}
       <Dialog open={memoryOpen} onOpenChange={setMemoryOpen}>
-        <DialogContent className="bg-background border-border text-foreground">
+        <DialogContent className="bg-card/90 backdrop-blur-2xl border-border/50 text-foreground rounded-3xl p-6 shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Brain className="w-5 h-5 text-purple-400" /> AI Profile Memories
+            <DialogTitle className="flex items-center gap-2 font-bold text-lg">
+              <Brain className="w-5.5 h-5.5 text-purple-500" /> AI Profile Memories
             </DialogTitle>
-            <DialogDescription className="text-muted-foreground text-xs">
+            <DialogDescription className="text-muted-foreground text-xs font-semibold">
               Manage facts or custom prompt style guidelines saved for your chatbot assistant context.
             </DialogDescription>
           </DialogHeader>
@@ -658,21 +662,21 @@ export default function AIPage() {
             
             {/* Add memory item */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold">Remember a fact/preference:</label>
+              <label className="text-xs font-bold text-foreground">Remember a fact/preference:</label>
               <div className="flex gap-2">
                 <Input
                   placeholder="e.g. Speak in bullet points. I work as a team lead..."
                   value={newMemoryText}
                   onChange={(e) => setNewMemoryText(e.target.value)}
-                  className="bg-card border-border text-xs"
+                  className="bg-accent/25 border-border/40 text-xs rounded-2xl h-10"
                 />
-                <Button size="sm" onClick={handleAddMemory}>Save</Button>
+                <Button size="sm" onClick={handleAddMemory} className="rounded-2xl bg-primary text-white h-10 px-4 font-bold text-xs shrink-0 shadow-sm">Save</Button>
               </div>
             </div>
 
             {/* List memories */}
-            <div className="space-y-1.5 max-h-[220px] overflow-y-auto pt-1">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1">
+            <div className="space-y-1.5 max-h-[220px] overflow-y-auto pt-1 scrollbar-hide">
+              <span className="text-[10px] uppercase font-extrabold text-muted-foreground tracking-wider block mb-1">
                 Saved memories ({memories.length})
               </span>
               
@@ -680,14 +684,14 @@ export default function AIPage() {
                 <p className="text-xs text-muted-foreground text-center py-6">No memories saved yet.</p>
               ) : (
                 memories.map((m) => (
-                  <div key={m.id} className="flex justify-between items-center text-xs bg-accent/40 px-3 py-2 border border-border/40 rounded-xl gap-2">
-                    <span className="text-foreground">{m.content}</span>
+                  <div key={m.id} className="flex justify-between items-center text-xs bg-accent/30 px-3 py-2 border border-border/30 rounded-xl gap-2">
+                    <span className="text-foreground font-semibold">{m.content}</span>
                     <button
                       onClick={() => {
                         deleteMemory(m.id);
                         toast.success("Memory deleted");
                       }}
-                      className="text-destructive hover:text-destructive/80 text-[10px] shrink-0"
+                      className="text-red-500 hover:text-red-600 text-[10px] font-bold shrink-0"
                     >
                       Delete
                     </button>
@@ -699,7 +703,7 @@ export default function AIPage() {
           </div>
 
           <DialogFooter>
-            <Button onClick={() => setMemoryOpen(false)}>Done</Button>
+            <Button onClick={() => setMemoryOpen(false)} className="rounded-xl bg-accent text-foreground hover:bg-accent/80 font-bold text-xs h-9">Done</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

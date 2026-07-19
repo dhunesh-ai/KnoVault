@@ -1,21 +1,27 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Shield, Lock, Eye, EyeOff, Loader2, KeyRound, Smartphone, AlertCircle } from "lucide-react";
 import { secureNotesService, SecureNotesStatus } from "@/services/secureNotes";
-import { useSecureNotesStore } from "@/store/useSecureNotesStore";
 import { toast } from "sonner";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 
-type VerificationStep = "loading" | "set_password" | "unlock" | "forgot_otp" | "reset_password" | "locked";
+interface SecurePasswordDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onVerifySuccess: () => void;
+  onCancel: () => void;
+}
 
-export function PasswordVerification() {
-  const [step, setStep] = useState<VerificationStep>("loading");
+type DialogStep = "loading" | "set_password" | "unlock" | "forgot_otp" | "reset_password" | "locked";
+
+export function SecurePasswordDialog({ open, onOpenChange, onVerifySuccess, onCancel }: SecurePasswordDialogProps) {
+  const [step, setStep] = useState<DialogStep>("loading");
   const [status, setStatus] = useState<SecureNotesStatus | null>(null);
-  const unlockSession = useSecureNotesStore((state) => state.unlockSession);
   
   // Form states
   const [password, setPassword] = useState("");
@@ -28,13 +34,22 @@ export function PasswordVerification() {
   const [lockoutTimeLeft, setLockoutTimeLeft] = useState(0); // in seconds
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Fetch status on mount
+  // Fetch status on open
   useEffect(() => {
-    fetchStatus();
-    return () => {
+    if (open) {
+      fetchStatus();
+    } else {
+      // Reset state on close
+      setStep("loading");
+      setPassword("");
+      setConfirmPassword("");
+      setOtpCode("");
+      setShowPassword(false);
+      setShowConfirmPassword(false);
+      setIsLoading(false);
       if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, []);
+    }
+  }, [open]);
 
   // Countdown timer for lockout
   useEffect(() => {
@@ -79,6 +94,7 @@ export function PasswordVerification() {
       }
     } catch (e: any) {
       toast.error(e.response?.data?.detail || "Failed to load secure vault status");
+      onCancel();
     }
   };
 
@@ -97,7 +113,7 @@ export function PasswordVerification() {
     try {
       await secureNotesService.setPassword(password);
       toast.success("Secure password created successfully");
-      await unlockSession(password);
+      onVerifySuccess();
     } catch (e: any) {
       toast.error(e.response?.data?.detail || "Failed to set password");
     } finally {
@@ -110,12 +126,16 @@ export function PasswordVerification() {
     if (!password) return;
 
     setIsLoading(true);
-    const success = await unlockSession(password);
-    setIsLoading(false);
-    
-    if (!success) {
+    try {
+      await secureNotesService.verifyPassword(password);
+      onVerifySuccess();
+    } catch (e: any) {
+      const detail = e.response?.data?.detail || "";
+      toast.error(detail || "Incorrect secure password");
       // Re-fetch status to update failed attempts / lockout state
       fetchStatus();
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -186,14 +206,14 @@ export function PasswordVerification() {
   };
 
   const stepVariants: Variants = {
-    hidden: { opacity: 0, scale: 0.96, y: 15 },
-    visible: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 26 } },
-    exit: { opacity: 0, scale: 0.96, y: -15, transition: { duration: 0.15 } }
+    hidden: { opacity: 0, scale: 0.95, y: 10 },
+    visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" } },
+    exit: { opacity: 0, scale: 0.95, y: -10, transition: { duration: 0.15 } }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full min-h-[60vh] px-4">
-      <div className="max-w-md w-full bg-card/60 backdrop-blur-2xl border border-border/40 p-8 rounded-3xl text-center shadow-2xl relative overflow-hidden">
+    <Dialog open={open} onOpenChange={(val) => { if (!val) onCancel(); }}>
+      <DialogContent className="sm:max-w-[420px] bg-card/70 border border-border/30 backdrop-blur-2xl text-foreground rounded-3xl p-6 shadow-2xl overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-red-500 via-primary to-secondary" />
         
         <AnimatePresence mode="wait">
@@ -204,24 +224,24 @@ export function PasswordVerification() {
               initial="hidden" 
               animate="visible" 
               exit="exit"
-              className="flex flex-col items-center justify-center py-8"
+              className="flex flex-col items-center justify-center py-12"
             >
-              <Loader2 className="w-12 h-12 animate-spin text-primary" />
+              <Loader2 className="w-10 h-10 animate-spin text-primary" />
               <p className="text-xs text-muted-foreground mt-4 font-semibold">Verifying secure vault status...</p>
             </motion.div>
           )}
 
           {step === "set_password" && (
-            <motion.div key="set" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-5 text-left">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Shield className="w-8 h-8 text-primary" />
+            <motion.div key="set" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-4">
+              <DialogHeader>
+                <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-2">
+                  <Shield className="w-7 h-7 text-primary" />
                 </div>
-                <h2 className="text-xl font-extrabold text-foreground mb-1.5 tracking-tight">Create Secure Password</h2>
-                <p className="text-muted-foreground text-xs font-semibold mb-6 max-w-[280px] mx-auto leading-relaxed">
+                <DialogTitle className="text-lg font-extrabold text-foreground tracking-tight">🔒 Create Secure Password</DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground font-semibold leading-relaxed">
                   Secure Notes require a separate independent password to encrypt your sensitive vaults.
-                </p>
-              </div>
+                </DialogDescription>
+              </DialogHeader>
 
               <form onSubmit={handleCreatePassword} className="space-y-4 pt-2">
                 <div className="space-y-1.5">
@@ -266,26 +286,32 @@ export function PasswordVerification() {
                   </div>
                 </div>
 
-                <Button type="submit" disabled={isLoading} className="w-full mt-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-2xl h-11 text-xs shadow-lg shadow-primary/20">
-                  {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Create Password & Unlock
-                </Button>
+                <DialogFooter className="gap-2 pt-4 flex-row justify-end">
+                  <Button type="button" variant="ghost" onClick={onCancel} className="rounded-xl text-xs h-10 flex-1 sm:flex-initial">
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isLoading} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl text-xs h-10 flex-1 sm:flex-initial shadow-lg shadow-primary/20">
+                    {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    Create Password
+                  </Button>
+                </DialogFooter>
               </form>
             </motion.div>
           )}
 
           {step === "unlock" && (
-            <motion.div key="unlock" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-5 text-left">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 relative">
-                  <Shield className="w-8 h-8 text-red-500" />
-                  <Lock className="w-4 h-4 text-white absolute bottom-3 right-3 bg-red-500 rounded-full p-0.5" />
+            <motion.div key="unlock" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-4">
+              <DialogHeader>
+                <div className="w-14 h-14 bg-red-500/10 rounded-2xl flex items-center justify-center mb-2">
+                  <Shield className="w-7 h-7 text-red-500" />
                 </div>
-                <h2 className="text-xl font-extrabold text-foreground mb-1.5 tracking-tight">Vault Session Locked</h2>
-                <p className="text-muted-foreground text-xs font-semibold mb-6 max-w-[280px] mx-auto leading-relaxed">
-                  Enter your Secure Notes password to decrypt and open your secure notes vault.
-                </p>
-              </div>
+                <DialogTitle className="text-lg font-extrabold text-foreground tracking-tight flex items-center gap-1.5">
+                  🔒 KnoVault Security
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground font-semibold">
+                  Secure Note • Enter Secure Password
+                </DialogDescription>
+              </DialogHeader>
 
               <form onSubmit={handleVerifyPassword} className="space-y-4 pt-2">
                 <div className="space-y-1.5">
@@ -319,10 +345,15 @@ export function PasswordVerification() {
                   </div>
                 </div>
 
-                <Button type="submit" disabled={isLoading || !password} className="w-full mt-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-2xl h-11 text-xs shadow-lg shadow-red-500/20">
-                  {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Unlock Secure Notes
-                </Button>
+                <DialogFooter className="gap-2 pt-4 flex-row justify-end">
+                  <Button type="button" variant="ghost" onClick={onCancel} className="rounded-xl text-xs h-10 flex-1 sm:flex-initial">
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isLoading || !password} className="bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl text-xs h-10 flex-1 sm:flex-initial shadow-lg shadow-red-500/20">
+                    {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    Unlock Note
+                  </Button>
+                </DialogFooter>
               </form>
             </motion.div>
           )}
@@ -339,20 +370,23 @@ export function PasswordVerification() {
               <div className="text-3xl font-black text-yellow-500 font-mono tracking-wider pt-2">
                 {formatTime(lockoutTimeLeft)}
               </div>
+              <Button type="button" variant="outline" onClick={onCancel} className="mt-4 rounded-xl text-xs h-10 w-full max-w-[200px]">
+                Close
+              </Button>
             </motion.div>
           )}
 
           {step === "forgot_otp" && (
-            <motion.div key="otp" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-5 text-left">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Smartphone className="w-8 h-8 text-red-500" />
+            <motion.div key="otp" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-4">
+              <DialogHeader>
+                <div className="w-14 h-14 bg-red-500/10 rounded-2xl flex items-center justify-center mb-2">
+                  <Smartphone className="w-7 h-7 text-red-500" />
                 </div>
-                <h2 className="text-xl font-extrabold text-foreground mb-1.5 tracking-tight">Verify Identity</h2>
-                <p className="text-muted-foreground text-xs font-semibold mb-6 max-w-[280px] mx-auto leading-relaxed">
+                <DialogTitle className="text-lg font-extrabold text-foreground tracking-tight">🔑 Verify Identity</DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground font-semibold leading-relaxed">
                   We sent a 6-digit OTP code to your registered email to reset your Secure Notes password.
-                </p>
-              </div>
+                </DialogDescription>
+              </DialogHeader>
 
               <form onSubmit={handleVerifyOtp} className="space-y-4 pt-2">
                 <div className="space-y-1.5">
@@ -377,30 +411,30 @@ export function PasswordVerification() {
                   />
                 </div>
 
-                <div className="flex gap-3 pt-2">
-                  <Button type="button" variant="ghost" onClick={() => setStep("unlock")} className="flex-1 rounded-2xl h-11 text-xs">
+                <DialogFooter className="gap-2 pt-4 flex-row justify-end">
+                  <Button type="button" variant="ghost" onClick={() => setStep("unlock")} className="rounded-xl text-xs h-10 flex-1 sm:flex-initial">
                     Back
                   </Button>
-                  <Button type="submit" disabled={isLoading || otpCode.length !== 6} className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold rounded-2xl h-11 text-xs">
+                  <Button type="submit" disabled={isLoading || otpCode.length !== 6} className="bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl text-xs h-10 flex-1 sm:flex-initial">
                     {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     Verify OTP
                   </Button>
-                </div>
+                </DialogFooter>
               </form>
             </motion.div>
           )}
 
           {step === "reset_password" && (
-            <motion.div key="reset" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-5 text-left">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <KeyRound className="w-8 h-8 text-red-500" />
+            <motion.div key="reset" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-4">
+              <DialogHeader>
+                <div className="w-14 h-14 bg-red-500/10 rounded-2xl flex items-center justify-center mb-2">
+                  <KeyRound className="w-7 h-7 text-red-500" />
                 </div>
-                <h2 className="text-xl font-extrabold text-foreground mb-1.5 tracking-tight">Reset Secure Password</h2>
-                <p className="text-muted-foreground text-xs font-semibold mb-6 max-w-[280px] mx-auto leading-relaxed">
+                <DialogTitle className="text-lg font-extrabold text-foreground tracking-tight">🔒 Reset Secure Password</DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground font-semibold leading-relaxed">
                   Enter your new independent Secure Notes Password.
-                </p>
-              </div>
+                </DialogDescription>
+              </DialogHeader>
 
               <form onSubmit={handleResetPassword} className="space-y-4 pt-2">
                 <div className="space-y-1.5">
@@ -445,20 +479,20 @@ export function PasswordVerification() {
                   </div>
                 </div>
 
-                <div className="flex gap-3 pt-2">
-                  <Button type="button" variant="ghost" onClick={() => setStep("unlock")} className="flex-1 rounded-2xl h-11 text-xs">
+                <DialogFooter className="gap-2 pt-4 flex-row justify-end">
+                  <Button type="button" variant="ghost" onClick={() => setStep("unlock")} className="rounded-xl text-xs h-10 flex-1 sm:flex-initial">
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isLoading} className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold rounded-2xl h-11 text-xs">
+                  <Button type="submit" disabled={isLoading} className="bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl text-xs h-10 flex-1 sm:flex-initial">
                     {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     Reset Password
                   </Button>
-                </div>
+                </DialogFooter>
               </form>
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -9,6 +9,7 @@ import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity, DeviceEven
 import { Slot, Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '../src/config/queryClient';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import OfflineBanner from '../src/components/OfflineBanner';
 import * as SplashScreen from 'expo-splash-screen';
@@ -163,13 +164,23 @@ function RootLayoutContent() {
         const offline = state.isConnected === false || state.isInternetReachable === false;
         console.log("Offline Decision:", offline);
         
+        const prevOffline = useAppStore.getState().isOffline;
+        
         useAppStore.getState().setOfflineStatus(offline);
         useAppStore.getState().setNetworkReady(true);
+
+        if (prevOffline && !offline && isAuthenticated && user) {
+          console.log('[RootLayout] Connection restored. Running auto-sync...');
+          syncWorkspace().catch((e: any) => console.warn('Sync on connection restore failed', e));
+
+          const { syncWebSocket } = require('../src/services/syncWebSocket');
+          syncWebSocket.connect().catch((e: any) => console.warn('WebSocket reconnect failed', e));
+        }
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [isAuthenticated, user]);
 
   // Initialize FCM notifications
   useEffect(() => {
@@ -243,12 +254,43 @@ function RootLayoutContent() {
     return () => subscription.remove();
   }, [router]);
 
-  // Sync workspace notifications on successful authentication
+  // Sync workspace notifications and start WebSocket on successful authentication
   useEffect(() => {
     if (isAuthenticated && user) {
-      console.log('[RootLayout] Authenticated - syncing workspace notifications...');
-      syncWorkspaceNotifications().catch(e => console.warn('Workspace notifications sync failed', e));
+      console.log('[RootLayout] Authenticated - syncing workspace notifications & connecting WS...');
+      syncWorkspaceNotifications().catch((e: any) => console.warn('Workspace notifications sync failed', e));
+      
+      const { syncWebSocket } = require('../src/services/syncWebSocket');
+      syncWebSocket.connect().catch((e: any) => console.warn('WebSocket connect failed', e));
+    } else {
+      try {
+        const { syncWebSocket } = require('../src/services/syncWebSocket');
+        syncWebSocket.disconnect();
+      } catch (e) {}
     }
+  }, [isAuthenticated, user]);
+
+  // Manage WebSocket connection on app background/foreground transitions
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === 'active') {
+        if (isAuthenticated && user) {
+          console.log('[RootLayout] App returned to foreground - connecting WS and syncing...');
+          const { syncWebSocket } = require('../src/services/syncWebSocket');
+          syncWebSocket.connect().catch((e: any) => console.warn('WS connect failed on foreground', e));
+          syncWorkspace().catch((e: any) => console.warn('Sync failed on foreground', e));
+        }
+      } else if (nextAppState === 'background' || nextAppState === 'inactive') {
+        console.log('[RootLayout] App moved to background - disconnecting WS...');
+        try {
+          const { syncWebSocket } = require('../src/services/syncWebSocket');
+          syncWebSocket.disconnect();
+        } catch (e) {}
+      }
+    };
+
+    const sub = AppState.addEventListener('change', handleAppStateChange);
+    return () => sub.remove();
   }, [isAuthenticated, user]);
 
   // Listen for local DB modifications to trigger auto-sync
@@ -352,15 +394,6 @@ function RootLayoutContent() {
 export default function RootLayout() {
   console.log('[RootLayout] Rendering QueryClientProvider tree...');
   
-  const [queryClient] = React.useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: 1,
-        staleTime: 1000 * 60 * 5, // 5 minutes
-      },
-    },
-  }));
-
   return (
     <ThemeProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>

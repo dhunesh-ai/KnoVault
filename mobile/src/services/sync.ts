@@ -1,5 +1,6 @@
 import client, { checkHealth } from '../api/client';
 import { getDB, getSyncQueue, clearSyncQueue, localInsert, localUpdate, localDelete } from './db';
+import { queryClient } from '../config/queryClient';
 
 export const syncWorkspace = async () => {
     const db = getDB();
@@ -158,12 +159,21 @@ export const syncWorkspace = async () => {
 
         // After successful sync: schedule notifications, reminder alarms, etc.
         try {
-            const { scheduleSpecialDaysReminders, syncWorkspaceNotifications } = require('../utils/localNotifications');
+            const { scheduleSpecialDaysReminders, syncWorkspaceNotifications, syncRemindersNotifications } = require('../utils/localNotifications');
             await scheduleSpecialDaysReminders();
             await syncWorkspaceNotifications();
-            console.log('[Sync] Local notifications and workspace reminders rescheduled successfully');
+            await syncRemindersNotifications();
+            console.log('[Sync] Local notifications, workspace reminders, and standard reminders rescheduled successfully');
         } catch (scheduleErr) {
             console.error('[Sync] Failed to reschedule notifications after sync:', scheduleErr);
+        }
+
+        // Invalidate React Query cache to trigger instant UI refresh
+        try {
+            queryClient.invalidateQueries();
+            console.log('[Sync] React Query caches invalidated successfully');
+        } catch (queryErr) {
+            console.error('[Sync] Failed to invalidate React Query caches:', queryErr);
         }
 
         return true;

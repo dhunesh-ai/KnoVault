@@ -4,8 +4,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRemindersStore } from "@/store/useRemindersStore";
 import { ReminderCard } from "@/components/reminders/ReminderCard";
-import { ReminderEditor } from "@/components/reminders/ReminderEditor";
 import { CalendarView } from "@/components/reminders/CalendarView";
+import { useRouter } from "next/navigation";
 import { Reminder } from "@/types/Reminder";
 import { Button } from "@/components/ui/button";
 import { Plus, Loader2, Bell, LayoutGrid, List as ListIcon, Calendar as CalendarIcon } from "lucide-react";
@@ -34,10 +34,9 @@ export default function RemindersPage() {
     markComplete,
   } = useRemindersStore();
 
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list" | "calendar">("grid");
-  const [editorOpen, setEditorOpen] = useState(false);
-  const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -87,13 +86,11 @@ export default function RemindersPage() {
   }, [filteredReminders]);
 
   const handleCreate = () => {
-    setEditingReminder(null);
-    setEditorOpen(true);
+    router.push("/reminders/create");
   };
 
   const handleEdit = (reminder: Reminder) => {
-    setEditingReminder(reminder);
-    setEditorOpen(true);
+    router.push(`/reminders/create?id=${reminder.id}`);
   };
 
   const confirmDelete = async () => {
@@ -110,15 +107,18 @@ export default function RemindersPage() {
   };
 
   return (
-    <div className="space-y-6 flex flex-col h-[calc(100vh-6rem)]">
+    <div className="space-y-6 flex flex-col h-[calc(100vh-6.5rem)] pb-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
         <div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">Reminders</h1>
-          <p className="text-muted-foreground mt-1">Never miss an important event or task.</p>
+          <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Reminders</h1>
+          <p className="text-xs text-muted-foreground mt-1.5 font-medium">Never miss your critical schedules, meetings, or doses.</p>
         </div>
-        <Button onClick={handleCreate} className="bg-primary hover:bg-primary/90 text-foreground shadow-[0_0_15px_rgba(124,77,255,0.4)]">
-          <Plus className="w-4 h-4 mr-2" />
+        <Button 
+          onClick={handleCreate} 
+          className="bg-primary hover:bg-primary/95 text-primary-foreground shadow-[0_4px_16px_rgba(124,77,255,0.25)] rounded-2xl h-10 px-5 font-semibold shrink-0"
+        >
+          <Plus className="w-4 h-4 mr-1.5" />
           Add Reminder
         </Button>
       </div>
@@ -126,21 +126,21 @@ export default function RemindersPage() {
       {/* Toolbar */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 shrink-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto overflow-x-auto scrollbar-hide pb-1">
-          <TabsList className="bg-card border border-border p-1 shrink-0 flex w-full md:w-auto">
-            <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-foreground flex-1 md:flex-none">All</TabsTrigger>
-            <TabsTrigger value="today" className="data-[state=active]:bg-amber-500 data-[state=active]:text-foreground flex-1 md:flex-none">Today</TabsTrigger>
-            <TabsTrigger value="upcoming" className="data-[state=active]:bg-blue-500 data-[state=active]:text-foreground flex-1 md:flex-none">Upcoming</TabsTrigger>
-            <TabsTrigger value="overdue" className="data-[state=active]:bg-red-500 data-[state=active]:text-foreground flex-1 md:flex-none">Overdue</TabsTrigger>
-            <TabsTrigger value="completed" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-foreground flex-1 md:flex-none">Completed</TabsTrigger>
+          <TabsList className="bg-card/55 border border-border/40 p-1 rounded-2xl shrink-0 flex w-full md:w-auto gap-1">
+            <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-xl text-xs font-bold flex-1 md:flex-none py-1.5 px-4 cursor-pointer">All</TabsTrigger>
+            <TabsTrigger value="today" className="data-[state=active]:bg-amber-500 data-[state=active]:text-white rounded-xl text-xs font-bold flex-1 md:flex-none py-1.5 px-4 cursor-pointer">Today</TabsTrigger>
+            <TabsTrigger value="upcoming" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-xl text-xs font-bold flex-1 md:flex-none py-1.5 px-4 cursor-pointer">Upcoming</TabsTrigger>
+            <TabsTrigger value="overdue" className="data-[state=active]:bg-red-500 data-[state=active]:text-white rounded-xl text-xs font-bold flex-1 md:flex-none py-1.5 px-4 cursor-pointer">Overdue</TabsTrigger>
+            <TabsTrigger value="completed" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white rounded-xl text-xs font-bold flex-1 md:flex-none py-1.5 px-4 cursor-pointer">Completed</TabsTrigger>
           </TabsList>
         </Tabs>
 
-        <div className="flex items-center gap-2 self-end md:self-auto shrink-0 bg-card p-1 rounded-lg border border-border">
+        <div className="flex items-center gap-1 self-end md:self-auto shrink-0 bg-card/60 p-1 rounded-2xl border border-border/40">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setViewMode("grid")}
-            className={cn("w-8 h-8", viewMode === "grid" ? "bg-accent text-foreground" : "text-muted-foreground")}
+            className={cn("w-8.5 h-8.5 rounded-xl transition-all cursor-pointer", viewMode === "grid" ? "bg-accent/65 text-primary shadow-sm" : "text-muted-foreground hover:bg-accent/20")}
           >
             <LayoutGrid className="w-4 h-4" />
           </Button>
@@ -148,7 +148,7 @@ export default function RemindersPage() {
             variant="ghost"
             size="icon"
             onClick={() => setViewMode("list")}
-            className={cn("w-8 h-8", viewMode === "list" ? "bg-accent text-foreground" : "text-muted-foreground")}
+            className={cn("w-8.5 h-8.5 rounded-xl transition-all cursor-pointer", viewMode === "list" ? "bg-accent/65 text-primary shadow-sm" : "text-muted-foreground hover:bg-accent/20")}
           >
             <ListIcon className="w-4 h-4" />
           </Button>
@@ -156,7 +156,7 @@ export default function RemindersPage() {
             variant="ghost"
             size="icon"
             onClick={() => setViewMode("calendar")}
-            className={cn("w-8 h-8", viewMode === "calendar" ? "bg-accent text-foreground" : "text-muted-foreground")}
+            className={cn("w-8.5 h-8.5 rounded-xl transition-all cursor-pointer", viewMode === "calendar" ? "bg-accent/65 text-primary shadow-sm" : "text-muted-foreground hover:bg-accent/20")}
           >
             <CalendarIcon className="w-4 h-4" />
           </Button>
@@ -164,17 +164,19 @@ export default function RemindersPage() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="flex-1 overflow-y-auto -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : sortedReminders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-muted-foreground text-center">
-            <Bell className="w-16 h-16 mb-4 opacity-20" />
-            <h3 className="text-xl font-medium text-foreground mb-2">No reminders found</h3>
-            <p className="max-w-xs">You don't have any reminders matching this filter.</p>
-            <Button variant="link" className="text-primary mt-2" onClick={handleCreate}>
+          <div className="flex flex-col items-center justify-center h-72 text-muted-foreground text-center">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 text-primary">
+              <Bell className="w-7 h-7" />
+            </div>
+            <h3 className="text-base font-bold text-foreground mb-1">No reminders found</h3>
+            <p className="text-xs text-muted-foreground max-w-xs">You don't have any scheduled reminder alarms setup yet.</p>
+            <Button variant="link" className="text-primary mt-2 text-xs font-bold" onClick={handleCreate}>
               Create one now
             </Button>
           </div>
@@ -189,8 +191,8 @@ export default function RemindersPage() {
           <motion.div 
             layout
             className={cn(
-              "gap-4 pb-16",
-              viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "flex flex-col space-y-3"
+              "gap-5 pb-16",
+              viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" : "flex flex-col space-y-3.5"
             )}
           >
             <AnimatePresence>
@@ -198,12 +200,12 @@ export default function RemindersPage() {
                 <motion.div
                   key={reminder.id}
                   layout
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
+                  initial={{ opacity: 0, scale: 0.96, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
                   transition={{ duration: 0.2 }}
                   className={cn(
-                    viewMode === "grid" ? "h-[160px]" : ""
+                    viewMode === "grid" ? "h-[165px]" : ""
                   )}
                 >
                   <ReminderCard
@@ -219,23 +221,19 @@ export default function RemindersPage() {
         )}
       </div>
 
-      <ReminderEditor
-        open={editorOpen}
-        onOpenChange={setEditorOpen}
-        reminder={editingReminder}
-      />
+
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
-        <AlertDialogContent className="bg-background border-border text-foreground">
+        <AlertDialogContent className="bg-card/90 backdrop-blur-2xl border-border/50 text-foreground rounded-3xl p-6 shadow-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Reminder?</AlertDialogTitle>
-            <AlertDialogDescription className="text-muted-foreground">
-              This action cannot be undone. This reminder will be permanently deleted.
+            <AlertDialogTitle className="font-bold text-lg">Delete Reminder?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground text-xs font-medium">
+              This action cannot be undone. This reminder alert and its notifications will be permanently deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-card border-border text-foreground hover:bg-muted">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-500 hover:bg-red-600 text-foreground">
+          <AlertDialogFooter className="gap-2.5">
+            <AlertDialogCancel className="bg-accent/40 border-border/40 text-foreground hover:bg-accent/60 rounded-xl text-xs h-9">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs h-9 font-bold shadow-md">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

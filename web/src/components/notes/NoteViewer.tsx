@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Note } from "@/types/Note";
 import { formatDistanceToNow, format } from "date-fns";
-import { Trash2, Edit2, Star, Shield, CheckSquare, Square, ClipboardList } from "lucide-react";
+import { Trash2, Edit2, Star, Shield, CheckSquare, Square, ClipboardList, Copy } from "lucide-react";
 import { useNotesStore } from "@/store/useNotesStore";
 import { useMemo } from "react";
+import { toast } from "sonner";
 
 interface NoteViewerProps {
   open: boolean;
@@ -17,6 +18,59 @@ interface NoteViewerProps {
 
 export function NoteViewer({ open, onOpenChange, note, onEdit, onDelete }: NoteViewerProps) {
   const { updateNote, toggleFavorite } = useNotesStore();
+
+  const isLocked = useMemo(() => {
+    if (!note) return false;
+    if (!note.is_secure) return false;
+    if (note.note_type === "standard" || !note.note_type) {
+      return typeof note.content === "string" && note.content.startsWith("gAAAAA");
+    }
+    if (note.note_type === "checklist") {
+      return !note.checklist_items || note.checklist_items.length === 0;
+    }
+    if (note.note_type === "field") {
+      return !note.field_notes || note.field_notes.length === 0;
+    }
+    return false;
+  }, [note]);
+
+  const handleCopy = async () => {
+    if (!note) return;
+
+    let textToCopy = `Title:\n${note.title}\n\nContent:\n`;
+
+    if (note.note_type === "checklist" && note.checklist_items) {
+      const itemsText = note.checklist_items
+        .map(item => `${item.completed ? "[x]" : "[ ]"} ${item.text}`)
+        .join("\n");
+      textToCopy += itemsText || "No checklist items";
+    } else if (note.note_type === "field" && note.field_notes) {
+      const fieldsText = note.field_notes
+        .map(field => `${field.label}: ${field.value}`)
+        .join("\n");
+      textToCopy += fieldsText || "No fields";
+    } else {
+      textToCopy += note.content || "No content";
+    }
+
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(textToCopy);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = textToCopy;
+        textArea.style.position = "fixed";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
+      toast.success("Note copied to clipboard");
+    } catch (err) {
+      toast.error("Failed to copy note.");
+    }
+  };
 
   const { completedCount, totalCount, progress, sortedItems } = useMemo(() => {
     const items = note?.checklist_items || [];
@@ -170,6 +224,20 @@ export function NoteViewer({ open, onOpenChange, note, onEdit, onDelete }: NoteV
           </Button>
           
           <div className="flex items-center gap-2.5">
+            {!isLocked && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCopy}
+                className="text-muted-foreground hover:text-foreground hover:bg-accent border-border transition-colors"
+                aria-label="Copy Note"
+                title="Copy Note"
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Copy
+              </Button>
+            )}
             <Button
               type="button"
               variant="outline"

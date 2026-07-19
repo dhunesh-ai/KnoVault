@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   StickyNote, 
@@ -27,7 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { useAuthStore } from "@/store/useAuthStore";
 import { NoteEditor } from "@/components/notes/NoteEditor";
-import { ReminderEditor } from "@/components/reminders/ReminderEditor";
+
 import { useCalendarNotesStore } from "@/store/useCalendarNotesStore";
 import { CalendarNoteEditor } from "@/components/calendar-notes/CalendarNoteEditor";
 import { useChatThreadsStore } from "@/store/useChatThreadsStore";
@@ -63,7 +63,7 @@ export default function DashboardPage() {
 
   // Modals state
   const [noteEditorOpen, setNoteEditorOpen] = useState(false);
-  const [reminderEditorOpen, setReminderEditorOpen] = useState(false);
+
   const [morningResetOpen, setMorningResetOpen] = useState(false);
 
   // Local storage usage
@@ -138,19 +138,31 @@ export default function DashboardPage() {
     }
   };
 
-  useEffect(() => {
-    fetchDashboardData();
-    calculateStorage();
-    setMotivationQuote(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
+  const hasCheckedReset = useRef(false);
 
-    // Automatic Morning Reset Modal check
-    if (typeof window !== 'undefined') {
-      const lastReset = localStorage.getItem("knovault_last_reset_date");
-      const todayStr = new Date().toDateString();
-      if (lastReset !== todayStr) {
-        setMorningResetOpen(true);
+  useEffect(() => {
+    if (!hasCheckedReset.current) {
+      hasCheckedReset.current = true;
+      fetchDashboardData();
+      calculateStorage();
+      setMotivationQuote(QUOTES[Math.floor(Math.random() * QUOTES.length)]);
+
+      // Automatic Morning Reset Modal check (singleton check: only once per browser session/day)
+      if (typeof window !== 'undefined') {
+        const lastReset = localStorage.getItem("knovault_last_reset_date");
+        const todayStr = new Date().toDateString();
+        const alreadyShownThisSession = sessionStorage.getItem("knovault_morning_reset_shown_session") === "true";
+
+        if (lastReset !== todayStr && !alreadyShownThisSession) {
+          setMorningResetOpen(true);
+          sessionStorage.setItem("knovault_morning_reset_shown_session", "true");
+        }
       }
     }
+
+    return () => {
+      setMorningResetOpen(false);
+    };
   }, []);
 
   const handleMorningResetComplete = async () => {
@@ -185,66 +197,95 @@ export default function DashboardPage() {
     { title: "Avg Goal Progress", value: stats?.goalProgress !== undefined ? `${stats.goalProgress}%` : undefined, icon: Activity, color: "text-primary", bg: "bg-primary/10", link: "/goals" },
   ];
 
+  const containerVariants: any = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.06
+      }
+    }
+  };
+
+  const itemVariants: any = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
   return (
-    <div className="space-y-8">
-      
+    <motion.div 
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      className="space-y-8 pb-10"
+    >
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
+      <motion.div 
+        variants={itemVariants}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent p-6 rounded-3xl border border-primary/10 relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">
+            <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
               Welcome back, {user?.full_name?.split(' ')[0] || 'User'}
             </h1>
             {stats && stats.streak > 0 && (
-              <div className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 px-3 py-1 rounded-full text-xs font-bold shadow-[0_0_15px_rgba(245,158,11,0.15)] animate-pulse">
-                <Flame className="w-4 h-4 fill-amber-500" />
+              <motion.div 
+                animate={{ scale: [1, 1.03, 1] }}
+                transition={{ repeat: Infinity, duration: 2.5 }}
+                className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 px-3.5 py-1 rounded-2xl text-xs font-bold shadow-[0_4px_16px_rgba(245,158,11,0.12)]"
+              >
+                <Flame className="w-4 h-4 fill-amber-500 animate-pulse" />
                 <span>{stats.streak} Day Streak!</span>
-              </div>
+              </motion.div>
             )}
           </div>
-          <p className="text-muted-foreground mt-1">Here is what is happening in your vault today.</p>
+          <p className="text-sm text-muted-foreground mt-1.5 font-medium">Your personal digital vault is synched and secured.</p>
         </div>
         
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3 shrink-0 relative z-10">
           <Button 
             variant="outline" 
             onClick={() => setMorningResetOpen(true)}
-            className="border-border text-foreground hover:bg-accent"
+            className="border-border/60 text-foreground hover:bg-accent/40 rounded-2xl h-10 px-4"
           >
-            <Sun className="w-4 h-4 mr-2 text-amber-400" />
+            <Sun className="w-4 h-4 mr-2 text-amber-500 fill-amber-500/10" />
             Morning Reset
           </Button>
-          <Button onClick={() => setNoteEditorOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_15px_rgba(124,77,255,0.4)]">
-            <Plus className="w-4 h-4 mr-2" />
+          <Button 
+            onClick={() => setNoteEditorOpen(true)} 
+            className="bg-primary hover:bg-primary/95 text-primary-foreground shadow-[0_4px_20px_rgba(124,77,255,0.3)] rounded-2xl h-10 px-5 font-semibold"
+          >
+            <Plus className="w-4 h-4 mr-1.5" />
             New Note
           </Button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Stats Cards Row */}
       <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4"
+        variants={itemVariants}
+        className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4.5"
       >
         {statCards.map((stat, i) => (
           <div key={i}>
             <Link href={stat.link}>
-              <Card className="bg-card backdrop-blur-sm border-border hover:border-primary/30 transition-all duration-300 cursor-pointer h-full group overflow-hidden relative shadow-sm hover:shadow-md">
-                <div className={`absolute top-0 left-0 w-full h-1 ${stat.bg} opacity-0 group-hover:opacity-100 transition-opacity`} />
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+              <Card className="bg-card backdrop-blur-sm border-border/40 hover:border-primary/40 hover:shadow-[0_12px_24px_rgba(124,77,255,0.03)] transition-all duration-300 cursor-pointer h-full group overflow-hidden relative shadow-sm rounded-3xl">
+                <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                <CardHeader className="flex flex-row items-center justify-between pb-3 px-5 pt-5">
+                  <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">
                     {stat.title}
                   </CardTitle>
-                  <div className={`p-2 rounded-lg ${stat.bg} ${stat.color}`}>
-                    <stat.icon className="w-4 h-4" />
+                  <div className={`p-2 rounded-xl ${stat.bg} ${stat.color}`}>
+                    <stat.icon className="w-4.5 h-4.5" />
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-5 pb-5">
                   {loading ? (
-                    <Skeleton className="h-8 w-16 bg-muted" />
+                    <Skeleton className="h-8 w-16 bg-muted/60 rounded-lg" />
                   ) : (
-                    <div className="text-2xl font-bold text-foreground group-hover:scale-105 transition-transform origin-left">
+                    <div className="text-2xl font-extrabold text-foreground group-hover:translate-x-0.5 transition-transform origin-left tracking-tight">
                       {stat.value !== undefined ? stat.value : '-'}
                     </div>
                   )}
@@ -256,63 +297,66 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Dashboard Sub-widgets */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <motion.div 
+        variants={itemVariants}
+        className="grid grid-cols-1 xl:grid-cols-3 gap-6.5"
+      >
         
         {/* Left Side: Storage Capacity & AI logs */}
         <div className="space-y-6">
           
           {/* Storage capacity check */}
-          <Card className="bg-card border-border shadow-sm">
-            <CardHeader className="pb-3 flex flex-row items-center justify-between">
-              <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
-                <HardDrive className="w-4 h-4 text-primary" /> Storage Capacity Sync
+          <Card className="bg-card border-border/40 shadow-sm rounded-3xl p-1">
+            <CardHeader className="pb-3 flex flex-row items-center justify-between px-5 pt-5">
+              <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
+                <HardDrive className="w-4.5 h-4.5 text-primary" /> Storage Capacity Sync
               </CardTitle>
-              <span className="text-xs text-muted-foreground font-semibold">Local Storage Check</span>
+              <span className="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Local</span>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Used Storage:</span>
-                <span className="font-bold text-foreground">{storageUsage.size} MB / 5.00 MB</span>
+            <CardContent className="space-y-3.5 px-5 pb-5">
+              <div className="flex justify-between text-xs font-semibold">
+                <span className="text-muted-foreground">Used Space:</span>
+                <span className="text-foreground">{storageUsage.size} MB / 5.00 MB</span>
               </div>
-              <div className="w-full bg-accent rounded-full h-2">
+              <div className="w-full bg-accent rounded-full h-2.5 overflow-hidden border border-border/10">
                 <div 
-                  className={`h-2 rounded-full transition-all duration-500 ${
+                  className={`h-2.5 rounded-full transition-all duration-500 ${
                     storageUsage.percentage > 80 
                       ? "bg-red-500" 
                       : storageUsage.percentage > 50 
                       ? "bg-amber-500" 
-                      : "bg-primary"
+                      : "bg-gradient-to-r from-primary to-secondary"
                   }`} 
                   style={{ width: `${storageUsage.percentage}%` }}
                 />
               </div>
-              <p className="text-[10px] text-muted-foreground leading-relaxed pt-1">
+              <p className="text-[10px] text-muted-foreground leading-relaxed font-medium">
                 To guarantee maximum performance speed, KnoVault warns users when local sync files approach the browser capacity limits.
               </p>
             </CardContent>
           </Card>
 
           {/* Recent AI conversations thread link */}
-          <Card className="bg-card border-border shadow-sm">
-            <CardHeader className="pb-3 flex flex-row items-center justify-between">
-              <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-purple-400" /> Recent AI Discussions
+          <Card className="bg-card border-border/40 shadow-sm rounded-3xl p-1">
+            <CardHeader className="pb-3 flex flex-row items-center justify-between px-5 pt-5">
+              <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
+                <MessageSquare className="w-4.5 h-4.5 text-purple-400" /> Recent AI Discussions
               </CardTitle>
               <Link href="/ai">
-                <Button variant="ghost" size="icon" className="w-7 h-7 hover:bg-purple-500/10 text-purple-400">
+                <Button variant="ghost" size="icon" className="w-8 h-8 hover:bg-purple-500/10 text-purple-500 rounded-xl">
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </Link>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-2.5 px-5 pb-5">
               {threads.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-2 text-center">No recent chats. Start a session now!</p>
+                <p className="text-xs text-muted-foreground py-4 text-center font-medium">No recent chats. Start a session now!</p>
               ) : (
                 threads.slice(0, 3).map((t) => (
                   <Link key={t.id} href="/ai">
-                    <div className="flex items-center justify-between p-2.5 bg-accent/40 border border-border/40 hover:border-primary/40 rounded-xl text-xs cursor-pointer transition-colors mt-1.5">
-                      <span className="font-semibold text-foreground truncate max-w-[180px]">{t.title}</span>
-                      <span className="text-[10px] text-muted-foreground">{t.messages.length} replies</span>
+                    <div className="flex items-center justify-between p-3.5 bg-accent/30 border border-border/30 hover:border-primary/30 hover:bg-accent/60 rounded-2xl text-xs cursor-pointer transition-all duration-200 mt-1">
+                      <span className="font-bold text-foreground truncate max-w-[180px]">{t.title}</span>
+                      <span className="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-lg shrink-0">{t.messages.length} replies</span>
                     </div>
                   </Link>
                 ))
@@ -322,9 +366,9 @@ export default function DashboardPage() {
         </div>
 
         {/* Center: Today's calendar items */}
-        <Card className="bg-card backdrop-blur-sm border-border h-[400px] shadow-sm flex flex-col">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-semibold text-foreground">Today's Notes</CardTitle>
+        <Card className="bg-card border-border/40 shadow-sm rounded-3xl p-1 flex flex-col h-[410px]">
+          <CardHeader className="flex flex-row items-center justify-between pb-3 px-5 pt-5">
+            <CardTitle className="text-sm font-bold text-foreground">Today's Notes</CardTitle>
             <Button 
               variant="ghost" 
               size="sm" 
@@ -332,18 +376,18 @@ export default function DashboardPage() {
                 setSelectedCalendarNote(null);
                 setCalendarNoteEditorOpen(true);
               }}
-              className="text-primary hover:text-primary/80 hover:bg-primary/10"
+              className="text-primary hover:text-primary/90 hover:bg-primary/10 rounded-xl text-xs font-bold"
             >
-              <Plus className="w-4 h-4 mr-1" /> Add Note
+              <Plus className="w-3.5 h-3.5 mr-1" /> Add Note
             </Button>
           </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto scrollbar-hide">
+          <CardContent className="flex-1 overflow-y-auto px-5 pb-5 space-y-3.5">
             {loading ? (
               <div className="space-y-4">
                 {[1, 2].map((i) => (
-                  <div key={i} className="flex flex-col gap-2 p-3 rounded-lg bg-muted">
-                    <Skeleton className="h-5 w-3/4 bg-border" />
-                    <Skeleton className="h-4 w-1/2 bg-border" />
+                  <div key={i} className="flex flex-col gap-2 p-3 rounded-2xl bg-muted/40">
+                    <Skeleton className="h-5 w-3/4 bg-border/60 rounded-md" />
+                    <Skeleton className="h-4 w-1/2 bg-border/60 rounded-md" />
                   </div>
                 ))}
               </div>
@@ -352,7 +396,7 @@ export default function DashboardPage() {
                 {todayNotes.map((note) => (
                   <div 
                     key={note.id} 
-                    className="p-3 rounded-lg bg-card/50 border border-border/60 hover:border-primary/30 transition-all group flex flex-col gap-1.5"
+                    className="p-4 rounded-2xl bg-accent/20 border border-border/30 hover:border-primary/20 hover:bg-accent/40 transition-all duration-200 group flex flex-col gap-2"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <span 
@@ -360,15 +404,15 @@ export default function DashboardPage() {
                           setSelectedCalendarNote(note);
                           setCalendarNoteEditorOpen(true);
                         }}
-                        className="font-medium text-foreground cursor-pointer hover:underline line-clamp-1 flex-1"
+                        className="font-bold text-foreground cursor-pointer hover:text-primary transition-colors line-clamp-1 flex-1 text-sm"
                       >
                         {note.title}
                       </span>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="w-7 h-7 hover:bg-muted text-muted-foreground hover:text-foreground"
+                          className="w-7 h-7 hover:bg-accent text-muted-foreground hover:text-foreground rounded-lg"
                           onClick={() => {
                             setSelectedCalendarNote(note);
                             setCalendarNoteEditorOpen(true);
@@ -382,7 +426,7 @@ export default function DashboardPage() {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="w-7 h-7 hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                          className="w-7 h-7 hover:bg-destructive/10 text-muted-foreground hover:text-destructive rounded-lg"
                           onClick={async () => {
                             if (confirm("Are you sure you want to delete this note?")) {
                               try {
@@ -402,7 +446,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     {note.content && (
-                      <p className="text-sm text-muted-foreground line-clamp-2 pr-2">
+                      <p className="text-xs text-muted-foreground line-clamp-2 pr-1 font-medium leading-relaxed">
                         {note.content}
                       </p>
                     )}
@@ -411,17 +455,20 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-full min-h-[220px] text-muted-foreground text-center p-4">
-                <StickyNote className="w-10 h-10 mb-3 opacity-20 text-primary" />
-                <p className="text-sm">No notes attached to today's date.</p>
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                  <StickyNote className="w-6 h-6 text-primary" />
+                </div>
+                <p className="text-xs font-semibold text-foreground">No notes attached to today's date</p>
+                <p className="text-[10px] text-muted-foreground mt-1 max-w-[200px]">Keep track of meetings, logs, or memories for this day.</p>
                 <Button 
                   variant="link" 
-                  className="text-primary mt-1 text-sm p-0 h-auto" 
+                  className="text-primary mt-2 text-xs font-bold p-0 h-auto" 
                   onClick={() => {
                     setSelectedCalendarNote(null);
                     setCalendarNoteEditorOpen(true);
                   }}
                 >
-                  Add Today's Note
+                  Create Today's Note
                 </Button>
               </div>
             )}
@@ -429,101 +476,117 @@ export default function DashboardPage() {
         </Card>
 
         {/* Right: Upcoming Tasks */}
-        <Card className="bg-card backdrop-blur-sm border-border h-[400px] shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-foreground">Upcoming Tasks</CardTitle>
+        <Card className="bg-card border-border/40 shadow-sm rounded-3xl p-1 h-[410px]">
+          <CardHeader className="flex flex-row items-center justify-between pb-3 px-5 pt-5">
+            <CardTitle className="text-sm font-bold text-foreground">Upcoming Tasks</CardTitle>
             <Link href="/reminders">
-              <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80 hover:bg-primary/10">
-                View All <ArrowRight className="w-4 h-4 ml-1" />
+              <Button variant="ghost" size="sm" className="text-primary hover:text-primary/90 hover:bg-primary/10 rounded-xl text-xs font-bold">
+                View All <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>
             </Link>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-5 pb-5">
             {loading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex items-center gap-4 p-3 rounded-lg bg-muted">
-                    <Skeleton className="h-8 w-8 rounded-full bg-border" />
+                  <div key={i} className="flex items-center gap-4 p-3 rounded-2xl bg-muted/40">
+                    <Skeleton className="h-8 w-8 rounded-xl bg-border/60" />
                     <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-full bg-border" />
-                      <Skeleton className="h-3 w-24 bg-border" />
+                      <Skeleton className="h-4 w-full bg-border/60" />
+                      <Skeleton className="h-3 w-24 bg-border/60" />
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-                <Bell className="w-12 h-12 mb-4 opacity-20" />
-                <p>You are all caught up!</p>
+              <div className="flex flex-col items-center justify-center h-64 text-muted-foreground text-center">
+                <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center mb-3">
+                  <Bell className="w-6 h-6 text-amber-500" />
+                </div>
+                <p className="text-xs font-semibold text-foreground">You are all caught up!</p>
+                <p className="text-[10px] text-muted-foreground mt-1 max-w-[200px]">Any reminders scheduled for today or later will appear here.</p>
               </div>
             )}
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
       
       {/* Morning Reset Start-Fresh Modal */}
       <Dialog open={morningResetOpen} onOpenChange={setMorningResetOpen}>
-        <DialogContent className="bg-background border-border text-foreground max-w-md">
+        <DialogContent className="bg-card/90 backdrop-blur-2xl border-border/50 text-foreground max-w-md rounded-3xl shadow-2xl p-6">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg">
-              <Sun className="w-5 h-5 text-amber-400" /> Morning Reset: Start Fresh!
+            <DialogTitle className="flex items-center gap-2.5 text-lg font-bold">
+              <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                <Sun className="w-5 h-5 text-amber-500 fill-amber-500/10" />
+              </div>
+              <span>Morning Reset: Start Fresh!</span>
             </DialogTitle>
-            <DialogDescription className="text-muted-foreground text-xs">
+            <DialogDescription className="text-muted-foreground text-xs font-medium">
               Clear yesterday's complete state log and organize today's schedule checklist.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
+          <div className="space-y-4.5 py-3">
             
             {/* Motivation Quote */}
-            <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-center">
-              <p className="text-sm italic text-foreground font-medium">"{motivationQuote}"</p>
+            <div className="bg-primary/5 border border-primary/10 rounded-2xl p-4.5 text-center shadow-inner relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-primary to-secondary" />
+              <p className="text-xs italic text-foreground font-semibold leading-relaxed">"{motivationQuote}"</p>
             </div>
 
             {/* Quick checklist summary */}
             <div className="space-y-3">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block">
+              <span className="text-[10px] uppercase font-bold text-muted-foreground/80 tracking-widest block">
                 Today's Overview Agenda
               </span>
               
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2.5 p-2 bg-accent/40 rounded-lg">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>Daily Habit Streak: <strong className="text-primary">{stats?.streak || 0} Days</strong></span>
+              <div className="space-y-2.5 text-xs font-semibold">
+                <div className="flex items-center gap-3 p-3 bg-accent/30 rounded-2xl border border-border/10">
+                  <div className="w-5 h-5 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                  </div>
+                  <span>Daily Habit Streak: <strong className="text-primary font-extrabold">{stats?.streak || 0} Days</strong></span>
                 </div>
 
-                <div className="flex items-center gap-2.5 p-2 bg-accent/40 rounded-lg">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>Pending medicine doses: <strong>{stats?.medicinesToday || 0} doses</strong></span>
+                <div className="flex items-center gap-3 p-3 bg-accent/30 rounded-2xl border border-border/10">
+                  <div className="w-5 h-5 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                  </div>
+                  <span>Pending medicine doses: <strong className="text-foreground">{stats?.medicinesToday || 0} doses</strong></span>
                 </div>
 
-                <div className="flex items-center gap-2.5 p-2 bg-accent/40 rounded-lg">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>Upcoming calendar special events: <strong>{stats?.upcomingSpecialDays || 0} logs</strong></span>
+                <div className="flex items-center gap-3 p-3 bg-accent/30 rounded-2xl border border-border/10">
+                  <div className="w-5 h-5 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                  </div>
+                  <span>Upcoming special events: <strong className="text-foreground">{stats?.upcomingSpecialDays || 0} logs</strong></span>
                 </div>
               </div>
             </div>
 
           </div>
 
-          <DialogFooter className="flex sm:justify-between items-center w-full gap-2">
-            <Button variant="ghost" onClick={() => setMorningResetOpen(false)} className="text-xs">
+          <DialogFooter className="flex sm:justify-between items-center w-full gap-3 pt-2">
+            <Button variant="ghost" onClick={() => setMorningResetOpen(false)} className="text-xs rounded-xl h-9">
               Skip
             </Button>
-            <Button onClick={handleMorningResetComplete} className="bg-primary hover:bg-primary-hover text-white text-xs">
-              <RefreshCw className="w-3.5 h-3.5 mr-1" /> Start Fresh
+            <Button 
+              onClick={handleMorningResetComplete} 
+              className="bg-primary hover:bg-primary/95 text-white text-xs rounded-xl h-9 px-4 font-bold shadow-[0_4px_16px_rgba(124,77,255,0.2)]"
+            >
+              <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" style={{ animationDuration: '3s' }} /> Start Fresh
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <NoteEditor open={noteEditorOpen} onOpenChange={setNoteEditorOpen} note={null} />
-      <ReminderEditor open={reminderEditorOpen} onOpenChange={setReminderEditorOpen} reminder={null} />
+
       <CalendarNoteEditor 
         open={calendarNoteEditorOpen} 
         onOpenChange={setCalendarNoteEditorOpen} 
         note={selectedCalendarNote} 
       />
-    </div>
+    </motion.div>
   );
 }

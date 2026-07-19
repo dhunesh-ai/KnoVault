@@ -9,6 +9,7 @@ from models.reminder import Reminder
 from schemas.reminder import ReminderCreate, ReminderUpdate, ReminderResponse
 from middleware.auth import get_current_user
 from datetime import datetime, timezone, timedelta
+from routers.sync import notify_user_devices
 
 router = APIRouter(prefix="/api/reminders", tags=["Reminders"])
 
@@ -284,6 +285,7 @@ async def create_reminder(
             db, current_user, data.title, data.description, data.reminder_date, data.custom_type
         )
         if first_rem:
+            await notify_user_devices(current_user.id)
             return ReminderResponse.model_validate(first_rem)
 
     reminder = Reminder(
@@ -303,6 +305,7 @@ async def create_reminder(
     print(f"[INSERTED CATEGORY] {reminder.type}")
     print(f"[REMINDER CREATED] {reminder.title}")
     
+    await notify_user_devices(current_user.id)
     return ReminderResponse.model_validate(reminder)
 
 
@@ -378,6 +381,7 @@ async def update_reminder(
             db, current_user, new_title, new_desc or "{}", new_date, new_custom_type, old_series_id=old_series_id
         )
         if first_rem:
+            await notify_user_devices(current_user.id)
             return ReminderResponse.model_validate(first_rem)
         raise HTTPException(status_code=400, detail="Failed to regenerate medicine reminder series")
 
@@ -408,6 +412,7 @@ async def update_reminder(
 
     await db.flush()
     await db.refresh(reminder)
+    await notify_user_devices(current_user.id)
     return ReminderResponse.model_validate(reminder)
 
 
@@ -446,7 +451,9 @@ async def delete_reminder(
         ).values(is_deleted=True)
         await db.execute(update_stmt)
         print(f"[DEBUG LOG] Medicine series {series_id} soft-deleted")
+        await notify_user_devices(current_user.id)
         return
 
     reminder.is_deleted = True
     print(f"[DEBUG LOG] Reminder ID {reminder_id} soft-deleted. is_deleted set to True.")
+    await notify_user_devices(current_user.id)
