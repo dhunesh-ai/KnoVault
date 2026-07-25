@@ -140,6 +140,10 @@ jobs:
         run: |
           python -m pytest tests/ -v --junitxml=backend-test-results.xml
 
+      - name: "📋 Publish 400-Point Test Summary"
+        if: always()
+        run: node .github/scripts/generate-job-summary-matrix.cjs backend
+
       - name: "📤 Upload backend test reports"
         if: always()
         uses: actions/upload-artifact@v4
@@ -173,6 +177,10 @@ jobs:
         working-directory: web
         run: npm test
 
+      - name: "📋 Publish 400-Point Test Summary"
+        if: always()
+        run: node .github/scripts/generate-job-summary-matrix.cjs web-unit
+
   # ════════════════════════════════════════════════════════════════════════════
   # JOB 4 – Build Web Application (Next.js)
   # ════════════════════════════════════════════════════════════════════════════
@@ -199,6 +207,10 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:8000' }}
         run: npm run build
+
+      - name: "📋 Publish 400-Point Build Summary"
+        if: always()
+        run: node .github/scripts/generate-job-summary-matrix.cjs web-build
 
   # ════════════════════════════════════════════════════════════════════════════
   # JOB 5 – Verify Live Web Deployment (Conditional)
@@ -242,6 +254,10 @@ jobs:
       - name: "🧪 Run Web E2E Test Suite"
         working-directory: e2e_tests
         run: npm run test:web
+
+      - name: "📋 Publish 400-Point E2E Summary"
+        if: always()
+        run: node .github/scripts/generate-job-summary-matrix.cjs web-e2e
 
       - name: "📤 Upload Web E2E reports"
         if: always()
@@ -290,6 +306,10 @@ jobs:
             echo "Android directory checked."
           fi
 
+      - name: "📋 Publish 400-Point APK Build Summary"
+        if: always()
+        run: node .github/scripts/generate-job-summary-matrix.cjs android-build
+
   # ════════════════════════════════════════════════════════════════════════════
   # JOB 8 – Android Appium E2E Tests
   # ════════════════════════════════════════════════════════════════════════════
@@ -315,6 +335,10 @@ jobs:
       - name: "▶️ Run Mobile E2E Suite"
         working-directory: e2e_tests
         run: npm run test:mobile
+
+      - name: "📋 Publish 400-Point Appium E2E Summary"
+        if: always()
+        run: node .github/scripts/generate-job-summary-matrix.cjs android-e2e
 
       - name: "📤 Upload Mobile E2E reports"
         if: always()
