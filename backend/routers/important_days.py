@@ -99,6 +99,14 @@ async def create_important_day(
             reminder_time=data.reminder_time,
             notification_ids=data.notification_ids,
             timezone=data.timezone,
+            location=data.location,
+            emoji=data.emoji,
+            event_image=data.event_image,
+            favorite_color=data.favorite_color,
+            checklist=data.checklist,
+            budget=data.budget,
+            links=data.links,
+            attachments=data.attachments,
             user_id=current_user.id,
         )
         print("[DEBUG] Important Day created model instance:", important_day.__dict__)
@@ -190,7 +198,7 @@ async def update_important_day(
             important_day.email_send_time,
             important_day.timezone or "UTC",
             important_day.is_recurring,
-            schedule_for_tomorrow=bool(data.schedule_for_tomorrow)
+            schedule_for_tomorrow=bool(getattr(data, 'schedule_for_tomorrow', False))
         )
         if next_send is not None:
             scheduled_email = ScheduledEmail(

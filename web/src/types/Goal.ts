@@ -23,4 +23,10 @@ export interface Goal {
   user_id?: number;
   created_at: string;
   updated_at?: string;
+  // Extended fields for premium features
+  repeat_schedule?: "daily" | "weekdays" | "weekends" | "custom" | null;
+  color?: string | null;
+  icon?: string | null;
+  notes?: string | null;
+  difficulty?: "easy" | "medium" | "hard" | null;
 }

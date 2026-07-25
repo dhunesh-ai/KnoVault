@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
+import { SettingsInitializer } from "@/components/providers/SettingsInitializer";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const viewport: Viewport = {
@@ -54,9 +56,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TooltipProvider>
-            <AuthProvider>
-              {children}
-            </AuthProvider>
+            <SettingsInitializer>
+              <AuthProvider>
+                {children}
+              </AuthProvider>
+            </SettingsInitializer>
             <Toaster theme="system" />
           </TooltipProvider>
         </ThemeProvider>

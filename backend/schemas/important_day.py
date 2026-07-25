@@ -37,6 +37,15 @@ class ImportantDayCreate(BaseModel):
     reminder_time: str | None = None
     notification_ids: str | None = None
     schedule_for_tomorrow: bool = False
+    # Extended planning fields
+    location: str | None = None
+    emoji: str | None = None
+    event_image: str | None = None
+    favorite_color: str | None = None
+    checklist: str | None = None
+    budget: str | None = None
+    links: str | None = None
+    attachments: str | None = None
 
     @model_validator(mode='before')
     @classmethod
@@ -82,6 +91,15 @@ class ImportantDayUpdate(BaseModel):
     reminder_time: str | None = None
     notification_ids: str | None = None
     schedule_for_tomorrow: bool | None = False
+    # Extended planning fields
+    location: str | None = None
+    emoji: str | None = None
+    event_image: str | None = None
+    favorite_color: str | None = None
+    checklist: str | None = None
+    budget: str | None = None
+    links: str | None = None
+    attachments: str | None = None
     @model_validator(mode='before')
     @classmethod
     def handle_legacy_fields(cls, data: Any) -> Any:
@@ -128,6 +146,15 @@ class ImportantDayResponse(BaseModel):
     reminder_unit: str | None = None
     reminder_time: str | None = None
     notification_ids: str | None = None    
+    # Extended planning fields
+    location: str | None = None
+    emoji: str | None = None
+    event_image: str | None = None
+    favorite_color: str | None = None
+    checklist: str | None = None
+    budget: str | None = None
+    links: str | None = None
+    attachments: str | None = None
     user_id: int
     created_at: datetime
     updated_at: datetime | None = None

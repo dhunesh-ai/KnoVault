@@ -35,7 +35,7 @@ export default function RemindersPage() {
   } = useRemindersStore();
 
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<string>("all");
+   const [activeTab, setActiveTab] = useState<string>("today");
   const [viewMode, setViewMode] = useState<"grid" | "list" | "calendar">("grid");
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
@@ -127,8 +127,8 @@ export default function RemindersPage() {
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 shrink-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto overflow-x-auto scrollbar-hide pb-1">
           <TabsList className="bg-card/55 border border-border/40 p-1 rounded-2xl shrink-0 flex w-full md:w-auto gap-1">
-            <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-xl text-xs font-bold flex-1 md:flex-none py-1.5 px-4 cursor-pointer">All</TabsTrigger>
-            <TabsTrigger value="today" className="data-[state=active]:bg-amber-500 data-[state=active]:text-white rounded-xl text-xs font-bold flex-1 md:flex-none py-1.5 px-4 cursor-pointer">Today</TabsTrigger>
+            <TabsTrigger value="today" className="data-[state=active]:bg-primary data-[state=active]:text-white rounded-xl text-xs font-bold flex-1 md:flex-none py-1.5 px-4 cursor-pointer">Today</TabsTrigger>
+            <TabsTrigger value="all" className="data-[state=active]:bg-primary/80 data-[state=active]:text-white rounded-xl text-xs font-bold flex-1 md:flex-none py-1.5 px-4 cursor-pointer">All</TabsTrigger>
             <TabsTrigger value="upcoming" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-xl text-xs font-bold flex-1 md:flex-none py-1.5 px-4 cursor-pointer">Upcoming</TabsTrigger>
             <TabsTrigger value="overdue" className="data-[state=active]:bg-red-500 data-[state=active]:text-white rounded-xl text-xs font-bold flex-1 md:flex-none py-1.5 px-4 cursor-pointer">Overdue</TabsTrigger>
             <TabsTrigger value="completed" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white rounded-xl text-xs font-bold flex-1 md:flex-none py-1.5 px-4 cursor-pointer">Completed</TabsTrigger>
@@ -174,10 +174,20 @@ export default function RemindersPage() {
             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 text-primary">
               <Bell className="w-7 h-7" />
             </div>
-            <h3 className="text-base font-bold text-foreground mb-1">No reminders found</h3>
-            <p className="text-xs text-muted-foreground max-w-xs">You don't have any scheduled reminder alarms setup yet.</p>
-            <Button variant="link" className="text-primary mt-2 text-xs font-bold" onClick={handleCreate}>
-              Create one now
+            <h3 className="text-base font-bold text-foreground mb-1">
+              {activeTab === "today" ? "No reminders for today" : "No reminders found"}
+            </h3>
+            <p className="text-xs text-muted-foreground max-w-xs mb-4 font-medium">
+              {activeTab === "today"
+                ? "You're all caught up. Enjoy your day!"
+                : "You don't have any scheduled reminder alarms setup yet."}
+            </p>
+            <Button
+              onClick={handleCreate}
+              className="bg-primary hover:bg-primary/95 text-primary-foreground shadow-[0_4px_16px_rgba(124,77,255,0.25)] rounded-2xl h-10 px-5 font-bold cursor-pointer"
+            >
+              <Plus className="w-4 h-4 mr-1.5" />
+              Add Reminder
             </Button>
           </div>
         ) : viewMode === "calendar" ? (

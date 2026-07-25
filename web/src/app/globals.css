@@ -188,3 +188,45 @@
 .animation-delay-4000 {
   animation-delay: 4s;
 }
+
+/* Compact UI mode override styles */
+.compact-ui {
+  --radius: 0.875rem;
+}
+.compact-ui .p-7 {
+  padding: 1.25rem !important;
+}
+.compact-ui .p-8 {
+  padding: 1.5rem !important;
+}
+.compact-ui .p-5 {
+  padding: 0.875rem !important;
+}
+.compact-ui .p-6 {
+  padding: 1rem !important;
+}
+.compact-ui .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1.25rem !important;
+}
+.compact-ui .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1rem !important;
+}
+.compact-ui .space-y-5 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.875rem !important;
+}
+.compact-ui .gap-8 {
+  gap: 1.25rem !important;
+}
+.compact-ui .gap-6 {
+  gap: 1rem !important;
+}
+
+/* Reduce Motion override styles */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}

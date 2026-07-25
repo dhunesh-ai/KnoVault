@@ -31,7 +31,6 @@ import {
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Notes", href: "/notes", icon: StickyNote },
-  { name: "Secure Notes", href: "/secure-notes", icon: Shield },
   { name: "Reminders", href: "/reminders", icon: Bell },
   { name: "Medicine", href: "/medicine", icon: Pill },
   { name: "Special Days", href: "/special-days", icon: Gift },

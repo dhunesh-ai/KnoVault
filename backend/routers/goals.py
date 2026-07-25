@@ -49,6 +49,12 @@ async def create_goal(
         target_unit=data.target_unit,
         start_date=data.start_date or date.today(),
         reminder_time=data.reminder_time,
+        repeat_schedule=data.repeat_schedule,
+        priority=data.priority,
+        difficulty=data.difficulty,
+        color=data.color,
+        icon=data.icon,
+        notes=data.notes,
         goal_type=data.goal_type,
         user_id=current_user.id
     )

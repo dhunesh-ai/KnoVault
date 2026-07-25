@@ -3,61 +3,44 @@ import { CalendarNote, CalendarNoteCreate, CalendarNoteUpdate } from "@/types/Ca
 import { calendarNotesService } from "@/services/calendarNotes";
 
 interface CalendarNotesState {
-  notes: CalendarNote[];
-  todayNotes: CalendarNote[];
+  calendarNotes: CalendarNote[];
   isLoading: boolean;
   isSaving: boolean;
   error: string | null;
-  fetchCalendarNotes: (dateStr?: string) => Promise<void>;
-  fetchTodayCalendarNotes: () => Promise<void>;
+
+  fetchCalendarNotes: (params?: { date_str?: string; month?: string }) => Promise<void>;
   createCalendarNote: (data: CalendarNoteCreate) => Promise<CalendarNote>;
   updateCalendarNote: (id: number, data: CalendarNoteUpdate) => Promise<CalendarNote>;
   deleteCalendarNote: (id: number) => Promise<void>;
 }
 
 export const useCalendarNotesStore = create<CalendarNotesState>((set, get) => ({
-  notes: [],
-  todayNotes: [],
+  calendarNotes: [],
   isLoading: false,
   isSaving: false,
   error: null,
 
-  fetchCalendarNotes: async (dateStr) => {
+  fetchCalendarNotes: async (params) => {
     set({ isLoading: true, error: null });
     try {
-      const notes = await calendarNotesService.getCalendarNotes(dateStr);
-      set({ notes, isLoading: false });
+      const notes = await calendarNotesService.getNotes(params);
+      set({ calendarNotes: notes, isLoading: false });
     } catch (error) {
       set({ error: error instanceof Error ? error.message : "Failed to fetch calendar notes", isLoading: false });
-    }
-  },
-
-  fetchTodayCalendarNotes: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const todayStr = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD in local time
-      const todayNotes = await calendarNotesService.getCalendarNotesByDate(todayStr);
-      set({ todayNotes, isLoading: false });
-    } catch (error) {
-      set({ error: error instanceof Error ? error.message : "Failed to fetch today's notes", isLoading: false });
     }
   },
 
   createCalendarNote: async (data) => {
     set({ isSaving: true, error: null });
     try {
-      const newNote = await calendarNotesService.createCalendarNote(data);
-      const todayStr = new Date().toLocaleDateString("en-CA");
+      const newNote = await calendarNotesService.createNote(data);
       set((state) => ({
-        notes: [newNote, ...state.notes],
-        todayNotes: newNote.note_date === todayStr 
-          ? [newNote, ...state.todayNotes] 
-          : state.todayNotes,
+        calendarNotes: [newNote, ...state.calendarNotes],
         isSaving: false,
       }));
       return newNote;
     } catch (error) {
-      set({ error: error instanceof Error ? error.message : "Failed to create calendar note", isSaving: false });
+      set({ error: error instanceof Error ? error.message : "Failed to create note", isSaving: false });
       throw error;
     }
   },
@@ -65,34 +48,29 @@ export const useCalendarNotesStore = create<CalendarNotesState>((set, get) => ({
   updateCalendarNote: async (id, data) => {
     set({ isSaving: true, error: null });
     try {
-      const updatedNote = await calendarNotesService.updateCalendarNote(id, data);
-      const todayStr = new Date().toLocaleDateString("en-CA");
+      const updatedNote = await calendarNotesService.updateNote(id, data);
       set((state) => ({
-        notes: state.notes.map((n) => (n.id === id ? updatedNote : n)),
-        todayNotes: updatedNote.note_date === todayStr
-          ? state.todayNotes.some(n => n.id === id)
-            ? state.todayNotes.map((n) => (n.id === id ? updatedNote : n))
-            : [updatedNote, ...state.todayNotes]
-          : state.todayNotes.filter((n) => n.id !== id),
+        calendarNotes: state.calendarNotes.map((n) => (n.id === id ? updatedNote : n)),
         isSaving: false,
       }));
       return updatedNote;
     } catch (error) {
-      set({ error: error instanceof Error ? error.message : "Failed to update calendar note", isSaving: false });
+      set({ error: error instanceof Error ? error.message : "Failed to update note", isSaving: false });
       throw error;
     }
   },
 
   deleteCalendarNote: async (id) => {
     set({ error: null });
+    const prevNotes = get().calendarNotes;
+    // Optimistic delete
+    set((state) => ({
+      calendarNotes: state.calendarNotes.filter((n) => n.id !== id),
+    }));
     try {
-      await calendarNotesService.deleteCalendarNote(id);
-      set((state) => ({
-        notes: state.notes.filter((n) => n.id !== id),
-        todayNotes: state.todayNotes.filter((n) => n.id !== id),
-      }));
+      await calendarNotesService.deleteNote(id);
     } catch (error) {
-      set({ error: error instanceof Error ? error.message : "Failed to delete calendar note" });
+      set({ calendarNotes: prevNotes, error: error instanceof Error ? error.message : "Failed to delete note" });
       throw error;
     }
   },

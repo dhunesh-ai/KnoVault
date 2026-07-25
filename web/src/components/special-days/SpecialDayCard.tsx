@@ -3,8 +3,8 @@
 import { SpecialDay } from "@/types/SpecialDay";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Gift, Heart, GraduationCap, PartyPopper, CalendarDays, MoreVertical, Trash2, Edit2, CalendarHeart } from "lucide-react";
-import { format, differenceInYears, isToday, addYears, isPast, differenceInDays } from "date-fns";
+import { CalendarDays, ChevronRight, MoreVertical, Edit2, Trash2, MailCheck, BellRing, HeartHandshake } from "lucide-react";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { getCategoryMeta, getNextOccurrence, calculateDaysRemaining, getAgeInfo } from "@/lib/special-days-utils";
+import { motion } from "framer-motion";
 
 interface SpecialDayCardProps {
   specialDay: SpecialDay;
@@ -21,136 +23,136 @@ interface SpecialDayCardProps {
   onDelete: (id: number) => void;
 }
 
-const getNextOccurrence = (specialDay: SpecialDay) => {
-  const originalDate = new Date(specialDay.date);
-  if (!specialDay.is_recurring) return originalDate;
-
-  const today = new Date();
-  let nextDate = new Date(today.getFullYear(), originalDate.getMonth(), originalDate.getDate());
-  
-  if (isPast(nextDate) && !isToday(nextDate)) {
-    nextDate = addYears(nextDate, 1);
-  }
-  return nextDate;
-};
-
 export function SpecialDayCard({ specialDay, onClick, onEdit, onDelete }: SpecialDayCardProps) {
-  const type = specialDay.type.toLowerCase();
-  
-  const getTheme = () => {
-    switch (type) {
-      case "birthday": return { gradient: "from-pink-500 to-rose-400", bg: "bg-pink-500/10", border: "border-pink-500/20", text: "text-pink-500", icon: <PartyPopper className="w-6 h-6 text-white" /> };
-      case "anniversary":
-      case "wedding": return { gradient: "from-rose-500 to-red-400", bg: "bg-rose-500/10", border: "border-rose-500/20", text: "text-rose-500", icon: <Heart className="w-6 h-6 text-white" /> };
-      case "engagement": return { gradient: "from-purple-500 to-indigo-400", bg: "bg-purple-500/10", border: "border-purple-500/20", text: "text-purple-500", icon: <CalendarHeart className="w-6 h-6 text-white" /> };
-      case "graduation": return { gradient: "from-blue-500 to-cyan-400", bg: "bg-blue-500/10", border: "border-blue-500/20", text: "text-blue-500", icon: <GraduationCap className="w-6 h-6 text-white" /> };
-      default: return { gradient: "from-orange-500 to-amber-400", bg: "bg-orange-500/10", border: "border-orange-500/20", text: "text-orange-500", icon: <Gift className="w-6 h-6 text-white" /> };
-    }
-  };
+  const meta = getCategoryMeta(specialDay.type);
+  const nextDate = getNextOccurrence(specialDay.date, specialDay.is_recurring);
+  const daysLeft = calculateDaysRemaining(specialDay.date, specialDay.is_recurring);
+  const isToday = daysLeft === 0;
+  const isVeryClose = daysLeft > 0 && daysLeft <= 7;
+  const isPassed = !specialDay.is_recurring && daysLeft < 0;
 
-  const theme = getTheme();
-  const nextDate = getNextOccurrence(specialDay);
-  const daysLeft = differenceInDays(nextDate, new Date());
-  const isHappeningToday = daysLeft === 0;
-  
-  const getAgeOrYearsText = () => {
-    if (!specialDay.is_recurring) return null;
-    const originalDate = new Date(specialDay.date);
-    const years = differenceInYears(nextDate, originalDate);
-    if (years <= 0) return null;
-
-    if (type === "birthday") return `Turning ${years}`;
-    if (type === "anniversary" || type === "wedding") return `${years}th Anniversary`;
-    if (type === "engagement") return `${years} Years`;
-    return `${years} Years`;
-  };
-
-  const ageText = getAgeOrYearsText();
+  const ageInfo = getAgeInfo(specialDay.date, specialDay.type);
 
   return (
-    <Card 
-      onClick={() => onClick(specialDay)}
-      className={cn(
-        "bg-card/50 backdrop-blur-md transition-all duration-300 group relative flex flex-col h-full cursor-pointer overflow-hidden border",
-        isHappeningToday ? `border-transparent shadow-[0_0_15px_rgba(var(--${theme.text.split('-')[1]}-500),0.3)]` : theme.border,
-        "hover:shadow-md hover:border-transparent"
-      )}
+    <motion.div
+      whileHover={{ y: -3, scale: 1.008 }}
+      transition={{ duration: 0.2 }}
+      className="h-full flex flex-col"
     >
-      {/* Dynamic Background Hover Effect */}
-      <div className={cn("absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 bg-gradient-to-br", theme.gradient)} />
-      
-      {isHappeningToday && (
-        <div className={cn("absolute top-0 left-0 w-full h-1 bg-gradient-to-r", theme.gradient)} />
-      )}
-      
-      <CardContent className="p-5 flex flex-col h-full relative z-10">
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex items-center gap-3">
-            <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shadow-sm bg-gradient-to-br", theme.gradient)}>
-              {theme.icon}
-            </div>
-            <div>
-              <Badge variant="outline" className={cn("uppercase text-[10px] font-bold tracking-wider mb-1 border", theme.bg, theme.text, theme.border)}>
-                {specialDay.custom_type || specialDay.type}
-              </Badge>
-              <h3 className="font-bold text-foreground text-lg leading-tight line-clamp-1">
-                {specialDay.title}
-              </h3>
-            </div>
-          </div>
-
-          <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-card border-border">
-                <DropdownMenuItem onClick={() => onEdit(specialDay)} className="cursor-pointer">
-                  <Edit2 className="w-4 h-4 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDelete(specialDay.id)} className="cursor-pointer text-red-400 focus:text-red-400 focus:bg-red-400/10">
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-
-        <div className="mt-auto pt-4 border-t border-border/50 flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-              <CalendarDays className="w-3.5 h-3.5" />
-              {format(nextDate, 'MMMM do')}
-            </span>
-            {ageText && (
-              <span className={cn("text-xs font-semibold mt-0.5", theme.text)}>
-                {ageText}
-              </span>
-            )}
-          </div>
+      <Card
+        onClick={() => onClick(specialDay)}
+        className={cn(
+          "bg-card border border-border/60 rounded-[24px] p-6 flex flex-col justify-between min-h-[260px] h-full transition-all duration-200 group relative cursor-pointer shadow-md hover:shadow-xl hover:border-purple-400/60 overflow-hidden",
+          isToday && "border-amber-400/60 shadow-[0_0_24px_rgba(245,158,11,0.15)] bg-gradient-to-br from-amber-500/5 via-card to-card"
+        )}
+      >
+        {/* MAIN BODY AREA */}
+        <div className="space-y-4">
           
-          <div className="text-right">
-            {isHappeningToday ? (
-              <span className={cn("text-sm font-black animate-pulse bg-clip-text text-transparent bg-gradient-to-r", theme.gradient)}>
-                TODAY!
-              </span>
-            ) : (
-              <div className="flex flex-col items-end">
-                <span className="text-lg font-bold text-foreground leading-none">
-                  {daysLeft}
-                </span>
-                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mt-1">
-                  Days Left
-                </span>
+          {/* HEADER ROW */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-14 h-14 rounded-2xl bg-muted/60 border border-border/60 flex items-center justify-center text-3xl shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                {specialDay.emoji || meta.emoji}
               </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <Badge variant="outline" className={cn("uppercase text-[10px] font-black tracking-wider px-2.5 py-0.5 rounded-full border", meta.badgeBg)}>
+                  {specialDay.custom_type || meta.shortLabel}
+                </Badge>
+
+                {specialDay.auto_send_email && (
+                  <span title="Auto Email Wishes Active" className="text-pink-500 bg-pink-500/10 p-1.5 rounded-full border border-pink-500/20">
+                    <MailCheck className="w-3.5 h-3.5" />
+                  </span>
+                )}
+                {specialDay.reminder_enabled && (
+                  <span title="Reminder Active" className="text-purple-500 bg-purple-500/10 p-1.5 rounded-full border border-purple-500/20">
+                    <BellRing className="w-3.5 h-3.5" />
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div onClick={(e) => e.stopPropagation()} className="shrink-0">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full">
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-card border-border shadow-xl rounded-2xl">
+                  <DropdownMenuItem onClick={() => onEdit(specialDay)} className="cursor-pointer font-semibold">
+                    <Edit2 className="w-4 h-4 mr-2 text-purple-500" />
+                    Edit Event
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onDelete(specialDay.id)} className="cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-500/10 font-semibold">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Event
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+
+          {/* TITLE & DETAILS */}
+          <div>
+            <h3 className="font-black text-foreground text-lg lg:text-xl leading-snug line-clamp-2 break-words group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+              {specialDay.title}
+            </h3>
+
+            <div className="mt-2.5 flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground font-bold">
+                <CalendarDays className="w-4 h-4 text-purple-500 shrink-0" />
+                <span>{format(nextDate, "EEEE, MMMM do, yyyy")}</span>
+              </div>
+
+              {specialDay.relationship && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 bg-muted px-2.5 py-1 rounded-full border border-border/40">
+                  <HeartHandshake className="w-3.5 h-3.5 text-purple-500" /> {specialDay.relationship}
+                </span>
+              )}
+            </div>
+
+            {ageInfo && !isPassed && (
+              <p className={cn("text-sm font-extrabold mt-2.5", isToday ? "text-amber-600 dark:text-amber-400" : "text-purple-600 dark:text-purple-400")}>
+                {isToday ? `🎉 Turning ${ageInfo.upcomingAge} Today!` : `🎂 Turning ${ageInfo.upcomingAge}`}
+              </p>
             )}
           </div>
+
         </div>
-      </CardContent>
-    </Card>
+
+        {/* BOTTOM ROW (COUNTDOWN BADGE & ARROW) */}
+        <div className="mt-6 pt-4 border-t border-border/40 flex items-center justify-between gap-3">
+          <div>
+            {isToday ? (
+              <Badge className="bg-amber-500 text-white font-black text-xs px-3 py-1 rounded-full shadow-xs animate-pulse">
+                Today! 🎉
+              </Badge>
+            ) : isPassed ? (
+              <Badge variant="outline" className="text-xs text-muted-foreground font-bold px-3 py-1 rounded-full">
+                Passed
+              </Badge>
+            ) : (
+              <Badge
+                variant="outline"
+                className={cn(
+                  "text-xs font-black rounded-full px-3 py-1 border",
+                  isVeryClose
+                    ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                    : "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20"
+                )}
+              >
+                {daysLeft === 1 ? "1 Day Left" : `${daysLeft} Days Left`}
+              </Badge>
+            )}
+          </div>
+
+          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
+            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-white transition-colors" />
+          </div>
+        </div>
+      </Card>
+    </motion.div>
   );
 }

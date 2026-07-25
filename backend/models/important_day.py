@@ -49,8 +49,16 @@ class ImportantDay(Base):
     reminder_value: Mapped[int | None] = mapped_column(Integer, nullable=True)
     reminder_unit: Mapped[str | None] = mapped_column(String(20), nullable=True)
     reminder_time: Mapped[str | None] = mapped_column(String(10), nullable=True)
-    notification_ids: Mapped[str | None] = mapped_column(Text, nullable=True) # Stored as JSON array
-    
+    # Extended planning & event fields
+    location: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    emoji: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    event_image: Mapped[str | None] = mapped_column(Text, nullable=True)
+    favorite_color: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    checklist: Mapped[str | None] = mapped_column(Text, nullable=True)
+    budget: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    links: Mapped[str | None] = mapped_column(Text, nullable=True)
+    attachments: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

@@ -28,7 +28,12 @@ def calculate_next_send_datetime(
     except Exception:
         h, m = 9, 0
     
-    # Target date
+    if isinstance(event_date, str):
+        try:
+            event_date = datetime.strptime(event_date.split('T')[0], "%Y-%m-%d").date()
+        except Exception:
+            event_date = date.today()
+
     target_date = event_date
     if is_recurring:
         current_year = datetime.now(tz).year

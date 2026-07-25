@@ -1,179 +1,278 @@
 "use client";
 
 import { SpecialDay } from "@/types/SpecialDay";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Copy, Gift, CalendarHeart, MessageSquare, PartyPopper, CalendarDays, Edit2, Trash2 } from "lucide-react";
-import { format, differenceInYears, isToday, addYears, differenceInDays, isPast } from "date-fns";
-import { toast } from "sonner";
+import { CalendarDays, Edit2, Trash2, Copy, Check, BellRing, Mail, Gift, PartyPopper, MessageSquare, StickyNote, MapPin, HeartHandshake, CheckSquare, DollarSign } from "lucide-react";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { getCategoryMeta, getNextOccurrence, calculateDaysRemaining, getAgeInfo } from "@/lib/special-days-utils";
+import { toast } from "sonner";
+import { useState } from "react";
+import { motion } from "framer-motion";
 
 interface SpecialDayProfileProps {
-  specialDay: SpecialDay | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  specialDay: SpecialDay | null;
   onEdit: (day: SpecialDay) => void;
   onDelete: (id: number) => void;
 }
 
-interface SectionProps {
-  title: string;
-  icon: React.ElementType;
-  content?: string | null;
-  onCopy?: () => void;
-}
+export function SpecialDayProfile({ open, onOpenChange, specialDay, onEdit, onDelete }: SpecialDayProfileProps) {
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
-const Section = ({ title, icon: Icon, content, onCopy }: SectionProps) => {
-  if (!content) return null;
-  return (
-    <div className="bg-card border border-border rounded-xl p-4 space-y-3 relative group">
-      <div className="flex items-center gap-2 text-pink-400">
-        <Icon className="w-4 h-4" />
-        <h4 className="font-semibold text-sm">{title}</h4>
-      </div>
-      <p className="text-foreground whitespace-pre-wrap text-sm leading-relaxed">{content}</p>
-      {onCopy && (
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={onCopy}
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 text-muted-foreground hover:text-foreground"
-        >
-          <Copy className="w-4 h-4" />
-        </Button>
-      )}
-    </div>
-  );
-};
-
-export function SpecialDayProfile({ specialDay, open, onOpenChange, onEdit, onDelete }: SpecialDayProfileProps) {
   if (!specialDay) return null;
 
-  const originalDate = new Date(specialDay.date);
-  
-  const getNextOccurrence = () => {
-    if (!specialDay.is_recurring) return originalDate;
-    const today = new Date();
-    let nextDate = new Date(today.getFullYear(), originalDate.getMonth(), originalDate.getDate());
-    if (isPast(nextDate) && !isToday(nextDate)) {
-      nextDate = addYears(nextDate, 1);
-    }
-    return nextDate;
-  };
+  const meta = getCategoryMeta(specialDay.type);
+  const nextDate = getNextOccurrence(specialDay.date, specialDay.is_recurring);
+  const daysLeft = calculateDaysRemaining(specialDay.date, specialDay.is_recurring);
+  const isToday = daysLeft === 0;
+  const isPassed = !specialDay.is_recurring && daysLeft < 0;
+  const ageInfo = getAgeInfo(specialDay.date, specialDay.type);
 
-  const nextOccurrence = getNextOccurrence();
-  const isHappeningToday = isToday(nextOccurrence);
-  const daysUntil = differenceInDays(nextOccurrence, new Date());
-  
-  const getAgeOrYearsText = () => {
-    if (!specialDay.is_recurring) return null;
-    const years = differenceInYears(nextOccurrence, originalDate);
-    if (years <= 0) return null;
-    if (specialDay.type.toLowerCase() === "birthday") return `Turning ${years}`;
-    if (specialDay.type.toLowerCase() === "anniversary") return `${years}th Anniversary`;
-    return `${years} Years`;
-  };
-
-  const ageText = getAgeOrYearsText();
-
-  const handleCopy = (text: string, label: string) => {
+  const copyToClipboard = (text: string, key: string, label: string) => {
+    if (!text?.trim()) return;
     navigator.clipboard.writeText(text);
-    toast.success(`${label} copied to clipboard`);
+    setCopiedKey(key);
+    toast.success(`${label} copied to clipboard!`);
+    setTimeout(() => setCopiedKey(null), 2000);
   };
+
+  const checklistItems = specialDay.checklist
+    ? specialDay.checklist.split("\n").filter((line) => line.trim().length > 0)
+    : [];
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md bg-background border-l border-border text-foreground p-0 flex flex-col">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-rose-500" />
-        
-        <SheetHeader className="p-6 pb-4 border-b border-border text-left">
-          <div className="flex justify-between items-start gap-4 pr-6">
-            <div>
-              <SheetTitle className="text-2xl font-bold text-foreground mb-1">
-                {specialDay.title}
-              </SheetTitle>
-              <p className="text-pink-400 font-medium">
-                {format(nextOccurrence, 'EEEE, MMMM do, yyyy')}
-              </p>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[720px] bg-background border-border text-foreground p-0 overflow-hidden shadow-2xl rounded-3xl">
+        <DialogHeader className="sr-only">
+          <DialogTitle>{specialDay.title}</DialogTitle>
+        </DialogHeader>
+
+        {/* Hero Header with Category Gradient */}
+        <div className={cn("relative p-8 text-white overflow-hidden bg-gradient-to-br", meta.color)}>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div className="flex items-center gap-5">
+              <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-xl border border-white/30 flex items-center justify-center text-4xl shadow-xl">
+                {specialDay.emoji || meta.emoji}
+              </div>
+              <div>
+                <Badge className="bg-white/20 backdrop-blur-md text-white border-white/30 uppercase text-[10px] font-black tracking-widest mb-1.5">
+                  {specialDay.custom_type || meta.shortLabel}
+                </Badge>
+                <h2 className="text-3xl font-black tracking-tight">{specialDay.title}</h2>
+                <p className="text-white/80 text-sm font-semibold flex items-center gap-1.5 mt-1">
+                  <CalendarDays className="w-4 h-4" />
+                  {format(nextDate, "EEEE, MMMM do, yyyy")}
+                  {!specialDay.is_recurring && " (One-Time Event)"}
+                </p>
+              </div>
             </div>
-            
-            <div className="flex flex-col items-center justify-center bg-card border border-border rounded-xl px-4 py-2 shrink-0 min-w-[80px]">
-              {isHappeningToday ? (
-                <span className="font-bold text-pink-500 animate-pulse text-lg">TODAY</span>
-              ) : (
-                <>
-                  <span className="text-2xl font-bold text-foreground">{daysUntil}</span>
-                  <span className="text-[10px] text-muted-foreground uppercase font-semibold">Days</span>
-                </>
-              )}
+
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={() => onEdit(specialDay)}
+                className="bg-white/20 hover:bg-white/30 text-white border border-white/30 rounded-2xl h-11 w-11 shadow-md"
+              >
+                <Edit2 className="w-5 h-5" />
+              </Button>
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={() => onDelete(specialDay.id)}
+                className="bg-red-500/30 hover:bg-red-500/50 text-white border border-red-500/40 rounded-2xl h-11 w-11 shadow-md"
+              >
+                <Trash2 className="w-5 h-5" />
+              </Button>
             </div>
           </div>
-          
-          {ageText && (
-            <div className="inline-flex items-center gap-1 text-sm font-medium bg-pink-500/10 text-pink-400 px-3 py-1 rounded-full mt-3">
-              <PartyPopper className="w-4 h-4" />
-              {ageText}
-            </div>
-          )}
-        </SheetHeader>
+        </div>
 
-        <ScrollArea className="flex-1 p-6">
-          <div className="space-y-4 pb-6">
-            <Section 
-              title="Gift Ideas" 
-              icon={Gift} 
-              content={specialDay.gift_ideas} 
-              onCopy={() => handleCopy(specialDay.gift_ideas!, 'Gift ideas')}
-            />
-            <Section 
-              title="Celebration Plans" 
-              icon={PartyPopper} 
-              content={specialDay.celebration_plans} 
-            />
-            <Section 
-              title="Message Draft" 
-              icon={MessageSquare} 
-              content={specialDay.message_draft} 
-              onCopy={() => handleCopy(specialDay.message_draft!, 'Message draft')}
-            />
-            <Section 
-              title="Reminder Notes" 
-              icon={CalendarHeart} 
-              content={specialDay.reminder_notes} 
-            />
-            <Section 
-              title="Additional Notes" 
-              icon={CalendarDays} 
-              content={specialDay.notes} 
-              onCopy={() => handleCopy(specialDay.notes!, 'Notes')}
-            />
-            
-            {!specialDay.gift_ideas && !specialDay.celebration_plans && !specialDay.message_draft && !specialDay.reminder_notes && !specialDay.notes && (
-              <div className="text-center py-12 text-muted-foreground">
-                <p>No additional details saved for this event.</p>
-                <Button variant="link" className="text-pink-400 mt-2" onClick={() => onEdit(specialDay)}>
-                  Add details
-                </Button>
+        <ScrollArea className="max-h-[70vh] p-6 space-y-6">
+
+          {/* Countdown & Age Stats Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-5 rounded-2xl bg-card/80 border border-border/60 shadow-sm flex flex-col justify-center items-center text-center">
+              <span className="text-3xl font-black text-purple-400">
+                {isToday ? "TODAY! 🎉" : isPassed ? "Passed" : `${daysLeft} Days`}
+              </span>
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">
+                {isToday ? "Celebration Time" : "Days Remaining"}
+              </span>
+            </div>
+
+            {ageInfo ? (
+              <div className="p-5 rounded-2xl bg-card/80 border border-border/60 shadow-sm flex flex-col justify-center items-center text-center">
+                <span className="text-2xl font-black text-amber-400">
+                  Turning {ageInfo.upcomingAge}
+                </span>
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">
+                  Currently {ageInfo.currentAge} Years Old
+                </span>
+              </div>
+            ) : (
+              <div className="p-5 rounded-2xl bg-card/80 border border-border/60 shadow-sm flex flex-col justify-center items-center text-center">
+                <span className="text-base font-bold text-foreground truncate max-w-xs">
+                  {specialDay.location || specialDay.relationship || "Special Celebration"}
+                </span>
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">
+                  Event Highlights
+                </span>
               </div>
             )}
           </div>
-        </ScrollArea>
 
-        <div className="p-4 border-t border-border bg-background/80 backdrop-blur-md flex justify-between">
-          <Button variant="outline" className="border-border text-red-400 hover:bg-red-400/10" onClick={() => {
-            onOpenChange(false);
-            onDelete(specialDay.id);
-          }}>
-            <Trash2 className="w-4 h-4 mr-2" /> Delete
-          </Button>
-          <Button className="bg-muted hover:bg-accent text-foreground" onClick={() => {
-            onEdit(specialDay);
-          }}>
-            <Edit2 className="w-4 h-4 mr-2" /> Edit Event
-          </Button>
-        </div>
-      </SheetContent>
-    </Sheet>
+          {/* Meta Badges */}
+          {(specialDay.relationship || specialDay.location || specialDay.budget) && (
+            <div className="flex flex-wrap gap-3 py-1">
+              {specialDay.relationship && (
+                <Badge variant="outline" className="bg-card border-border/60 py-2 px-3 rounded-xl text-xs gap-1.5">
+                  <HeartHandshake className="w-3.5 h-3.5 text-purple-400" />
+                  {specialDay.relationship}
+                </Badge>
+              )}
+              {specialDay.location && (
+                <Badge variant="outline" className="bg-card border-border/60 py-2 px-3 rounded-xl text-xs gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-purple-400" />
+                  {specialDay.location}
+                </Badge>
+              )}
+              {specialDay.budget && (
+                <Badge variant="outline" className="bg-card border-border/60 py-2 px-3 rounded-xl text-xs gap-1.5">
+                  <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+                  Budget: {specialDay.budget}
+                </Badge>
+              )}
+            </div>
+          )}
+
+          {/* Reminder & Email Status Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {specialDay.reminder_enabled && (
+              <div className="p-4 rounded-2xl bg-violet-500/10 border border-violet-500/20 space-y-1.5">
+                <div className="flex items-center gap-2 text-violet-400 font-bold text-xs uppercase tracking-wider">
+                  <BellRing className="w-4 h-4" /> Reminder Scheduled
+                </div>
+                <p className="text-sm font-semibold text-foreground">
+                  {specialDay.reminder_type === "custom"
+                    ? `${specialDay.reminder_value} ${specialDay.reminder_unit} before`
+                    : specialDay.reminder_type?.replace("_", " ")} at {specialDay.reminder_time || "09:00"}
+                </p>
+              </div>
+            )}
+
+            {specialDay.auto_send_email && (
+              <div className="p-4 rounded-2xl bg-pink-500/10 border border-pink-500/20 space-y-1.5">
+                <div className="flex items-center gap-2 text-pink-400 font-bold text-xs uppercase tracking-wider">
+                  <Mail className="w-4 h-4" /> Auto Email Configured
+                </div>
+                <p className="text-sm font-semibold text-foreground truncate">
+                  To: {specialDay.recipient_email} at {specialDay.email_send_time || "09:00"}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Planning Details */}
+          <div className="space-y-4 pt-2">
+            {specialDay.gift_ideas && (
+              <div className="p-5 rounded-2xl bg-card/70 border border-border/60 space-y-2">
+                <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
+                  <Gift className="w-4 h-4" /> Gift Ideas
+                </div>
+                <p className="text-sm text-foreground whitespace-pre-wrap">{specialDay.gift_ideas}</p>
+              </div>
+            )}
+
+            {specialDay.celebration_plans && (
+              <div className="p-5 rounded-2xl bg-card/70 border border-border/60 space-y-2">
+                <div className="flex items-center gap-2 text-purple-400 font-bold text-xs uppercase tracking-wider">
+                  <PartyPopper className="w-4 h-4" /> Celebration Plans
+                </div>
+                <p className="text-sm text-foreground whitespace-pre-wrap">{specialDay.celebration_plans}</p>
+              </div>
+            )}
+
+            {specialDay.message_draft && (
+              <div className="p-5 rounded-2xl bg-card/70 border border-border/60 space-y-2 relative group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-wider">
+                    <MessageSquare className="w-4 h-4" /> Congratulations Message Draft
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard(specialDay.message_draft!, "draft", "Message draft")}
+                    className="text-xs text-muted-foreground hover:text-foreground h-7"
+                  >
+                    {copiedKey === "draft" ? <Check className="w-3.5 h-3.5 text-emerald-400 mr-1" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
+                    Copy Draft
+                  </Button>
+                </div>
+                <p className="text-sm text-foreground bg-muted/40 p-3 rounded-xl border border-border/40 whitespace-pre-wrap font-sans">
+                  {specialDay.message_draft}
+                </p>
+              </div>
+            )}
+
+            {checklistItems.length > 0 && (
+              <div className="p-5 rounded-2xl bg-card/70 border border-border/60 space-y-2">
+                <div className="flex items-center gap-2 text-sky-400 font-bold text-xs uppercase tracking-wider">
+                  <CheckSquare className="w-4 h-4" /> Planning Checklist
+                </div>
+                <div className="space-y-1.5 pt-1">
+                  {checklistItems.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-2 text-sm text-foreground">
+                      <div className="w-4 h-4 rounded border border-purple-400 flex items-center justify-center text-[10px] text-purple-400">✓</div>
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {specialDay.notes && (
+              <div className="p-5 rounded-2xl bg-card/70 border border-border/60 space-y-2 relative">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-indigo-400 font-bold text-xs uppercase tracking-wider">
+                    <StickyNote className="w-4 h-4" /> Additional Notes
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard(specialDay.notes!, "notes", "Notes")}
+                    className="text-xs text-muted-foreground hover:text-foreground h-7"
+                  >
+                    {copiedKey === "notes" ? <Check className="w-3.5 h-3.5 text-indigo-400 mr-1" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
+                    Copy
+                  </Button>
+                </div>
+                <p className="text-sm text-foreground whitespace-pre-wrap">{specialDay.notes}</p>
+              </div>
+            )}
+
+            {!specialDay.gift_ideas && !specialDay.celebration_plans && !specialDay.message_draft && !specialDay.notes && checklistItems.length === 0 && (
+              <div className="p-8 text-center bg-card/40 rounded-2xl border border-dashed border-border/60">
+                <p className="text-sm text-muted-foreground italic">No extra planning details recorded yet. Click Edit to add gift ideas or notes!</p>
+              </div>
+            )}
+          </div>
+
+          <div className="h-4" />
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
   );
 }

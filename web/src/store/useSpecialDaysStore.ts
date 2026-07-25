@@ -1,21 +1,27 @@
 import { create } from "zustand";
-import { SpecialDay } from "@/types/SpecialDay";
+import { SpecialDay, ScheduledEmail } from "@/types/SpecialDay";
 import { specialDaysService } from "@/services/special-days";
 
 interface SpecialDaysState {
   specialDays: SpecialDay[];
+  scheduledEmails: ScheduledEmail[];
   isLoading: boolean;
+  isLoadingScheduledEmails: boolean;
   isSaving: boolean;
   error: string | null;
   fetchSpecialDays: (params?: Record<string, unknown>) => Promise<void>;
-  createSpecialDay: (data: Partial<SpecialDay>) => Promise<SpecialDay>;
-  updateSpecialDay: (id: number, data: Partial<SpecialDay>) => Promise<SpecialDay>;
+  createSpecialDay: (data: Partial<SpecialDay> & { schedule_for_tomorrow?: boolean }) => Promise<SpecialDay>;
+  updateSpecialDay: (id: number, data: Partial<SpecialDay> & { schedule_for_tomorrow?: boolean }) => Promise<SpecialDay>;
   deleteSpecialDay: (id: number) => Promise<void>;
+  fetchScheduledEmails: () => Promise<void>;
+  deleteScheduledEmail: (id: number) => Promise<void>;
 }
 
 export const useSpecialDaysStore = create<SpecialDaysState>((set, get) => ({
   specialDays: [],
+  scheduledEmails: [],
   isLoading: false,
+  isLoadingScheduledEmails: false,
   isSaving: false,
   error: null,
 
@@ -69,6 +75,27 @@ export const useSpecialDaysStore = create<SpecialDaysState>((set, get) => ({
       }));
     } catch (error) {
       set({ error: error instanceof Error ? error.message : "Failed to delete special day" });
+      throw error;
+    }
+  },
+
+  fetchScheduledEmails: async () => {
+    set({ isLoadingScheduledEmails: true });
+    try {
+      const scheduledEmails = await specialDaysService.getScheduledEmails();
+      set({ scheduledEmails, isLoadingScheduledEmails: false });
+    } catch (error) {
+      set({ isLoadingScheduledEmails: false });
+    }
+  },
+
+  deleteScheduledEmail: async (id) => {
+    try {
+      await specialDaysService.deleteScheduledEmail(id);
+      set((state) => ({
+        scheduledEmails: state.scheduledEmails.filter((se) => se.id !== id),
+      }));
+    } catch (error) {
       throw error;
     }
   },

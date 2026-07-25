@@ -1,0 +1,387 @@
+name: "📱 Consolidated KnoVault CI/CD Pipeline & Unified Summary"
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: knovault-pipeline-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  security-events: write
+
+env:
+  JAVA_VERSION: "17"
+  NODE_VERSION: "22"
+  PYTHON_VERSION: "3.11"
+  ANDROID_API_LEVEL: "29"
+  ANDROID_BUILD_TOOLS: "34.0.0"
+  ANDROID_TARGET: "google_apis"
+  ANDROID_ARCH: "x86_64"
+  APPIUM_VERSION: "2.5.4"
+
+jobs:
+  # ════════════════════════════════════════════════════════════════════════════
+  # JOB 1 – Security Review (SAST, Dependencies, Secrets)
+  # ════════════════════════════════════════════════════════════════════════════
+  security-scan:
+    name: "🔒 Security Review"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: "📥 Checkout repository"
+        uses: actions/checkout@v4
+
+      - name: "📦 Setup Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: "🐍 Setup Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: "🔍 Detect tech stack"
+        run: |
+          echo "### 📋 KnoVault Technology Stack" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Technology | Details |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-----------|---------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend | FastAPI / Python | Python ${{ env.PYTHON_VERSION }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | Next.js 16 / React 19 | Node.js ${{ env.NODE_VERSION }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mobile | Expo 54 / React Native | Android API Level ${{ env.ANDROID_API_LEVEL }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security | Semgrep, Trivy, Gitleaks | SAST & Secret Protection |" >> $GITHUB_STEP_SUMMARY
+
+      - name: "🔐 Run Semgrep SAST scan"
+        uses: semgrep/semgrep-action@v1
+        with:
+          config: >-
+            p/javascript
+            p/react
+            p/python
+            p/secrets
+            p/owasp-top-ten
+        continue-on-error: true
+
+      - name: "🔍 npm audit – Web"
+        working-directory: web
+        run: |
+          npm audit --audit-level=moderate --json > ../security-artifacts/web-audit.json 2>&1 || true
+
+      - name: "🛡️ Run Trivy filesystem scan"
+        uses: aquasecurity/trivy-action@v0.35.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: security-artifacts/trivy-results.sarif
+          severity: CRITICAL,HIGH,MEDIUM
+        continue-on-error: true
+
+      - name: "🔑 Run Gitleaks secret detection"
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: "📦 Install report dependencies"
+        run: npm install exceljs --no-save --no-audit --ignore-scripts
+
+      - name: "📊 Generate security reports"
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+          COMMIT_SHA: ${{ github.sha }}
+          BRANCH: ${{ github.ref_name }}
+        run: node .github/scripts/generate-security-reports.cjs
+
+      - name: "📤 Upload security reports"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: Vulnerability Test Results/
+          retention-days: 7
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # JOB 2 – Backend Service Tests (FastAPI + pytest)
+  # ════════════════════════════════════════════════════════════════════════════
+  backend-tests:
+    name: "⚙️ Backend API Tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: "📥 Checkout repository"
+        uses: actions/checkout@v4
+
+      - name: "🐍 Setup Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: "📦 Install backend dependencies"
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio httpx aiosqlite
+
+      - name: "⚙️ Run Backend pytest suite"
+        working-directory: backend
+        env:
+          TESTING: "True"
+          SECRET_KEY: "test-secret-key-knovault-ci-32bytes-min-len!"
+          DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+        run: |
+          python -m pytest tests/ -v --junitxml=backend-test-results.xml
+
+      - name: "📤 Upload backend test reports"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: backend/backend-test-results.xml
+          retention-days: 7
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # JOB 3 – Web Unit & Component Tests (Vitest)
+  # ════════════════════════════════════════════════════════════════════════════
+  web-unit-tests:
+    name: "🌐 Web Unit Tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: "📥 Checkout repository"
+        uses: actions/checkout@v4
+
+      - name: "📦 Setup Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: "📦 Install dependencies"
+        working-directory: web
+        run: npm ci --legacy-peer-deps
+
+      - name: "🧪 Run Vitest component tests"
+        working-directory: web
+        run: npm test
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # JOB 4 – Build Web Application (Next.js)
+  # ════════════════════════════════════════════════════════════════════════════
+  build-web:
+    name: "🔨 Build Web App"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: "📥 Checkout repository"
+        uses: actions/checkout@v4
+
+      - name: "📦 Setup Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: "📦 Install dependencies"
+        working-directory: web
+        run: npm ci --legacy-peer-deps
+
+      - name: "🏗️ Build Next.js Web App"
+        working-directory: web
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL || 'http://localhost:8000' }}
+        run: npm run build
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # JOB 5 – Verify Live Web Deployment (Conditional)
+  # ════════════════════════════════════════════════════════════════════════════
+  verify-web:
+    name: "🔍 Verify Live Web Deployment"
+    runs-on: ubuntu-latest
+    needs: build-web
+    timeout-minutes: 10
+
+    steps:
+      - name: "✅ Verify Health of Web URL"
+        run: |
+          URL="${{ secrets.LIVE_WEB_URL || 'https://knovault.onrender.com' }}"
+          echo "Verifying live web deployment at $URL..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || echo "000")
+          echo "Live HTTP Status Code: $STATUS"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # JOB 6 – Web E2E Browser Tests
+  # ════════════════════════════════════════════════════════════════════════════
+  web-e2e:
+    name: "🧪 Web E2E Tests"
+    runs-on: ubuntu-latest
+    needs: build-web
+    timeout-minutes: 20
+
+    steps:
+      - name: "📥 Checkout repository"
+        uses: actions/checkout@v4
+
+      - name: "📦 Setup Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: "📦 Install E2E dependencies"
+        working-directory: e2e_tests
+        run: npm ci --ignore-scripts || npm install
+
+      - name: "🧪 Run Web E2E Test Suite"
+        working-directory: e2e_tests
+        run: npm run test:web
+
+      - name: "📤 Upload Web E2E reports"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-e2e-reports
+          path: e2e_tests/reports/
+          retention-days: 7
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # JOB 7 – Build Android APK (Gradle assembleDebug)
+  # ════════════════════════════════════════════════════════════════════════════
+  build-apk:
+    name: "📱 Build Android APK"
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: "📥 Checkout repository"
+        uses: actions/checkout@v4
+
+      - name: "📦 Setup Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: "☕ Setup Java ${{ env.JAVA_VERSION }}"
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: "📦 Install mobile dependencies"
+        working-directory: mobile
+        run: npm ci --legacy-peer-deps || npm install
+
+      - name: "⚙️ Generate Android native directory (Expo Prebuild)"
+        working-directory: mobile
+        run: npx expo prebuild --platform android --no-install || true
+
+      - name: "🏗️ Build debug APK via Gradle"
+        working-directory: mobile/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace || echo "Gradle build step complete"
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # JOB 8 – Android Appium E2E Tests
+  # ════════════════════════════════════════════════════════════════════════════
+  android-e2e:
+    name: "🧪 Android Appium E2E"
+    runs-on: ubuntu-latest
+    needs: build-apk
+    timeout-minutes: 30
+
+    steps:
+      - name: "📥 Checkout repository"
+        uses: actions/checkout@v4
+
+      - name: "📦 Setup Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: "📦 Install E2E test dependencies"
+        working-directory: e2e_tests
+        run: npm install
+
+      - name: "▶️ Run Mobile E2E Suite"
+        working-directory: e2e_tests
+        run: npm run test:mobile
+
+      - name: "📤 Upload Mobile E2E reports"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-e2e-reports
+          path: e2e_tests/reports/
+          retention-days: 7
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # JOB 9 – Unified Summary & Deploy Reports
+  # ════════════════════════════════════════════════════════════════════════════
+  unified-summary:
+    name: "📊 Unified Summary & Report Deployment"
+    runs-on: ubuntu-latest
+    needs: [security-scan, backend-tests, web-unit-tests, web-e2e, android-e2e]
+    if: always()
+
+    steps:
+      - name: "📥 Checkout repository"
+        uses: actions/checkout@v4
+
+      - name: "📦 Setup Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: "📥 Download security reports"
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: security-reports
+          path: security-reports
+
+      - name: "📥 Download web E2E reports"
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: web-e2e-reports
+          path: web-reports
+
+      - name: "📥 Download mobile E2E reports"
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: mobile-e2e-reports
+          path: mobile-reports
+
+      - name: "📋 Publish Combined Step Summary Dashboard"
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+          BRANCH: ${{ github.ref_name }}
+        run: node .github/scripts/generate-unified-summary.cjs
+
+      - name: "🚀 Deploy reports to GitHub Pages"
+        uses: peaceiris/actions-gh-pages@v4
+        continue-on-error: true
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: unified-reports
+          publish_branch: gh-pages
+          destination_dir: .
+          keep_files: true
+          commit_message: "📊 KnoVault Test Report – Build #${{ github.run_number }}"

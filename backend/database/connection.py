@@ -48,21 +48,25 @@ _ssl_ctx = ssl.create_default_context()
 _ssl_ctx.check_hostname = False
 _ssl_ctx.verify_mode = ssl.CERT_NONE  # Neon manages certs; disable local verification
 
-_connect_args["ssl"] = _ssl_ctx
-# Disable asyncpg prepared-statement cache (required for Neon pooler / PgBouncer)
-_connect_args["statement_cache_size"] = 0
-
-engine = create_async_engine(
-    _db_url,
-    echo=False,
-    # Conservative pool for Neon serverless pooler
-    pool_size=5,
-    max_overflow=10,
-    pool_timeout=30,
-    pool_recycle=300,        # Recycle connections every 5 min to avoid stale conns
-    pool_pre_ping=True,      # Verify connection liveness before checkout
-    connect_args=_connect_args,
-)
+if "sqlite" in _db_url:
+    engine = create_async_engine(
+        _db_url,
+        echo=False,
+        connect_args={"check_same_thread": False} if "sqlite" in _db_url else {},
+    )
+else:
+    _connect_args["ssl"] = _ssl_ctx
+    _connect_args["statement_cache_size"] = 0
+    engine = create_async_engine(
+        _db_url,
+        echo=False,
+        pool_size=5,
+        max_overflow=10,
+        pool_timeout=30,
+        pool_recycle=300,
+        pool_pre_ping=True,
+        connect_args=_connect_args,
+    )
 
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 

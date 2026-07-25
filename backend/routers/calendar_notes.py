@@ -21,6 +21,9 @@ async def create_calendar_note(
         title=data.title,
         content=data.content,
         note_date=data.note_date,
+        color=data.color or "#6D4CFF",
+        is_pinned=data.is_pinned,
+        is_all_day=data.is_all_day,
         user_id=current_user.id
     )
     db.add(note)
@@ -32,6 +35,7 @@ async def create_calendar_note(
 @router.get("", response_model=list[CalendarNoteResponse])
 async def get_calendar_notes(
     date_str: str | None = None,
+    month: str | None = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -43,9 +47,14 @@ async def get_calendar_notes(
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
     
-    query = query.order_by(CalendarNote.note_date.desc(), CalendarNote.created_at.desc())
+    query = query.order_by(CalendarNote.is_pinned.desc(), CalendarNote.note_date.desc(), CalendarNote.created_at.desc())
     result = await db.execute(query)
     notes = result.scalars().all()
+    
+    if month:
+        # Client side month format e.g. YYYY-MM
+        notes = [n for n in notes if n.note_date.strftime("%Y-%m") == month]
+        
     return [CalendarNoteResponse.model_validate(n) for n in notes]
 
 

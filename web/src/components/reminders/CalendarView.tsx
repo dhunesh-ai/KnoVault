@@ -1,10 +1,26 @@
-import { useState } from "react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, isSameDay, addMonths, subMonths } from "date-fns";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  isToday,
+  isSameDay,
+  addMonths,
+  subMonths,
+} from "date-fns";
+import { ChevronLeft, ChevronRight, FileText, Calendar as CalendarIcon, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Reminder } from "@/types/Reminder";
+import { CalendarNote } from "@/types/CalendarNote";
 import { ReminderCard } from "./ReminderCard";
+import { CalendarNoteCard } from "./CalendarNoteCard";
+import { CalendarNoteModal } from "./CalendarNoteModal";
+import { useCalendarNotesStore } from "@/store/useCalendarNotesStore";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface CalendarViewProps {
@@ -14,9 +30,22 @@ interface CalendarViewProps {
   onToggleComplete: (id: number, is_completed: boolean) => void;
 }
 
-export function CalendarView({ reminders, onEdit, onDelete, onToggleComplete }: CalendarViewProps) {
+export function CalendarView({
+  reminders,
+  onEdit,
+  onDelete,
+  onToggleComplete,
+}: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState<CalendarNote | null>(null);
+
+  const { calendarNotes, fetchCalendarNotes } = useCalendarNotesStore();
+
+  useEffect(() => {
+    fetchCalendarNotes({ month: format(currentDate, "yyyy-MM") });
+  }, [currentDate, fetchCalendarNotes]);
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
@@ -34,114 +63,274 @@ export function CalendarView({ reminders, onEdit, onDelete, onToggleComplete }: 
     setSelectedDate(new Date());
   };
 
-  const getRemindersForDate = (date: Date) => {
-    return reminders.filter(r => isSameDay(new Date(r.reminder_date), date));
+  const handleAddNote = (date?: Date) => {
+    setEditingNote(null);
+    if (date) setSelectedDate(date);
+    setNoteModalOpen(true);
   };
 
-  const selectedReminders = getRemindersForDate(selectedDate).sort((a, b) => {
-    if (a.is_completed !== b.is_completed) return a.is_completed ? 1 : -1;
-    return new Date(a.reminder_date).getTime() - new Date(b.reminder_date).getTime();
-  });
+  const handleEditNote = (note: CalendarNote) => {
+    setEditingNote(note);
+    setNoteModalOpen(true);
+  };
+
+  const getRemindersForDate = (date: Date) => {
+    return reminders.filter((r) => isSameDay(new Date(r.reminder_date), date));
+  };
+
+  const getNotesForDate = (date: Date) => {
+    const formatted = format(date, "yyyy-MM-dd");
+    return calendarNotes.filter((n) => n.note_date === formatted);
+  };
+
+  const selectedReminders = useMemo(() => {
+    return getRemindersForDate(selectedDate).sort((a, b) => {
+      if (a.is_completed !== b.is_completed) return a.is_completed ? 1 : -1;
+      return new Date(a.reminder_date).getTime() - new Date(b.reminder_date).getTime();
+    });
+  }, [reminders, selectedDate]);
+
+  const selectedNotes = useMemo(() => {
+    return getNotesForDate(selectedDate);
+  }, [calendarNotes, selectedDate]);
 
   const getTypeColor = (type: string, isCompleted: boolean) => {
-    if (isCompleted) return "bg-gray-500/80 text-white";
+    if (isCompleted) return "#9CA3AF";
     switch (type.toLowerCase()) {
-      case "meeting": return "bg-blue-500 text-white";
-      case "assignment": return "bg-purple-500 text-white";
-      case "medicine": return "bg-emerald-500 text-white";
-      case "birthday": return "bg-pink-500 text-white";
-      case "task": return "bg-green-500 text-white";
-      case "event": return "bg-blue-400 text-white";
-      case "reminder": return "bg-orange-500 text-white";
-      default: return "bg-orange-500 text-white";
+      case "meeting":
+        return "#3B82F6";
+      case "assignment":
+        return "#8B5CF6";
+      case "medicine":
+        return "#10B981";
+      case "birthday":
+        return "#EC4899";
+      case "task":
+        return "#10B981";
+      case "event":
+        return "#60A5FA";
+      default:
+        return "#F59E0B";
     }
   };
 
+  const totalSelectedEvents = selectedReminders.length + selectedNotes.length;
+
   return (
     <div className="flex flex-col xl:flex-row gap-6 h-full min-h-[500px]">
-      <div className="flex-1 bg-card border border-border rounded-xl p-4 flex flex-col h-full overflow-hidden">
+      {/* Calendar Grid Container */}
+      <div className="flex-1 bg-card/80 backdrop-blur-md border border-border/40 rounded-3xl p-5 flex flex-col h-full overflow-hidden shadow-sm">
+        {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">{format(currentDate, "MMMM yyyy")}</h2>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={goToToday} className="h-8">Today</Button>
-            <Button variant="ghost" size="icon" onClick={prevMonth} className="h-8 w-8"><ChevronLeft className="w-4 h-4" /></Button>
-            <Button variant="ghost" size="icon" onClick={nextMonth} className="h-8 w-8"><ChevronRight className="w-4 h-4" /></Button>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-extrabold text-foreground">
+              {format(currentDate, "MMMM yyyy")}
+            </h2>
+            <Button
+              onClick={() => handleAddNote(selectedDate)}
+              className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-xl h-8 px-3 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-none transition-all"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>+ Note</span>
+            </Button>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToToday}
+              className="h-8 rounded-xl text-xs font-bold border-border/40 hover:bg-accent/40"
+            >
+              Today
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={prevMonth}
+              className="h-8 w-8 rounded-xl hover:bg-accent/40"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={nextMonth}
+              className="h-8 w-8 rounded-xl hover:bg-accent/40"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-1 text-center font-medium text-sm text-muted-foreground mb-2">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
+        {/* Days of week header */}
+        <div className="grid grid-cols-7 gap-1 text-center font-bold text-xs uppercase tracking-wider text-muted-foreground/80 mb-2">
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
             <div key={day}>{day}</div>
           ))}
         </div>
 
-        <div className="grid grid-cols-7 gap-1 flex-1 min-h-0">
+        {/* Days grid */}
+        <div className="grid grid-cols-7 gap-1.5 flex-1 min-h-0">
           {dateRange.map((day, i) => {
             const dayReminders = getRemindersForDate(day);
+            const dayNotes = getNotesForDate(day);
             const isSelected = isSameDay(day, selectedDate);
             const isCurrentMonth = isSameMonth(day, currentDate);
+
+            // Compute colored indicator dots
+            const reminderDots = dayReminders.map((r) => ({
+              id: `r-${r.id}`,
+              color: getTypeColor(r.type, r.is_completed),
+            }));
+            const noteDots = dayNotes.map((n) => ({
+              id: `n-${n.id}`,
+              color: n.color || "#6D4CFF",
+            }));
+            const allDots = [...noteDots, ...reminderDots];
 
             return (
               <div
                 key={i}
                 onClick={() => setSelectedDate(day)}
                 className={cn(
-                  "min-h-[80px] p-1 border rounded-lg cursor-pointer transition-all flex flex-col overflow-hidden",
-                  !isCurrentMonth && "opacity-40 bg-muted/30",
-                  isSelected ? "border-primary bg-primary/5 shadow-[0_0_10px_rgba(124,77,255,0.2)]" : "border-border/50 hover:border-border hover:bg-muted/30",
-                  isToday(day) && !isSelected && "border-primary/50"
+                  "min-h-[85px] p-1.5 border rounded-2xl cursor-pointer transition-all flex flex-col justify-between overflow-hidden relative group",
+                  !isCurrentMonth && "opacity-35 bg-muted/20",
+                  isSelected
+                    ? "border-primary bg-primary/10 shadow-[0_0_16px_rgba(124,77,255,0.15)] ring-2 ring-primary/30"
+                    : "border-border/30 hover:border-primary/30 hover:bg-muted/30",
+                  isToday(day) && !isSelected && "border-primary/50 bg-primary/5 font-bold"
                 )}
               >
-                <div className={cn(
-                  "text-right text-sm p-1 font-medium",
-                  isToday(day) && "text-primary font-bold",
-                  isSelected && "text-primary font-bold"
-                )}>
-                  {format(day, "d")}
+                {/* Date Number Header */}
+                <div className="flex items-center justify-between">
+                  {dayNotes.length > 0 && (
+                    <span className="text-[9px] font-extrabold text-primary bg-primary/15 px-1.5 py-0.5 rounded-md">
+                      📝 {dayNotes.length}
+                    </span>
+                  )}
+                  <div
+                    className={cn(
+                      "text-xs font-extrabold ml-auto px-1.5 py-0.5 rounded-md transition-colors",
+                      isToday(day) && "bg-primary text-white font-black shadow-sm",
+                      isSelected && !isToday(day) && "text-primary font-black"
+                    )}
+                  >
+                    {format(day, "d")}
+                  </div>
                 </div>
-                <div className="flex-1 overflow-y-auto scrollbar-hide space-y-1 mt-1">
-                  {dayReminders.slice(0, 3).map(r => {
-                    const isOverdue = new Date(r.reminder_date) < new Date() && !r.is_completed && !isToday(day);
+
+                {/* Day Previews / List */}
+                <div className="flex-1 overflow-y-auto scrollbar-hide space-y-0.5 my-1">
+                  {/* Notes previews */}
+                  {dayNotes.slice(0, 1).map((n) => (
+                    <div
+                      key={`n-${n.id}`}
+                      className="text-[9.5px] truncate px-1.5 py-0.5 rounded-md font-bold text-white shadow-xs"
+                      style={{ backgroundColor: n.color || "#6D4CFF" }}
+                    >
+                      📄 {n.title}
+                    </div>
+                  ))}
+                  {/* Reminders previews */}
+                  {dayReminders.slice(0, 2).map((r) => {
+                    const isOverdue =
+                      new Date(r.reminder_date) < new Date() &&
+                      !r.is_completed &&
+                      !isToday(day);
                     return (
                       <div
-                        key={r.id}
+                        key={`r-${r.id}`}
                         className={cn(
-                          "text-[10px] truncate px-1.5 py-0.5 rounded-sm font-medium",
-                          isOverdue ? "bg-red-500 text-white" : getTypeColor(r.type, r.is_completed)
+                          "text-[9.5px] truncate px-1.5 py-0.5 rounded-md font-medium text-white shadow-xs",
+                          isOverdue && "bg-red-500"
                         )}
+                        style={
+                          !isOverdue
+                            ? { backgroundColor: getTypeColor(r.type, r.is_completed) }
+                            : undefined
+                        }
                       >
-                        {format(new Date(r.reminder_date), "HH:mm")} {r.title}
+                        {r.title}
                       </div>
                     );
                   })}
-                  {dayReminders.length > 3 && (
-                    <div className="text-[10px] text-center text-muted-foreground font-medium">
-                      +{dayReminders.length - 3} more
-                    </div>
-                  )}
                 </div>
+
+                {/* Colored Dots Indicator Bar */}
+                {allDots.length > 0 && (
+                  <div className="flex items-center gap-1 justify-end px-1 pt-0.5 shrink-0">
+                    {allDots.slice(0, 4).map((dot) => (
+                      <span
+                        key={dot.id}
+                        className="w-2 h-2 rounded-full shrink-0 shadow-xs"
+                        style={{ backgroundColor: dot.color }}
+                      />
+                    ))}
+                    {allDots.length > 4 && (
+                      <span className="text-[9px] font-extrabold text-muted-foreground">
+                        +{allDots.length - 4}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
       </div>
 
+      {/* Selected Day Panel */}
       <div className="w-full xl:w-96 flex flex-col gap-4">
-        <div className="bg-card border border-border rounded-xl p-4">
-          <h3 className="font-semibold text-lg flex items-center justify-between">
-            <span>{format(selectedDate, "MMM d, yyyy")}</span>
-            {isToday(selectedDate) && <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-md">Today</span>}
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            {selectedReminders.length} reminder{selectedReminders.length !== 1 ? 's' : ''}
-          </p>
+        <div className="bg-card/80 backdrop-blur-md border border-border/40 rounded-3xl p-5 shadow-sm flex items-center justify-between">
+          <div>
+            <h3 className="font-extrabold text-lg flex items-center gap-2 text-foreground">
+              <span>{format(selectedDate, "MMM d, yyyy")}</span>
+              {isToday(selectedDate) && (
+                <span className="text-xs bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-bold">
+                  Today
+                </span>
+              )}
+            </h3>
+            <p className="text-xs font-semibold text-muted-foreground mt-1 flex items-center gap-2">
+              <span>
+                {totalSelectedEvents} Event{totalSelectedEvents !== 1 ? "s" : ""}
+              </span>
+              {selectedNotes.length > 0 && (
+                <span className="text-primary font-bold">
+                  • {selectedNotes.length} Note{selectedNotes.length !== 1 ? "s" : ""}
+                </span>
+              )}
+            </p>
+          </div>
+          <Button
+            onClick={() => handleAddNote(selectedDate)}
+            className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-2xl h-9 px-3.5 text-xs font-bold flex items-center gap-1 cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Note</span>
+          </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-3 pb-4">
+        {/* Selected Day Items Stream */}
+        <div className="flex-1 overflow-y-auto space-y-3.5 pb-4 scrollbar-hide">
           <AnimatePresence mode="popLayout">
-            {selectedReminders.map(reminder => (
+            {/* Render Calendar Notes first */}
+            {selectedNotes.map((note) => (
               <motion.div
-                key={reminder.id}
+                key={`cn-${note.id}`}
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+              >
+                <CalendarNoteCard note={note} onClick={handleEditNote} />
+              </motion.div>
+            ))}
+
+            {/* Render Reminders second */}
+            {selectedReminders.map((reminder) => (
+              <motion.div
+                key={`rm-${reminder.id}`}
                 layout
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -155,18 +344,43 @@ export function CalendarView({ reminders, onEdit, onDelete, onToggleComplete }: 
                 />
               </motion.div>
             ))}
-            {selectedReminders.length === 0 && (
+
+            {/* Professional Empty State */}
+            {totalSelectedEvents === 0 && (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center p-8 text-muted-foreground border border-border border-dashed rounded-xl"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col items-center justify-center p-8 text-center bg-card/60 backdrop-blur-md border border-border/40 border-dashed rounded-3xl"
               >
-                No reminders for this date
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-3">
+                  <CalendarIcon className="w-6 h-6" />
+                </div>
+                <h4 className="text-sm font-extrabold text-foreground mb-1">
+                  No events scheduled for this day
+                </h4>
+                <p className="text-xs text-muted-foreground max-w-xs font-medium mb-4">
+                  Keep track of your day with reminders and notes.
+                </p>
+                <Button
+                  onClick={() => handleAddNote(selectedDate)}
+                  className="bg-primary hover:bg-primary/95 text-white rounded-xl text-xs font-bold px-4 h-9 shadow-md flex items-center gap-1.5 cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>+ Add Note</span>
+                </Button>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Calendar Note Modal */}
+      <CalendarNoteModal
+        open={noteModalOpen}
+        onOpenChange={setNoteModalOpen}
+        note={editingNote}
+        defaultDate={selectedDate}
+      />
     </div>
   );
 }
