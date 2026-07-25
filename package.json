@@ -1,0 +1,11 @@
+{
+  "name": "knovault",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix web run dev",
+    "build": "cd web && npm install --legacy-peer-deps && npm run build",
+    "start": "npm --prefix web run start",
+    "test": "npm --prefix web test"
+  }
+}
