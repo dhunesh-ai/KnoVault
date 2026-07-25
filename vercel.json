@@ -2,5 +2,10 @@
   "version": 2,
   "buildCommand": "cd web && npm install --legacy-peer-deps && npm run build",
   "outputDirectory": "web/.next",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "git": {
+    "deploymentEnabled": {
+      "gh-pages": false
+    }
+  }
 }
