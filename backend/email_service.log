@@ -33868,3 +33868,999 @@ OSError: [Errno 10065] Connect call failed ('13.251.17.193', 5432)
 2026-07-25 16:02:10,836 - httpx - INFO - HTTP Request: GET http://test/api/workspaces/1 "HTTP/1.1 200 OK"
 2026-07-25 16:02:10,845 - httpx - INFO - HTTP Request: PUT http://test/api/workspaces/1 "HTTP/1.1 200 OK"
 2026-07-25 16:02:10,867 - httpx - INFO - HTTP Request: DELETE http://test/api/workspaces/1 "HTTP/1.1 204 No Content"
+2026-07-26 19:24:51,294 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:24:53,506 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:25:00,700 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-07-26 19:25:00,796 - EmailScheduler - INFO - [EmailScheduler] Starting background scheduler loop using APScheduler...
+2026-07-26 19:25:00,801 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-07-26 19:25:00,802 - apscheduler.scheduler - INFO - Added job "send_pending_emails" to job store "default"
+2026-07-26 19:25:00,802 - apscheduler.scheduler - INFO - Scheduler started
+2026-07-26 19:25:00,802 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Starting background scheduler loop...
+2026-07-26 19:25:05,816 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:26:00,815 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:27:00 IST)" (scheduled at 2026-07-26 19:26:00.801155+05:30)
+2026-07-26 19:26:00,816 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:26:01,395 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:27:00 IST)" executed successfully
+2026-07-26 19:26:06,703 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:26:36,247 - utils.firebase - WARNING - [Firebase] Invalid token: Firebase ID token has no "kid" claim.
+2026-07-26 19:26:55,231 - utils.firebase - INFO - [Firebase] Token verified successfully for: thinkgood24hrs@gmail.com
+2026-07-26 19:27:00,815 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:28:00 IST)" (scheduled at 2026-07-26 19:27:00.801155+05:30)
+2026-07-26 19:27:00,816 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:27:01,556 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:28:00 IST)" executed successfully
+2026-07-26 19:27:07,269 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:28:00,814 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:29:00 IST)" (scheduled at 2026-07-26 19:28:00.801155+05:30)
+2026-07-26 19:28:00,815 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:28:01,789 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:29:00 IST)" executed successfully
+2026-07-26 19:28:08,091 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:29:00,813 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:30:00 IST)" (scheduled at 2026-07-26 19:29:00.801155+05:30)
+2026-07-26 19:29:00,814 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:29:09,034 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:29:35,393 - NotificationScheduler - ERROR - [NOTIFICATION SCHEDULER] Error during execution: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.ConnectionDoesNotExistError'>: connection was closed in the middle of operation
+[SQL: SELECT workspace_meetings.id, workspace_meetings.workspace_id, workspace_meetings.organizer_id, workspace_meetings.title, workspace_meetings.date, workspace_meetings.agenda, workspace_meetings.decisions, workspace_meetings.action_items, workspace_meetings.summary, workspace_meetings.comments, workspace_meetings.created_at, workspace_meetings.updated_at 
+FROM workspace_meetings 
+WHERE workspace_meetings.date >= $1::TIMESTAMP WITH TIME ZONE AND workspace_meetings.date <= $2::TIMESTAMP WITH TIME ZONE]
+[parameters: (datetime.datetime(2026, 7, 25, 13, 59, 9, 35299, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 7, 28, 13, 59, 9, 35299, tzinfo=datetime.timezone.utc))]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+Traceback (most recent call last):
+  File "C:\Program Files\Python314\Lib\asyncio\selector_events.py", line 984, in _read_ready__get_buffer
+    nbytes = self._sock.recv_into(buf)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 526, in _prepare_and_execute
+    prepared_stmt, attributes = await adapt_connection._prepare(
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        operation, self._invalidate_schema_cache_asof
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 773, in _prepare
+    prepared_stmt = await self._connection.prepare(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        operation, name=self._prepared_statement_name_func()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connection.py", line 638, in prepare
+    return await self._prepare(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connection.py", line 657, in _prepare
+    stmt = await self._get_statement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connection.py", line 443, in _get_statement
+    statement = await self._protocol.prepare(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+    )
+    ^
+  File "asyncpg/protocol/protocol.pyx", line 165, in prepare
+asyncpg.exceptions.ConnectionDoesNotExistError: connection was closed in the middle of operation
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._prepare_and_execute(operation, parameters)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.dialects.postgresql.asyncpg.AsyncAdapt_asyncpg_dbapi.Error: <class 'asyncpg.exceptions.ConnectionDoesNotExistError'>: connection was closed in the middle of operation
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\App Folders\nnngravity\KnoVault\backend\services\notification_scheduler.py", line 51, in check_and_send_workspace_reminders
+    meetings_res = await session.execute(meetings_stmt)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 449, in execute
+    result = await greenlet_spawn(
+             ^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 203, in greenlet_spawn
+    result = context.switch(value)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+           ~~~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        _add_event=_add_event,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2249, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self,
+        ^^^^^
+    ...<4 lines>...
+        conn,
+        ^^^^^
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+        statement, params or {}, execution_options=execution_options
+    )
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1419, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._prepare_and_execute(operation, parameters)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 563, in _prepare_and_execute
+    self._handle_exception(error)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 513, in _handle_exception
+    self._adapt_connection._handle_exception(error)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.DBAPIError: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.ConnectionDoesNotExistError'>: connection was closed in the middle of operation
+[SQL: SELECT workspace_meetings.id, workspace_meetings.workspace_id, workspace_meetings.organizer_id, workspace_meetings.title, workspace_meetings.date, workspace_meetings.agenda, workspace_meetings.decisions, workspace_meetings.action_items, workspace_meetings.summary, workspace_meetings.comments, workspace_meetings.created_at, workspace_meetings.updated_at 
+FROM workspace_meetings 
+WHERE workspace_meetings.date >= $1::TIMESTAMP WITH TIME ZONE AND workspace_meetings.date <= $2::TIMESTAMP WITH TIME ZONE]
+[parameters: (datetime.datetime(2026, 7, 25, 13, 59, 9, 35299, tzinfo=datetime.timezone.utc), datetime.datetime(2026, 7, 28, 13, 59, 9, 35299, tzinfo=datetime.timezone.utc))]
+(Background on this error at: https://sqlalche.me/e/20/dbapi)
+2026-07-26 19:29:41,098 - EmailScheduler - ERROR - [EmailScheduler] Error in send_pending_emails job: [Errno 10060] Connect call failed ('3.0.167.45', 5432)
+Traceback (most recent call last):
+  File "D:\App Folders\nnngravity\KnoVault\backend\services\email_scheduler.py", line 154, in send_pending_emails
+    res = await session.execute(stmt)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 449, in execute
+    result = await greenlet_spawn(
+             ^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+           ~~~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        _add_event=_add_event,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2239, in _execute_internal
+    conn = self._connection_for_bind(bind)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2108, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2, in _connection_for_bind
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1187, in _connection_for_bind
+    conn = bind.connect()
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 3293, in connect
+    return self._connection_cls(self)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 3317, in raw_connection
+    return self.pool.connect()
+           ~~~~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 1353, in _checkout
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 1350, in _checkout
+    fairy._connection_record.get_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+    ~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 955, in connect
+    await_only(creator_fn(*arg, **kw)),
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connection.py", line 2443, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<22 lines>...
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 1249, in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+    ...<2 lines>...
+    )
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 1050, in _connect_addr
+    return await __connect_addr(params, False, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 1099, in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 969, in _create_ssl_connection
+    tr, pr = await loop.create_connection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        host, port)
+        ^^^^^^^^^^^
+  File "C:\Program Files\Python314\Lib\asyncio\base_events.py", line 1168, in create_connection
+    raise exceptions[0]
+  File "C:\Program Files\Python314\Lib\asyncio\base_events.py", line 1143, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python314\Lib\asyncio\base_events.py", line 1042, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Program Files\Python314\Lib\asyncio\selector_events.py", line 645, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "C:\Program Files\Python314\Lib\asyncio\selector_events.py", line 685, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+TimeoutError: [Errno 10060] Connect call failed ('3.0.167.45', 5432)
+2026-07-26 19:29:41,120 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:30:00 IST)" executed successfully
+2026-07-26 19:30:00,802 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:31:00 IST)" (scheduled at 2026-07-26 19:30:00.801155+05:30)
+2026-07-26 19:30:00,804 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:30:00,807 - EmailScheduler - ERROR - [EmailScheduler] Error in send_pending_emails job: [Errno 10065] Connect call failed ('3.0.167.45', 5432)
+Traceback (most recent call last):
+  File "D:\App Folders\nnngravity\KnoVault\backend\services\email_scheduler.py", line 154, in send_pending_emails
+    res = await session.execute(stmt)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 449, in execute
+    result = await greenlet_spawn(
+             ^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+           ~~~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        _add_event=_add_event,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2239, in _execute_internal
+    conn = self._connection_for_bind(bind)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2108, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2, in _connection_for_bind
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1187, in _connection_for_bind
+    conn = bind.connect()
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 3293, in connect
+    return self._connection_cls(self)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 3317, in raw_connection
+    return self.pool.connect()
+           ~~~~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+    ~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 955, in connect
+    await_only(creator_fn(*arg, **kw)),
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connection.py", line 2443, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<22 lines>...
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 1249, in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+    ...<2 lines>...
+    )
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 1050, in _connect_addr
+    return await __connect_addr(params, False, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 1099, in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 969, in _create_ssl_connection
+    tr, pr = await loop.create_connection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        host, port)
+        ^^^^^^^^^^^
+  File "C:\Program Files\Python314\Lib\asyncio\base_events.py", line 1168, in create_connection
+    raise exceptions[0]
+  File "C:\Program Files\Python314\Lib\asyncio\base_events.py", line 1143, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python314\Lib\asyncio\base_events.py", line 1042, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Program Files\Python314\Lib\asyncio\selector_events.py", line 645, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "C:\Program Files\Python314\Lib\asyncio\selector_events.py", line 685, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+OSError: [Errno 10065] Connect call failed ('3.0.167.45', 5432)
+2026-07-26 19:30:00,828 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:31:00 IST)" executed successfully
+2026-07-26 19:30:35,482 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:30:35,485 - NotificationScheduler - ERROR - [NOTIFICATION SCHEDULER] Error during execution: [Errno 10065] Connect call failed ('3.0.167.45', 5432)
+Traceback (most recent call last):
+  File "D:\App Folders\nnngravity\KnoVault\backend\services\notification_scheduler.py", line 51, in check_and_send_workspace_reminders
+    meetings_res = await session.execute(meetings_stmt)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 449, in execute
+    result = await greenlet_spawn(
+             ^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+           ~~~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        _add_event=_add_event,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2239, in _execute_internal
+    conn = self._connection_for_bind(bind)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2108, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2, in _connection_for_bind
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1187, in _connection_for_bind
+    conn = bind.connect()
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 3293, in connect
+    return self._connection_cls(self)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 3317, in raw_connection
+    return self.pool.connect()
+           ~~~~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+    ~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 955, in connect
+    await_only(creator_fn(*arg, **kw)),
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connection.py", line 2443, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<22 lines>...
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 1249, in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+    ...<2 lines>...
+    )
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 1050, in _connect_addr
+    return await __connect_addr(params, False, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 1099, in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 969, in _create_ssl_connection
+    tr, pr = await loop.create_connection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        host, port)
+        ^^^^^^^^^^^
+  File "C:\Program Files\Python314\Lib\asyncio\base_events.py", line 1168, in create_connection
+    raise exceptions[0]
+  File "C:\Program Files\Python314\Lib\asyncio\base_events.py", line 1143, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python314\Lib\asyncio\base_events.py", line 1042, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Program Files\Python314\Lib\asyncio\selector_events.py", line 645, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "C:\Program Files\Python314\Lib\asyncio\selector_events.py", line 685, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+OSError: [Errno 10065] Connect call failed ('3.0.167.45', 5432)
+2026-07-26 19:31:00,805 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:32:00 IST)" (scheduled at 2026-07-26 19:31:00.801155+05:30)
+2026-07-26 19:31:00,807 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:31:00,809 - EmailScheduler - ERROR - [EmailScheduler] Error in send_pending_emails job: [Errno 10065] Connect call failed ('3.0.167.45', 5432)
+Traceback (most recent call last):
+  File "D:\App Folders\nnngravity\KnoVault\backend\services\email_scheduler.py", line 154, in send_pending_emails
+    res = await session.execute(stmt)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 449, in execute
+    result = await greenlet_spawn(
+             ^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 201, in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2351, in execute
+    return self._execute_internal(
+           ~~~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        _add_event=_add_event,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2239, in _execute_internal
+    conn = self._connection_for_bind(bind)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2108, in _connection_for_bind
+    return trans._connection_for_bind(engine, execution_options)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2, in _connection_for_bind
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 1187, in _connection_for_bind
+    conn = bind.connect()
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 3293, in connect
+    return self._connection_cls(self)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 3317, in raw_connection
+    return self.pool.connect()
+           ~~~~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 448, in connect
+    return _ConnectionFairy._checkout(self)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 1272, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 717, in checkout
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 715, in checkout
+    dbapi_connection = rec.get_connection()
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 837, in get_connection
+    self.__connect()
+    ~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 900, in __connect
+    with util.safe_reraise():
+         ~~~~~~~~~~~~~~~~~^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 121, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 896, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\create.py", line 667, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\engine\default.py", line 630, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 955, in connect
+    await_only(creator_fn(*arg, **kw)),
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connection.py", line 2443, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<22 lines>...
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 1249, in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+    ...<2 lines>...
+    )
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 1050, in _connect_addr
+    return await __connect_addr(params, False, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 1099, in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+  File "D:\App Folders\nnngravity\KnoVault\backend\venv\Lib\site-packages\asyncpg\connect_utils.py", line 969, in _create_ssl_connection
+    tr, pr = await loop.create_connection(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        host, port)
+        ^^^^^^^^^^^
+  File "C:\Program Files\Python314\Lib\asyncio\base_events.py", line 1168, in create_connection
+    raise exceptions[0]
+  File "C:\Program Files\Python314\Lib\asyncio\base_events.py", line 1143, in create_connection
+    sock = await self._connect_sock(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+        exceptions, addrinfo, laddr_infos)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\Python314\Lib\asyncio\base_events.py", line 1042, in _connect_sock
+    await self.sock_connect(sock, address)
+  File "C:\Program Files\Python314\Lib\asyncio\selector_events.py", line 645, in sock_connect
+    return await fut
+           ^^^^^^^^^
+  File "C:\Program Files\Python314\Lib\asyncio\selector_events.py", line 685, in _sock_connect_cb
+    raise OSError(err, f'Connect call failed {address}')
+OSError: [Errno 10065] Connect call failed ('3.0.167.45', 5432)
+2026-07-26 19:31:00,829 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:32:00 IST)" executed successfully
+2026-07-26 19:31:58,303 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:32:00,815 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:33:00 IST)" (scheduled at 2026-07-26 19:32:00.801155+05:30)
+2026-07-26 19:32:00,816 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:32:01,592 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:33:00 IST)" executed successfully
+2026-07-26 19:32:59,382 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:33:00,806 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:34:00 IST)" (scheduled at 2026-07-26 19:33:00.801155+05:30)
+2026-07-26 19:33:00,806 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:33:01,383 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:34:00 IST)" executed successfully
+2026-07-26 19:34:00,432 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:34:00,808 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:35:00 IST)" (scheduled at 2026-07-26 19:34:00.801155+05:30)
+2026-07-26 19:34:00,810 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:34:01,261 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:35:00 IST)" executed successfully
+2026-07-26 19:35:00,812 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:36:00 IST)" (scheduled at 2026-07-26 19:35:00.801155+05:30)
+2026-07-26 19:35:00,813 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:35:01,138 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:35:01,393 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:36:00 IST)" executed successfully
+2026-07-26 19:36:00,809 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:37:00 IST)" (scheduled at 2026-07-26 19:36:00.801155+05:30)
+2026-07-26 19:36:00,810 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:36:01,281 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:37:00 IST)" executed successfully
+2026-07-26 19:36:01,729 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:37:00,805 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:38:00 IST)" (scheduled at 2026-07-26 19:37:00.801155+05:30)
+2026-07-26 19:37:00,806 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:37:01,319 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:38:00 IST)" executed successfully
+2026-07-26 19:37:02,303 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:38:00,814 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:39:00 IST)" (scheduled at 2026-07-26 19:38:00.801155+05:30)
+2026-07-26 19:38:00,816 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:38:01,726 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:39:00 IST)" executed successfully
+2026-07-26 19:38:03,353 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:39:00,805 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:40:00 IST)" (scheduled at 2026-07-26 19:39:00.801155+05:30)
+2026-07-26 19:39:00,807 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:39:01,677 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:40:00 IST)" executed successfully
+2026-07-26 19:39:04,390 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:40:00,815 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:41:00 IST)" (scheduled at 2026-07-26 19:40:00.801155+05:30)
+2026-07-26 19:40:00,816 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:40:01,337 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:41:00 IST)" executed successfully
+2026-07-26 19:40:05,360 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:41:00,810 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:42:00 IST)" (scheduled at 2026-07-26 19:41:00.801155+05:30)
+2026-07-26 19:41:00,811 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:41:01,364 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:42:00 IST)" executed successfully
+2026-07-26 19:41:06,070 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:42:00,809 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:43:00 IST)" (scheduled at 2026-07-26 19:42:00.801155+05:30)
+2026-07-26 19:42:00,810 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:42:01,334 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:43:00 IST)" executed successfully
+2026-07-26 19:42:05,611 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:42:06,787 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:42:11,791 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:42:32,401 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:42:35,040 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:43:00,812 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:44:00 IST)" (scheduled at 2026-07-26 19:43:00.801155+05:30)
+2026-07-26 19:43:00,814 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:43:01,375 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:44:00 IST)" executed successfully
+2026-07-26 19:43:07,762 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:44:00,802 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:45:00 IST)" (scheduled at 2026-07-26 19:44:00.801155+05:30)
+2026-07-26 19:44:00,803 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:44:01,282 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:45:00 IST)" executed successfully
+2026-07-26 19:44:08,914 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:45:00,810 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:46:00 IST)" (scheduled at 2026-07-26 19:45:00.801155+05:30)
+2026-07-26 19:45:00,811 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:45:01,355 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:46:00 IST)" executed successfully
+2026-07-26 19:45:10,057 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:46:00,815 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:47:00 IST)" (scheduled at 2026-07-26 19:46:00.801155+05:30)
+2026-07-26 19:46:00,816 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:46:01,372 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:47:00 IST)" executed successfully
+2026-07-26 19:46:11,054 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:47:00,810 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:48:00 IST)" (scheduled at 2026-07-26 19:47:00.801155+05:30)
+2026-07-26 19:47:00,811 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:47:01,392 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:48:00 IST)" executed successfully
+2026-07-26 19:47:11,852 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:48:00,806 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:49:00 IST)" (scheduled at 2026-07-26 19:48:00.801155+05:30)
+2026-07-26 19:48:00,807 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:48:01,276 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:49:00 IST)" executed successfully
+2026-07-26 19:48:12,578 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:49:00,807 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:50:00 IST)" (scheduled at 2026-07-26 19:49:00.801155+05:30)
+2026-07-26 19:49:00,808 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:49:01,399 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:50:00 IST)" executed successfully
+2026-07-26 19:49:13,264 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:50:00,805 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:51:00 IST)" (scheduled at 2026-07-26 19:50:00.801155+05:30)
+2026-07-26 19:50:00,806 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:50:01,289 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:51:00 IST)" executed successfully
+2026-07-26 19:50:13,985 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:51:00,810 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:52:00 IST)" (scheduled at 2026-07-26 19:51:00.801155+05:30)
+2026-07-26 19:51:00,811 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:51:01,327 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:52:00 IST)" executed successfully
+2026-07-26 19:51:14,564 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:52:00,803 - apscheduler.executors.default - INFO - Running job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:53:00 IST)" (scheduled at 2026-07-26 19:52:00.801155+05:30)
+2026-07-26 19:52:00,804 - EmailScheduler - INFO - [Scheduler] Running send_pending_emails job...
+2026-07-26 19:52:01,429 - apscheduler.executors.default - INFO - Job "send_pending_emails (trigger: interval[0:01:00], next run at: 2026-07-26 19:53:00 IST)" executed successfully
+2026-07-26 19:52:15,260 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:52:36,017 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:52:37,033 - httpx - INFO - HTTP Request: GET http://test/api/backup/info "HTTP/1.1 404 Not Found"
+2026-07-26 19:52:37,034 - httpx - INFO - HTTP Request: POST http://test/api/sync/trigger "HTTP/1.1 404 Not Found"
+2026-07-26 19:52:37,194 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:52:37,550 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:52:43,366 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:52:43,544 - EmailScheduler - INFO - [EmailScheduler] Stopping background scheduler loop...
+2026-07-26 19:52:43,550 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-07-26 19:52:44,962 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:52:46,868 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:52:53,714 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-07-26 19:52:53,823 - EmailScheduler - INFO - [EmailScheduler] Starting background scheduler loop using APScheduler...
+2026-07-26 19:52:53,829 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-07-26 19:52:53,830 - apscheduler.scheduler - INFO - Added job "send_pending_emails" to job store "default"
+2026-07-26 19:52:53,831 - apscheduler.scheduler - INFO - Scheduler started
+2026-07-26 19:52:53,832 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Starting background scheduler loop...
+2026-07-26 19:52:58,834 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:53:01,605 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:53:01,811 - EmailScheduler - INFO - [EmailScheduler] Stopping background scheduler loop...
+2026-07-26 19:53:01,812 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-07-26 19:53:02,884 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:53:04,329 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:53:06,627 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:53:12,226 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-07-26 19:53:12,303 - EmailScheduler - INFO - [EmailScheduler] Starting background scheduler loop using APScheduler...
+2026-07-26 19:53:12,310 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-07-26 19:53:12,312 - apscheduler.scheduler - INFO - Added job "send_pending_emails" to job store "default"
+2026-07-26 19:53:12,312 - apscheduler.scheduler - INFO - Scheduler started
+2026-07-26 19:53:12,313 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Starting background scheduler loop...
+2026-07-26 19:53:12,430 - EmailScheduler - INFO - [EmailScheduler] Stopping background scheduler loop...
+2026-07-26 19:53:12,433 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-07-26 19:53:13,550 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:53:15,031 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:53:18,708 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:53:22,452 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-07-26 19:53:22,525 - EmailScheduler - INFO - [EmailScheduler] Starting background scheduler loop using APScheduler...
+2026-07-26 19:53:22,529 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-07-26 19:53:22,530 - apscheduler.scheduler - INFO - Added job "send_pending_emails" to job store "default"
+2026-07-26 19:53:22,531 - apscheduler.scheduler - INFO - Scheduler started
+2026-07-26 19:53:22,532 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Starting background scheduler loop...
+2026-07-26 19:53:23,250 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:53:27,534 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:53:41,477 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:53:41,638 - EmailScheduler - INFO - [EmailScheduler] Stopping background scheduler loop...
+2026-07-26 19:53:41,640 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-07-26 19:53:42,769 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:53:43,480 - watchfiles.main - INFO - 5 changes detected
+2026-07-26 19:53:44,103 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:53:51,046 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-07-26 19:53:51,111 - EmailScheduler - INFO - [EmailScheduler] Starting background scheduler loop using APScheduler...
+2026-07-26 19:53:51,116 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-07-26 19:53:51,117 - apscheduler.scheduler - INFO - Added job "send_pending_emails" to job store "default"
+2026-07-26 19:53:51,117 - apscheduler.scheduler - INFO - Scheduler started
+2026-07-26 19:53:51,118 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Starting background scheduler loop...
+2026-07-26 19:53:52,828 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:53:55,259 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:53:56,126 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:53:58,800 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:53:58,932 - EmailScheduler - INFO - [EmailScheduler] Stopping background scheduler loop...
+2026-07-26 19:53:58,933 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-07-26 19:53:59,990 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:54:01,421 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:54:07,934 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:54:09,034 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-07-26 19:54:09,103 - EmailScheduler - INFO - [EmailScheduler] Starting background scheduler loop using APScheduler...
+2026-07-26 19:54:09,107 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-07-26 19:54:09,109 - apscheduler.scheduler - INFO - Added job "send_pending_emails" to job store "default"
+2026-07-26 19:54:09,109 - apscheduler.scheduler - INFO - Scheduler started
+2026-07-26 19:54:09,110 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Starting background scheduler loop...
+2026-07-26 19:54:09,217 - EmailScheduler - INFO - [EmailScheduler] Stopping background scheduler loop...
+2026-07-26 19:54:09,218 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-07-26 19:54:10,238 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:54:11,619 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:54:18,641 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-07-26 19:54:18,696 - EmailScheduler - INFO - [EmailScheduler] Starting background scheduler loop using APScheduler...
+2026-07-26 19:54:18,700 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-07-26 19:54:18,701 - apscheduler.scheduler - INFO - Added job "send_pending_emails" to job store "default"
+2026-07-26 19:54:18,701 - apscheduler.scheduler - INFO - Scheduler started
+2026-07-26 19:54:18,702 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Starting background scheduler loop...
+2026-07-26 19:54:20,982 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:54:23,704 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:54:30,048 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:54:32,988 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:54:33,137 - EmailScheduler - INFO - [EmailScheduler] Stopping background scheduler loop...
+2026-07-26 19:54:33,139 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-07-26 19:54:34,184 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:54:35,475 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:54:35,553 - watchfiles.main - INFO - 5 changes detected
+2026-07-26 19:54:42,775 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:54:42,927 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-07-26 19:54:43,016 - EmailScheduler - INFO - [EmailScheduler] Starting background scheduler loop using APScheduler...
+2026-07-26 19:54:43,021 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-07-26 19:54:43,022 - apscheduler.scheduler - INFO - Added job "send_pending_emails" to job store "default"
+2026-07-26 19:54:43,022 - apscheduler.scheduler - INFO - Scheduler started
+2026-07-26 19:54:43,023 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Starting background scheduler loop...
+2026-07-26 19:54:43,127 - EmailScheduler - INFO - [EmailScheduler] Stopping background scheduler loop...
+2026-07-26 19:54:43,128 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-07-26 19:54:44,219 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:54:45,570 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:54:45,686 - watchfiles.main - INFO - 5 changes detected
+2026-07-26 19:54:52,670 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-07-26 19:54:52,729 - EmailScheduler - INFO - [EmailScheduler] Starting background scheduler loop using APScheduler...
+2026-07-26 19:54:52,734 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-07-26 19:54:52,735 - apscheduler.scheduler - INFO - Added job "send_pending_emails" to job store "default"
+2026-07-26 19:54:52,736 - apscheduler.scheduler - INFO - Scheduler started
+2026-07-26 19:54:52,736 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Starting background scheduler loop...
+2026-07-26 19:54:55,966 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:54:57,746 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Scanning for upcoming workspace reminders...
+2026-07-26 19:55:08,271 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:55:39,794 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:55:40,323 - watchfiles.main - INFO - 5 changes detected
+2026-07-26 19:55:40,448 - services.email - INFO - Attempting to send custom email to thinkgood24hrs@gmail.com via Brevo HTTP API...
+2026-07-26 19:55:41,541 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
+2026-07-26 19:55:41,542 - services.email - INFO - Successfully sent custom email to thinkgood24hrs@gmail.com via Brevo HTTP API
+2026-07-26 19:55:41,544 - httpx - INFO - HTTP Request: POST http://127.0.0.1:8000/api/important-days/send-test-email "HTTP/1.1 200 OK"
+2026-07-26 19:55:41,548 - services.email - INFO - Attempting to send custom email to thinkgood24hrs@gmail.com via Brevo HTTP API...
+2026-07-26 19:55:42,565 - httpx - INFO - HTTP Request: POST https://api.brevo.com/v3/smtp/email "HTTP/1.1 201 Created"
+2026-07-26 19:55:42,566 - services.email - INFO - Successfully sent custom email to thinkgood24hrs@gmail.com via Brevo HTTP API
+2026-07-26 19:55:42,569 - httpx - INFO - HTTP Request: POST http://127.0.0.1:8000/api/important-days/send-test-email "HTTP/1.1 200 OK"
+2026-07-26 19:55:42,647 - watchfiles.main - INFO - 4 changes detected
+2026-07-26 19:55:43,515 - watchfiles.main - INFO - 4 changes detected
+2026-07-26 19:55:43,880 - watchfiles.main - INFO - 7 changes detected
+2026-07-26 19:55:44,337 - watchfiles.main - INFO - 13 changes detected
+2026-07-26 19:55:44,698 - watchfiles.main - INFO - 4 changes detected
+2026-07-26 19:55:45,055 - watchfiles.main - INFO - 4 changes detected
+2026-07-26 19:55:45,413 - watchfiles.main - INFO - 4 changes detected
+2026-07-26 19:55:45,822 - watchfiles.main - INFO - 2 changes detected
+2026-07-26 19:55:46,178 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:55:49,267 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:55:49,483 - EmailScheduler - INFO - [EmailScheduler] Stopping background scheduler loop...
+2026-07-26 19:55:49,484 - apscheduler.scheduler - INFO - Scheduler has been shut down
+2026-07-26 19:55:50,648 - watchfiles.main - INFO - 1 change detected
+2026-07-26 19:55:52,251 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:55:56,891 - KnoVaultAI - INFO - [GROQ CONNECTED] Model: gpt-oss-20b
+2026-07-26 19:55:57,819 - KnoVaultAI - INFO - [AI CONTEXT ENGINE] Generating context for user 1
+2026-07-26 19:55:57,830 - KnoVaultAI - INFO - [AI CONTEXT SUCCESS] Context size: 27 chars
+2026-07-26 19:55:57,837 - httpx - INFO - HTTP Request: POST http://test/api/ai/chat "HTTP/1.1 200 OK"
+2026-07-26 19:55:57,942 - httpx - INFO - HTTP Request: POST http://test/api/auth/send-signup-otp "HTTP/1.1 200 OK"
+2026-07-26 19:55:58,311 - httpx - INFO - HTTP Request: POST http://test/api/auth/send-signup-otp "HTTP/1.1 409 Conflict"
+2026-07-26 19:55:58,406 - httpx - INFO - HTTP Request: POST http://test/api/auth/verify-otp "HTTP/1.1 200 OK"
+2026-07-26 19:55:58,408 - httpx - INFO - HTTP Request: POST http://test/api/auth/verify-otp "HTTP/1.1 400 Bad Request"
+2026-07-26 19:55:59,059 - httpx - INFO - HTTP Request: POST http://test/api/auth/login "HTTP/1.1 200 OK"
+2026-07-26 19:55:59,336 - httpx - INFO - HTTP Request: POST http://test/api/auth/login "HTTP/1.1 401 Unauthorized"
+2026-07-26 19:55:59,340 - httpx - INFO - HTTP Request: POST http://test/api/auth/login "HTTP/1.1 401 Unauthorized"
+2026-07-26 19:55:59,438 - httpx - INFO - HTTP Request: GET http://test/api/profile "HTTP/1.1 401 Unauthorized"
+2026-07-26 19:55:59,584 - utils.firebase - INFO - [Firebase] Initialized from: D:\App Folders\nnngravity\KnoVault\backend\secrets\firebase-adminsdk.json
+2026-07-26 19:55:59,649 - EmailScheduler - INFO - [EmailScheduler] Starting background scheduler loop using APScheduler...
+2026-07-26 19:55:59,653 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-07-26 19:55:59,654 - apscheduler.scheduler - INFO - Added job "send_pending_emails" to job store "default"
+2026-07-26 19:55:59,654 - apscheduler.scheduler - INFO - Scheduler started
+2026-07-26 19:55:59,655 - NotificationScheduler - INFO - [NOTIFICATION SCHEDULER] Starting background scheduler loop...
+2026-07-26 19:55:59,856 - httpx - INFO - HTTP Request: GET http://test/api/calendar/events?year=2026&month=7 "HTTP/1.1 200 OK"
+2026-07-26 19:55:59,864 - httpx - INFO - HTTP Request: POST http://test/api/calendar-notes "HTTP/1.1 201 Created"
+2026-07-26 19:55:59,868 - httpx - INFO - HTTP Request: GET http://test/api/calendar-notes "HTTP/1.1 200 OK"
+2026-07-26 19:56:00,239 - httpx - INFO - HTTP Request: GET http://test/api/nonexistent-route-xyz "HTTP/1.1 404 Not Found"
+2026-07-26 19:56:00,334 - httpx - INFO - HTTP Request: GET http://test/api/notes "HTTP/1.1 401 Unauthorized"
+2026-07-26 19:56:00,711 - httpx - INFO - HTTP Request: POST http://test/api/notes "HTTP/1.1 422 Unprocessable Entity"
+2026-07-26 19:56:01,111 - httpx - INFO - HTTP Request: POST http://test/api/goals "HTTP/1.1 201 Created"
+2026-07-26 19:56:01,116 - httpx - INFO - HTTP Request: GET http://test/api/goals "HTTP/1.1 200 OK"
+2026-07-26 19:56:01,121 - httpx - INFO - HTTP Request: PUT http://test/api/goals/1 "HTTP/1.1 200 OK"
+2026-07-26 19:56:01,124 - httpx - INFO - HTTP Request: DELETE http://test/api/goals/1 "HTTP/1.1 204 No Content"
+2026-07-26 19:56:01,493 - httpx - INFO - HTTP Request: POST http://test/api/reminders "HTTP/1.1 201 Created"
+2026-07-26 19:56:01,499 - httpx - INFO - HTTP Request: GET http://test/api/reminders "HTTP/1.1 200 OK"
+2026-07-26 19:56:01,506 - httpx - INFO - HTTP Request: DELETE http://test/api/reminders/1 "HTTP/1.1 204 No Content"
+2026-07-26 19:56:01,884 - httpx - INFO - HTTP Request: POST http://test/api/notes "HTTP/1.1 201 Created"
+2026-07-26 19:56:01,895 - httpx - INFO - HTTP Request: GET http://test/api/notes "HTTP/1.1 200 OK"
+2026-07-26 19:56:01,902 - httpx - INFO - HTTP Request: GET http://test/api/notes/1 "HTTP/1.1 200 OK"
+2026-07-26 19:56:01,915 - httpx - INFO - HTTP Request: PUT http://test/api/notes/1 "HTTP/1.1 200 OK"
+2026-07-26 19:56:01,922 - httpx - INFO - HTTP Request: GET http://test/api/notes?search=Updated "HTTP/1.1 200 OK"
+2026-07-26 19:56:01,931 - httpx - INFO - HTTP Request: DELETE http://test/api/notes/1 "HTTP/1.1 204 No Content"
+2026-07-26 19:56:01,935 - httpx - INFO - HTTP Request: GET http://test/api/notes/1 "HTTP/1.1 404 Not Found"
+2026-07-26 19:56:02,310 - httpx - INFO - HTTP Request: POST http://test/api/projects "HTTP/1.1 201 Created"
+2026-07-26 19:56:02,315 - httpx - INFO - HTTP Request: GET http://test/api/projects "HTTP/1.1 200 OK"
+2026-07-26 19:56:02,320 - httpx - INFO - HTTP Request: PUT http://test/api/projects/1 "HTTP/1.1 200 OK"
+2026-07-26 19:56:02,325 - httpx - INFO - HTTP Request: DELETE http://test/api/projects/1 "HTTP/1.1 204 No Content"
+2026-07-26 19:56:02,709 - httpx - INFO - HTTP Request: POST http://test/api/reminders "HTTP/1.1 201 Created"
+2026-07-26 19:56:02,712 - httpx - INFO - HTTP Request: GET http://test/api/reminders "HTTP/1.1 200 OK"
+2026-07-26 19:56:02,714 - httpx - INFO - HTTP Request: PATCH http://test/api/reminders/1/toggle "HTTP/1.1 404 Not Found"
+2026-07-26 19:56:02,717 - httpx - INFO - HTTP Request: DELETE http://test/api/reminders/1 "HTTP/1.1 204 No Content"
+2026-07-26 19:56:03,109 - httpx - INFO - HTTP Request: POST http://test/api/important-days "HTTP/1.1 500 Internal Server Error"
+2026-07-26 19:56:03,519 - httpx - INFO - HTTP Request: GET http://test/api/backup/info "HTTP/1.1 404 Not Found"
+2026-07-26 19:56:03,520 - httpx - INFO - HTTP Request: POST http://test/api/sync/trigger "HTTP/1.1 404 Not Found"
+2026-07-26 19:56:03,896 - httpx - INFO - HTTP Request: POST http://test/api/workspaces "HTTP/1.1 201 Created"
+2026-07-26 19:56:03,905 - httpx - INFO - HTTP Request: GET http://test/api/workspaces "HTTP/1.1 200 OK"
+2026-07-26 19:56:03,913 - httpx - INFO - HTTP Request: GET http://test/api/workspaces/1 "HTTP/1.1 200 OK"
+2026-07-26 19:56:03,925 - httpx - INFO - HTTP Request: PUT http://test/api/workspaces/1 "HTTP/1.1 200 OK"
+2026-07-26 19:56:03,955 - httpx - INFO - HTTP Request: DELETE http://test/api/workspaces/1 "HTTP/1.1 204 No Content"
+2026-07-26 19:56:04,043 - watchfiles.main - INFO - 2 changes detected

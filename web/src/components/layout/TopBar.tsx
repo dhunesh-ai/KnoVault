@@ -23,9 +23,11 @@ import { useNotesStore } from "@/store/useNotesStore";
 import { useRemindersStore } from "@/store/useRemindersStore";
 import { useGoalsStore } from "@/store/useGoalsStore";
 import { useSpecialDaysStore } from "@/store/useSpecialDaysStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 export function TopBar() {
   const { resolvedTheme, setTheme } = useTheme();
+  const setSettingsTheme = useSettingsStore((state) => state.setTheme);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
@@ -175,7 +177,11 @@ export function TopBar() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+          onClick={() => {
+            const targetTheme = resolvedTheme === 'dark' ? 'light' : 'dark';
+            setTheme(targetTheme);
+            setSettingsTheme(targetTheme);
+          }}
           className="text-muted-foreground hover:text-foreground relative rounded-xl h-10 w-10 hover:bg-accent/40 transition-colors"
         >
           {mounted && resolvedTheme === 'dark' ? (

@@ -2,6 +2,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useSettingsStore, ACCENT_COLOR_MAP, AccentColor, ThemeMode, NotificationPreferences } from "@/store/useSettingsStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -43,6 +45,7 @@ import {
   Clock,
   Send,
   Edit3,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/axios";
@@ -70,6 +73,7 @@ interface DerivedActivity {
 }
 
 export default function SettingsPage() {
+  const router = useRouter();
   const { user, logout, setUser } = useAuthStore();
   const { theme: nextTheme, setTheme: setNextTheme } = useTheme();
   const {
@@ -983,6 +987,27 @@ export default function SettingsPage() {
               <div className="flex justify-between items-center text-xs font-bold text-muted-foreground pt-1">
                 <span>Remaining Space: {isLoadingStats ? "..." : remainingDisplay}</span>
                 <span>Last Sync: {lastSyncTime}</span>
+              </div>
+
+              {/* View Storage Details Navigation Option */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4.5 bg-primary/5 rounded-2xl border border-primary/20 gap-4 mt-2">
+                <div className="flex items-center gap-3.5">
+                  <div className="p-3 bg-primary/10 rounded-xl text-primary shrink-0">
+                    <HardDrive className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black text-foreground">Storage Center</h4>
+                    <p className="text-[10px] text-muted-foreground font-semibold">Manage cloud, local and Google Drive storage, backups & quotas</p>
+                  </div>
+                </div>
+                <Link href="/settings/storage" className="w-full sm:w-auto">
+                  <Button
+                    onClick={() => router.push("/settings/storage")}
+                    className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs h-9 px-4 rounded-xl gap-1.5 shadow-xs cursor-pointer"
+                  >
+                    View Storage Details <ArrowRight className="w-3.5 h-3.5" />
+                  </Button>
+                </Link>
               </div>
             </div>
           </motion.div>

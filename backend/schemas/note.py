@@ -19,8 +19,8 @@ class ChecklistItemResponse(BaseModel):
     id: int
     note_id: int
     text: str
-    completed: bool
-    order: int
+    completed: bool = False
+    order: int = 0
 
     class Config:
         from_attributes = True
@@ -43,7 +43,7 @@ class FieldNoteResponse(BaseModel):
     note_id: int
     label: str
     value: str
-    order: int
+    order: int = 0
 
     class Config:
         from_attributes = True

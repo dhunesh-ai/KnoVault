@@ -19,6 +19,8 @@ from schemas.important_day import ImportantDayResponse
 router = APIRouter(prefix="/api/backup", tags=["Backup & Restore"])
 
 
+from datetime import datetime, timezone
+
 @router.get("/export", response_model=dict)
 async def export_data(
     db: AsyncSession = Depends(get_db),
@@ -26,7 +28,7 @@ async def export_data(
 ):
     notes_result = await db.execute(
         select(Note).where(Note.user_id == current_user.id)
-        .options(selectinload(Note.checklist_items), selectinload(Note.field_notes))
+        .options(selectinload(Note.checklist_items), selectinload(Note.field_notes), selectinload(Note.voice_note))
     )
     notes = [NoteResponse.model_validate(n).model_dump(mode="json") for n in notes_result.scalars().unique().all()]
 
@@ -40,7 +42,9 @@ async def export_data(
     important_days = [ImportantDayResponse.model_validate(b).model_dump(mode="json") for b in important_days_result.scalars().all()]
 
     return {
+        "format": "knovault-backup",
         "version": "1.0",
+        "exported_at": datetime.now(timezone.utc).isoformat(),
         "notes": notes,
         "goals": goals,
         "reminders": reminders,
