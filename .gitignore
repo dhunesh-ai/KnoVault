@@ -72,6 +72,11 @@ mobile/.env
 # Database
 *.sqlite3
 
+# Test Reports
+e2e_tests/reports/*.xlsx
+e2e_tests/reports/web/*.xlsx
+e2e_tests/reports/mobile/*.xlsx
+
 # IDE / OS
 .vscode/
 .idea/

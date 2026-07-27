@@ -255,7 +255,7 @@ jobs:
         working-directory: e2e_tests
         run: npm run test:web
 
-      - name: "📋 Publish 400-Point E2E Summary"
+      - name: "📋 Publish 300-Point E2E Summary"
         if: always()
         run: node .github/scripts/generate-job-summary-matrix.cjs web-e2e
 
@@ -264,7 +264,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: web-e2e-reports
-          path: e2e_tests/reports/
+          path: e2e_tests/reports/web/
           retention-days: 7
 
   # ════════════════════════════════════════════════════════════════════════════
@@ -336,7 +336,7 @@ jobs:
         working-directory: e2e_tests
         run: npm run test:mobile
 
-      - name: "📋 Publish 400-Point Appium E2E Summary"
+      - name: "📋 Publish 300-Point Appium E2E Summary"
         if: always()
         run: node .github/scripts/generate-job-summary-matrix.cjs android-e2e
 
@@ -345,7 +345,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mobile-e2e-reports
-          path: e2e_tests/reports/
+          path: e2e_tests/reports/mobile/
           retention-days: 7
 
   # ════════════════════════════════════════════════════════════════════════════

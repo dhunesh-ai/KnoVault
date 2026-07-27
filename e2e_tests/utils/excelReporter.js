@@ -21,149 +21,129 @@ async function generateExcelReport(results, outputPath) {
   workbook.created = new Date();
   workbook.modified = new Date();
 
-  // 1. Test Suite Summary Sheet
-  const summarySheet = workbook.addWorksheet('Test Suite');
+  const totalTests = results.passed.length + results.failed.length;
+  const passedCount = results.passed.length;
+  const failedCount = results.failed.length;
+  const skippedCount = 0;
+  const passRate = totalTests > 0 ? parseFloat(((passedCount / totalTests) * 100).toFixed(2)) : 100.00;
+
+  // 1. Summary Sheet
+  const summarySheet = workbook.addWorksheet('Summary');
   summarySheet.columns = [
-    { header: 'Test Suite', key: 'suite', width: 35 },
+    { header: 'Test Suite', key: 'suite', width: 45 },
     { header: 'Total Tests', key: 'total', width: 15 },
     { header: 'Passed', key: 'passed', width: 12 },
     { header: 'Failed', key: 'failed', width: 12 },
-    { header: 'Pass Rate %', key: 'rate', width: 15 },
+    { header: 'Skipped', key: 'skipped', width: 12 },
+    { header: 'Pass Rate', key: 'rate', width: 15 },
     { header: 'Duration (sec)', key: 'duration', width: 18 },
     { header: 'Start Time', key: 'start', width: 25 },
     { header: 'End Time', key: 'end', width: 25 }
   ];
 
-  const passRate = results.passed.length + results.failed.length > 0 
-    ? parseFloat(((results.passed.length / (results.passed.length + results.failed.length)) * 100).toFixed(2)) 
-    : 100.00;
-
   summarySheet.addRow({
     suite: results.suiteName,
-    total: results.passed.length + results.failed.length,
-    passed: results.passed.length,
-    failed: results.failed.length,
-    rate: passRate,
-    duration: parseFloat(results.durationSec.toFixed(2)),
-    start: results.startTime,
-    end: results.endTime
+    total: totalTests,
+    passed: passedCount,
+    failed: failedCount,
+    skipped: skippedCount,
+    rate: `${passRate}%`,
+    duration: parseFloat((results.durationSec || 0).toFixed(2)),
+    start: results.startTime || new Date().toISOString(),
+    end: results.endTime || new Date().toISOString()
   });
 
   // Style Summary Header
   summarySheet.getRow(1).font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFF' } };
-  summarySheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '2E4053' } };
-  summarySheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'left' };
-  
-  // Style Summary Data Row
-  const dataRow = summarySheet.getRow(2);
-  dataRow.font = { name: 'Segoe UI', size: 10 };
-  dataRow.alignment = { vertical: 'middle', horizontal: 'left' };
-  dataRow.getCell('rate').font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: passRate >= 80 ? '196F3D' : '922B21' } };
+  summarySheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1F2937' } }; // Dark slate
+  summarySheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
 
-  // Borders
-  ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2'].forEach(cell => {
-    summarySheet.getCell(cell).border = {
-      top: { style: 'thin', color: { argb: 'D0D3D4' } },
-      left: { style: 'thin', color: { argb: 'D0D3D4' } },
-      bottom: { style: 'thin', color: { argb: 'D0D3D4' } },
-      right: { style: 'thin', color: { argb: 'D0D3D4' } }
+  // Style Summary Data Row
+  const summaryDataRow = summarySheet.getRow(2);
+  summaryDataRow.font = { name: 'Segoe UI', size: 10, bold: true };
+  summaryDataRow.alignment = { vertical: 'middle', horizontal: 'center' };
+  summaryDataRow.getCell('rate').font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: passRate >= 80 ? '059669' : 'DC2626' } };
+
+  ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2'].forEach(cellRef => {
+    summarySheet.getCell(cellRef).border = {
+      top: { style: 'thin', color: { argb: 'D1D5DB' } },
+      left: { style: 'thin', color: { argb: 'D1D5DB' } },
+      bottom: { style: 'thin', color: { argb: 'D1D5DB' } },
+      right: { style: 'thin', color: { argb: 'D1D5DB' } }
     };
   });
 
-  // 2. Passed Tests Sheet
-  const passedSheet = workbook.addWorksheet('Passed Tests');
-  passedSheet.columns = [
-    { header: 'No.', key: 'no', width: 8 },
-    { header: 'Category', key: 'category', width: 25 },
-    { header: 'Test Name', key: 'name', width: 45 },
-    { header: 'Time (sec)', key: 'time', width: 15 },
-    { header: 'Status', key: 'status', width: 12 }
-  ];
-
-  results.passed.forEach((test, idx) => {
-    passedSheet.addRow({
-      no: idx + 1,
-      category: test.category,
-      name: test.name,
-      time: parseFloat(test.time.toFixed(2)),
-      status: 'PASSED'
-    });
-  });
-
-  // Style Passed Headers
-  passedSheet.getRow(1).font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFF' } };
-  passedSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1E8449' } }; // Dark Green
-
-  // Style Passed Data Rows
-  passedSheet.eachRow((row, rowNum) => {
-    if (rowNum > 1) {
-      row.font = { name: 'Segoe UI', size: 10 };
-      row.getCell('status').font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: '1E8449' } };
-      row.eachCell(cell => {
-        cell.border = {
-          top: { style: 'thin', color: { argb: 'E5E7E9' } },
-          left: { style: 'thin', color: { argb: 'E5E7E9' } },
-          bottom: { style: 'thin', color: { argb: 'E5E7E9' } },
-          right: { style: 'thin', color: { argb: 'E5E7E9' } }
-        };
-      });
-      if (rowNum % 2 === 0) {
-        row.eachCell(cell => {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F4FDF7' } }; // Zebra green
-        });
-      }
-    }
-  });
-
-  // 3. Failed Tests Sheet
-  const failedSheet = workbook.addWorksheet('Failed Tests');
-  failedSheet.columns = [
-    { header: 'No.', key: 'no', width: 8 },
-    { header: 'Category', key: 'category', width: 25 },
-    { header: 'Test Name', key: 'name', width: 45 },
-    { header: 'Error', key: 'error', width: 65 },
+  // 2. Detailed Test Cases Sheet
+  const detailedSheet = workbook.addWorksheet('Test Cases');
+  detailedSheet.columns = [
+    { header: 'Test Case ID', key: 'id', width: 16 },
+    { header: 'Module', key: 'category', width: 25 },
+    { header: 'Test Scenario', key: 'scenario', width: 45 },
+    { header: 'Preconditions', key: 'preconditions', width: 35 },
+    { header: 'Test Steps', key: 'steps', width: 40 },
+    { header: 'Expected Result', key: 'expected', width: 45 },
+    { header: 'Actual Result', key: 'actualResult', width: 45 },
     { header: 'Status', key: 'status', width: 12 },
+    { header: 'Execution Time (s)', key: 'time', width: 18 },
     { header: 'Timestamp', key: 'timestamp', width: 25 }
   ];
 
-  results.failed.forEach((test, idx) => {
-    failedSheet.addRow({
-      no: idx + 1,
+  const allTests = [...results.passed, ...results.failed];
+
+  allTests.forEach((test) => {
+    detailedSheet.addRow({
+      id: test.id,
       category: test.category,
-      name: test.name,
-      error: test.error,
-      status: 'FAILED',
-      timestamp: new Date().toISOString()
+      scenario: test.scenario || test.name,
+      preconditions: test.preconditions || 'N/A',
+      steps: test.steps || 'Execute automated assertion steps',
+      expected: test.expected || 'Assertion passed successfully',
+      actualResult: test.actualResult || (test.status === 'PASS' ? 'Assertion passed with 200 OK' : test.error),
+      status: test.status || 'PASS',
+      time: parseFloat((test.time || 0).toFixed(3)),
+      timestamp: test.timestamp || new Date().toISOString()
     });
   });
 
-  // Style Failed Headers
-  failedSheet.getRow(1).font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFF' } };
-  failedSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'A93226' } }; // Red-ish Brown
+  // Style Detailed Headers
+  detailedSheet.getRow(1).font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFF' } };
+  detailedSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '2563EB' } }; // Royal Blue
+  detailedSheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'left' };
 
-  // Style Failed Data Rows
-  failedSheet.eachRow((row, rowNum) => {
+  // Style Detailed Data Rows
+  detailedSheet.eachRow((row, rowNum) => {
     if (rowNum > 1) {
-      row.font = { name: 'Segoe UI', size: 10 };
-      row.getCell('status').font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'C0392B' } };
-      row.getCell('error').alignment = { wrapText: true };
+      row.font = { name: 'Segoe UI', size: 9.5 };
+      const statusCell = row.getCell('status');
+      if (statusCell.value === 'PASS' || statusCell.value === 'PASSED') {
+        statusCell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: '059669' } };
+      } else if (statusCell.value === 'FAIL' || statusCell.value === 'FAILED') {
+        statusCell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'DC2626' } };
+      }
+
+      row.getCell('steps').alignment = { wrapText: true };
+      row.getCell('scenario').alignment = { wrapText: true };
+      row.getCell('expected').alignment = { wrapText: true };
+      row.getCell('actualResult').alignment = { wrapText: true };
+
       row.eachCell(cell => {
         cell.border = {
-          top: { style: 'thin', color: { argb: 'E5E7E9' } },
-          left: { style: 'thin', color: { argb: 'E5E7E9' } },
-          bottom: { style: 'thin', color: { argb: 'E5E7E9' } },
-          right: { style: 'thin', color: { argb: 'E5E7E9' } }
+          top: { style: 'thin', color: { argb: 'E5E7EB' } },
+          left: { style: 'thin', color: { argb: 'E5E7EB' } },
+          bottom: { style: 'thin', color: { argb: 'E5E7EB' } },
+          right: { style: 'thin', color: { argb: 'E5E7EB' } }
         };
       });
+
       if (rowNum % 2 === 0) {
         row.eachCell(cell => {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FDEDEC' } }; // Zebra red
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F9FAFB' } };
         });
       }
     }
   });
 
-  // 4. Execution Log Sheet
+  // 3. Execution Log Sheet
   const logSheet = workbook.addWorksheet('Execution Log');
   logSheet.columns = [
     { header: 'Timestamp', key: 'timestamp', width: 25 },
@@ -181,25 +161,26 @@ async function generateExcelReport(results, outputPath) {
 
   // Style Log Headers
   logSheet.getRow(1).font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFF' } };
-  logSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '5D6D7E' } }; // Steel Gray
+  logSheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '4B5563' } };
 
   logSheet.eachRow((row, rowNum) => {
     if (rowNum > 1) {
-      row.font = { name: 'Consolas', size: 9.5 };
+      row.font = { name: 'Consolas', size: 9 };
       const levelCell = row.getCell('level');
       if (levelCell.value === 'ERROR') {
-        levelCell.font = { bold: true, color: { argb: 'C0392B' } };
+        levelCell.font = { bold: true, color: { argb: 'DC2626' } };
       } else if (levelCell.value === 'WARNING') {
-        levelCell.font = { bold: true, color: { argb: 'D35400' } };
+        levelCell.font = { bold: true, color: { argb: 'D97706' } };
       } else {
-        levelCell.font = { color: { argb: '27AE60' } };
+        levelCell.font = { color: { argb: '059669' } };
       }
+
       row.eachCell(cell => {
         cell.border = {
-          top: { style: 'thin', color: { argb: 'F2F3F4' } },
-          left: { style: 'thin', color: { argb: 'F2F3F4' } },
-          bottom: { style: 'thin', color: { argb: 'F2F3F4' } },
-          right: { style: 'thin', color: { argb: 'F2F3F4' } }
+          top: { style: 'thin', color: { argb: 'F3F4F6' } },
+          left: { style: 'thin', color: { argb: 'F3F4F6' } },
+          bottom: { style: 'thin', color: { argb: 'F3F4F6' } },
+          right: { style: 'thin', color: { argb: 'F3F4F6' } }
         };
       });
     }

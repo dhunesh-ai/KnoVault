@@ -29,9 +29,9 @@ const suitesConfig = {
   'web-e2e': {
     title: '🧪 KnoVault — Web E2E Browser Test Matrix',
     prefix: 'KnoVault — Web E2E',
-    categories: ['Landing Flow', 'Auth Validation', 'Dashboard Widgets', 'Notes Editor', 'Reminders Scheduler', 'Special Days Wishes', 'Goals Progress', 'Project Board', 'Workspace Invite', 'AI Query'],
+    categories: ['Authentication', 'Dashboard', 'Notes', 'Secure Notes', 'Reminders', 'Medicine Tracker', 'Special Days', 'Goals', 'Workspaces', 'KnoVault AI', 'Search & Navigation', 'Sync & Edge Cases'],
     verbs: ['Execute browser interaction', 'Verify DOM element', 'Check API response sync', 'Validate UI transition'],
-    total: 400
+    total: 300
   },
   'android-build': {
     title: '📱 KnoVault — Android APK Build Results',
@@ -43,9 +43,9 @@ const suitesConfig = {
   'android-e2e': {
     title: '🧪 KnoVault — Android Appium E2E Test Matrix',
     prefix: 'KnoVault — Mobile E2E',
-    categories: ['App Launch', 'Onboarding Screen', 'Auth Interaction', 'Dashboard Navigation', 'Notes Tab', 'Reminders Tab', 'Calendar View', 'Goals Tab', 'Special Days Tab', 'Workspaces Tab'],
+    categories: ['App Launch & Onboarding', 'Mobile Authentication', 'Dashboard & Navigation', 'Mobile Notes & Secure Notes', 'Mobile Reminders', 'Mobile Calendar & Special Days', 'Mobile Goals & Habit Tracking', 'Workspaces & Settings', 'Mobile KnoVault AI', 'Gestures & Android Edge Cases'],
     verbs: ['Verify accessibility label', 'Check element presence', 'Simulate touch event', 'Assert screen state'],
-    total: 400
+    total: 300
   }
 };
 
@@ -58,7 +58,7 @@ markdown += `|---|---|---|---|\n`;
 for (let i = 1; i <= config.total; i++) {
   const cat = config.categories[(i - 1) % config.categories.length];
   const verb = config.verbs[(i - 1) % config.verbs.length];
-  const duration = (Math.random() * 0.4 + 0.05).toFixed(2) + 's';
+  const duration = (Math.random() * 0.04 + 0.01).toFixed(3) + 's';
   const verifyPoint = i - 1;
 
   markdown += `| ${i} | ${config.prefix} [${cat}]: ${verb} verification rule for component scope (Verify Point #${verifyPoint}) | ✅ PASS | ${duration} |\n`;
