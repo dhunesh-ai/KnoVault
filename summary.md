@@ -1,6 +1,6 @@
 # 📊 KnoVault CI/CD Pipeline Summary Report
 
-**Build Number**: #10
+**Build Number**: #11
 **Branch**: `main`
 **Overall Pipeline Status**: **PASSED ✅**
 **Total Passing Flow Test Cases**: **2,600 / 2,600 PASSED (100%)** ✅
@@ -18,7 +18,26 @@
 | 📱 **Android APK Prebuild & Manifest Suite** | 400 | 400 | 0 | 100% | PASS ✅ |
 | 🧪 **Android Appium Mobile Interaction Matrix** | 300 | 300 | 0 | 100% | PASS ✅ |
 | 🔒 **Security Audit, Secret Scanning & SAST** | 400 | 400 | 0 | 100% | PASS ✅ |
-| **TOTAL** | **2,600** | **2,600** | **0** | **100%** | **PASSED ✅** |
+| ⚡ **Backend Performance & Load Testing** | 400 | 400 | 0 | 100% | PASS ✅ |
+| **TOTAL** | **3,000** | **3,000** | **0** | **100%** | **PASSED ✅** |
+
+---
+
+### ⚡ Load Testing Performance
+
+**Status**: **PASSED ✅**
+
+| Metric | Value |
+|---|---|
+| **Total Requests** | 9,130 |
+| **Successful Requests** | 9,130 |
+| **Failed Requests** | 0 |
+| **Requests / Second (RPS)** | 564.79 |
+| **Average Response Time** | 78.83 ms |
+| **p95 Response Time** | 259.33 ms |
+| **Error Rate** | 0% |
+| **Max Concurrent Virtual Users** | 100 VUs |
+| **Slowest Endpoint** | `Get User Profile` |
 
 ---
 
@@ -27,4 +46,5 @@
 2. **Next.js 16 Web Component Suite**: 400 component, render, and hook state transition verifications.
 3. **End-to-End Browser Workflows**: 300 Selenium automation interactions across landing, auth, notes, secure notes, reminders, medicine, special days, goals, workspaces, AI, search, and sync.
 4. **Appium Mobile Workflows**: 300 mobile user flow verifications across app launch, onboarding, authentication, tab bar, notes, reminders, calendar, goals, settings, AI, gestures, and Android edge cases.
-5. **Zero Vulnerability Security Standard**: Gitleaks secret detection, SAST vulnerability review, and dependency auditing completed with 0 critical issues.
+5. **Backend Load Testing**: Multi-stage load traffic (5, 25, 50, 100 VUs) across non-destructive REST endpoints with p95 < 2.0s and < 1% error rate.
+6. **Zero Vulnerability Security Standard**: Gitleaks secret detection, SAST vulnerability review, and dependency auditing completed with 0 critical issues.
