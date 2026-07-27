@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ KnoVault Backend Load Test Report</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0b0f19; color: #e2e8f0; margin: 0; padding: 30px; }
+        .container { max-width: 1100px; margin: 0 auto; background: #161e2e; border-radius: 12px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h1 { color: #8b5cf6; margin-top: 0; display: flex; align-items: center; justify-content: space-between; }
+        .status-badge { background: #EF4444; color: #fff; padding: 6px 18px; border-radius: 20px; font-size: 16px; font-weight: bold; }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 24px 0; }
+        .card { background: #1e293b; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #334155; }
+        .card-val { font-size: 28px; font-weight: bold; color: #38bdf8; margin-top: 6px; }
+        .card-lbl { font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: #1e293b; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #334155; }
+        th { background: #0f172a; color: #94a3b8; font-size: 13px; text-transform: uppercase; }
+        code { background: #0f172a; padding: 3px 8px; border-radius: 4px; color: #f43f5e; font-family: Consolas, monospace; }
+        .footer { text-align: center; margin-top: 30px; color: #64748b; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <span>⚡ KnoVault Backend Load Test Report</span>
+            <span class="status-badge">FAILED</span>
+        </h1>
+        <p style="color: #94a3b8;">Target URL: <code>http://127.0.0.1:8000</code> | Timestamp: 2026-07-27T05:34:34.851702Z</p>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-lbl">Total Requests</div>
+                <div class="card-val">460</div>
+            </div>
+            <div class="card">
+                <div class="card-lbl">Requests / Sec</div>
+                <div class="card-val">24.71</div>
+            </div>
+            <div class="card">
+                <div class="card-lbl">Average Latency</div>
+                <div class="card-val">2051.56 ms</div>
+            </div>
+            <div class="card">
+                <div class="card-lbl">p95 Latency</div>
+                <div class="card-val" style="color: #EF4444;">2074.8 ms</div>
+            </div>
+            <div class="card">
+                <div class="card-lbl">Max Concurrent VUs</div>
+                <div class="card-val">100</div>
+            </div>
+            <div class="card">
+                <div class="card-lbl">Error Rate</div>
+                <div class="card-val" style="color: #EF4444;">100.0%</div>
+            </div>
+            <div class="card">
+                <div class="card-lbl">Median Latency</div>
+                <div class="card-val">2052.22 ms</div>
+            </div>
+            <div class="card">
+                <div class="card-lbl">p99 Latency</div>
+                <div class="card-val">2079.97 ms</div>
+            </div>
+        </div>
+
+        <h2>📈 Traffic Stages Performance</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Stage Name</th>
+                    <th>Virtual Users</th>
+                    <th>Duration</th>
+                    <th>Total Requests</th>
+                    <th>RPS</th>
+                    <th>Avg Latency</th>
+                    <th>p95 Latency</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+        <tr>
+            <td><strong>Smoke Load</strong></td>
+            <td>5 VUs</td>
+            <td>4.13s</td>
+            <td>10</td>
+            <td>2.42</td>
+            <td>2051.45 ms</td>
+            <td>2057.38 ms</td>
+        </tr>
+        
+        <tr>
+            <td><strong>Normal Load</strong></td>
+            <td>25 VUs</td>
+            <td>4.11s</td>
+            <td>50</td>
+            <td>12.18</td>
+            <td>2037.44 ms</td>
+            <td>2045.95 ms</td>
+        </tr>
+        
+        <tr>
+            <td><strong>Medium Load</strong></td>
+            <td>50 VUs</td>
+            <td>4.1s</td>
+            <td>100</td>
+            <td>24.39</td>
+            <td>2035.07 ms</td>
+            <td>2048.85 ms</td>
+        </tr>
+        
+        <tr>
+            <td><strong>Higher Load</strong></td>
+            <td>100 VUs</td>
+            <td>6.27s</td>
+            <td>300</td>
+            <td>47.82</td>
+            <td>2059.41 ms</td>
+            <td>2078.34 ms</td>
+        </tr>
+        
+            </tbody>
+        </table>
+
+        <h2>🎯 Endpoint-Level Performance Breakdown</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Endpoint Name</th>
+                    <th>Path</th>
+                    <th>Total Reqs</th>
+                    <th>Avg Latency</th>
+                    <th>p95 Latency</th>
+                    <th>Min Latency</th>
+                    <th>Max Latency</th>
+                    <th>Failed Reqs</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+        <tr>
+            <td><strong>Health Check</strong></td>
+            <td><code>/health</code></td>
+            <td>63</td>
+            <td>2051.52 ms</td>
+            <td>2074.77 ms</td>
+            <td>2021.58 ms</td>
+            <td>2079.42 ms</td>
+            <td style="color: #EF4444; font-weight: bold;">63</td>
+        </tr>
+        
+        <tr>
+            <td><strong>API Root</strong></td>
+            <td><code>/</code></td>
+            <td>61</td>
+            <td>2049.94 ms</td>
+            <td>2072.07 ms</td>
+            <td>2020.81 ms</td>
+            <td>2080.53 ms</td>
+            <td style="color: #EF4444; font-weight: bold;">61</td>
+        </tr>
+        
+        <tr>
+            <td><strong>Get Notes</strong></td>
+            <td><code>/api/notes</code></td>
+            <td>59</td>
+            <td>2050.06 ms</td>
+            <td>2072.5 ms</td>
+            <td>2022.02 ms</td>
+            <td>2080.27 ms</td>
+            <td style="color: #EF4444; font-weight: bold;">59</td>
+        </tr>
+        
+        <tr>
+            <td><strong>Get Reminders</strong></td>
+            <td><code>/api/reminders</code></td>
+            <td>59</td>
+            <td>2053.09 ms</td>
+            <td>2075.13 ms</td>
+            <td>2020.77 ms</td>
+            <td>2079.77 ms</td>
+            <td style="color: #EF4444; font-weight: bold;">59</td>
+        </tr>
+        
+        <tr>
+            <td><strong>Get Important Days</strong></td>
+            <td><code>/api/important-days</code></td>
+            <td>56</td>
+            <td>2053.3 ms</td>
+            <td>2079.3 ms</td>
+            <td>2020.99 ms</td>
+            <td>2080.9 ms</td>
+            <td style="color: #EF4444; font-weight: bold;">56</td>
+        </tr>
+        
+        <tr>
+            <td><strong>Get Daily Goals</strong></td>
+            <td><code>/api/daily-goals</code></td>
+            <td>54</td>
+            <td>2051.61 ms</td>
+            <td>2072.93 ms</td>
+            <td>2020.99 ms</td>
+            <td>2080.5 ms</td>
+            <td style="color: #EF4444; font-weight: bold;">54</td>
+        </tr>
+        
+        <tr>
+            <td><strong>Get Workspaces</strong></td>
+            <td><code>/api/workspaces</code></td>
+            <td>54</td>
+            <td>2052.14 ms</td>
+            <td>2075.02 ms</td>
+            <td>2020.5 ms</td>
+            <td>2079.74 ms</td>
+            <td style="color: #EF4444; font-weight: bold;">54</td>
+        </tr>
+        
+        <tr>
+            <td><strong>Get User Profile</strong></td>
+            <td><code>/api/profile</code></td>
+            <td>54</td>
+            <td>2050.99 ms</td>
+            <td>2074.05 ms</td>
+            <td>2020.5 ms</td>
+            <td>2079.63 ms</td>
+            <td style="color: #EF4444; font-weight: bold;">54</td>
+        </tr>
+        
+            </tbody>
+        </table>
+
+        <div class="footer">
+            Generated automatically by KnoVault Performance & Load Testing Suite
+        </div>
+    </div>
+</body>
+</html>

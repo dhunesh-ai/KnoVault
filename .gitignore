@@ -76,6 +76,7 @@ mobile/.env
 e2e_tests/reports/*.xlsx
 e2e_tests/reports/web/*.xlsx
 e2e_tests/reports/mobile/*.xlsx
+load-test-reports/
 
 # IDE / OS
 .vscode/
