@@ -26,24 +26,24 @@
             <span>⚡ KnoVault Backend Load Test Report</span>
             <span class="status-badge">PASSED</span>
         </h1>
-        <p style="color: #94a3b8;">Target URL: <code>http://127.0.0.1:8000</code> | Timestamp: 2026-07-27T05:37:02.684558+00:00</p>
+        <p style="color: #94a3b8;">Target URL: <code>http://127.0.0.1:8000</code> | Timestamp: 2026-07-29T08:02:06.060740+00:00</p>
 
         <div class="grid">
             <div class="card">
                 <div class="card-lbl">Total Requests</div>
-                <div class="card-val">9,130</div>
+                <div class="card-val">8,700</div>
             </div>
             <div class="card">
                 <div class="card-lbl">Requests / Sec</div>
-                <div class="card-val">564.79</div>
+                <div class="card-val">534.45</div>
             </div>
             <div class="card">
                 <div class="card-lbl">Average Latency</div>
-                <div class="card-val">78.83 ms</div>
+                <div class="card-val">85.48 ms</div>
             </div>
             <div class="card">
                 <div class="card-lbl">p95 Latency</div>
-                <div class="card-val" style="color: #10B981;">259.33 ms</div>
+                <div class="card-val" style="color: #10B981;">329.3 ms</div>
             </div>
             <div class="card">
                 <div class="card-lbl">Max Concurrent VUs</div>
@@ -55,11 +55,11 @@
             </div>
             <div class="card">
                 <div class="card-lbl">Median Latency</div>
-                <div class="card-val">49.68 ms</div>
+                <div class="card-val">40.46 ms</div>
             </div>
             <div class="card">
                 <div class="card-lbl">p99 Latency</div>
-                <div class="card-val">453.27 ms</div>
+                <div class="card-val">641.11 ms</div>
             </div>
         </div>
 
@@ -82,40 +82,40 @@
             <td><strong>Smoke Load</strong></td>
             <td>5 VUs</td>
             <td>3.01s</td>
-            <td>1794</td>
-            <td>596.55</td>
-            <td>2.82 ms</td>
-            <td>4.81 ms</td>
+            <td>1639</td>
+            <td>545.23</td>
+            <td>3.58 ms</td>
+            <td>6.27 ms</td>
         </tr>
         
         <tr>
             <td><strong>Normal Load</strong></td>
             <td>25 VUs</td>
-            <td>4.04s</td>
-            <td>1991</td>
-            <td>492.96</td>
-            <td>41.63 ms</td>
-            <td>106.65 ms</td>
+            <td>4.03s</td>
+            <td>2227</td>
+            <td>552.71</td>
+            <td>36.66 ms</td>
+            <td>94.1 ms</td>
         </tr>
         
         <tr>
             <td><strong>Medium Load</strong></td>
             <td>50 VUs</td>
             <td>4.06s</td>
-            <td>2157</td>
-            <td>531.75</td>
-            <td>83.22 ms</td>
-            <td>229.83 ms</td>
+            <td>2539</td>
+            <td>625.05</td>
+            <td>70.17 ms</td>
+            <td>189.59 ms</td>
         </tr>
         
         <tr>
             <td><strong>Higher Load</strong></td>
             <td>100 VUs</td>
-            <td>5.05s</td>
-            <td>3188</td>
-            <td>630.79</td>
-            <td>141.86 ms</td>
-            <td>377.48 ms</td>
+            <td>5.17s</td>
+            <td>2295</td>
+            <td>443.72</td>
+            <td>208.28 ms</td>
+            <td>579.68 ms</td>
         </tr>
         
             </tbody>
@@ -140,88 +140,88 @@
         <tr>
             <td><strong>Health Check</strong></td>
             <td><code>/health</code></td>
-            <td>1277</td>
-            <td>77.67 ms</td>
-            <td>276.46 ms</td>
-            <td>2.01 ms</td>
-            <td>1021.41 ms</td>
+            <td>1282</td>
+            <td>79.3 ms</td>
+            <td>319.61 ms</td>
+            <td>2.18 ms</td>
+            <td>969.56 ms</td>
             <td style="color: #10B981; font-weight: bold;">0</td>
         </tr>
         
         <tr>
             <td><strong>API Root</strong></td>
             <td><code>/</code></td>
-            <td>1386</td>
-            <td>67.96 ms</td>
-            <td>220.11 ms</td>
-            <td>1.39 ms</td>
-            <td>1094.93 ms</td>
+            <td>1292</td>
+            <td>75.75 ms</td>
+            <td>302.41 ms</td>
+            <td>1.4 ms</td>
+            <td>1133.14 ms</td>
             <td style="color: #10B981; font-weight: bold;">0</td>
         </tr>
         
         <tr>
             <td><strong>Get Notes</strong></td>
             <td><code>/api/notes</code></td>
-            <td>1253</td>
-            <td>73.01 ms</td>
-            <td>258.37 ms</td>
-            <td>1.34 ms</td>
-            <td>700.28 ms</td>
+            <td>1212</td>
+            <td>77.89 ms</td>
+            <td>320.77 ms</td>
+            <td>1.32 ms</td>
+            <td>1001.62 ms</td>
             <td style="color: #10B981; font-weight: bold;">0</td>
         </tr>
         
         <tr>
             <td><strong>Get Reminders</strong></td>
             <td><code>/api/reminders</code></td>
-            <td>1302</td>
-            <td>69.9 ms</td>
-            <td>227.28 ms</td>
-            <td>1.35 ms</td>
-            <td>766.11 ms</td>
+            <td>1193</td>
+            <td>79.25 ms</td>
+            <td>326.49 ms</td>
+            <td>1.37 ms</td>
+            <td>1004.96 ms</td>
             <td style="color: #10B981; font-weight: bold;">0</td>
         </tr>
         
         <tr>
             <td><strong>Get Important Days</strong></td>
             <td><code>/api/important-days</code></td>
-            <td>1228</td>
-            <td>70.71 ms</td>
-            <td>258.43 ms</td>
+            <td>1168</td>
+            <td>77.05 ms</td>
+            <td>288.21 ms</td>
             <td>1.38 ms</td>
-            <td>876.71 ms</td>
+            <td>1708.62 ms</td>
             <td style="color: #10B981; font-weight: bold;">0</td>
         </tr>
         
         <tr>
             <td><strong>Get Daily Goals</strong></td>
             <td><code>/api/daily-goals</code></td>
-            <td>908</td>
-            <td>94.22 ms</td>
-            <td>290.36 ms</td>
-            <td>7.39 ms</td>
-            <td>910.9 ms</td>
+            <td>857</td>
+            <td>103.14 ms</td>
+            <td>347.75 ms</td>
+            <td>8.48 ms</td>
+            <td>1090.98 ms</td>
             <td style="color: #10B981; font-weight: bold;">0</td>
         </tr>
         
         <tr>
             <td><strong>Get Workspaces</strong></td>
             <td><code>/api/workspaces</code></td>
-            <td>893</td>
-            <td>96.03 ms</td>
-            <td>270.96 ms</td>
-            <td>7.75 ms</td>
-            <td>602.13 ms</td>
+            <td>841</td>
+            <td>105.05 ms</td>
+            <td>362.82 ms</td>
+            <td>8.2 ms</td>
+            <td>1223.48 ms</td>
             <td style="color: #10B981; font-weight: bold;">0</td>
         </tr>
         
         <tr>
             <td><strong>Get User Profile</strong></td>
             <td><code>/api/profile</code></td>
-            <td>883</td>
-            <td>97.03 ms</td>
-            <td>283.75 ms</td>
-            <td>6.56 ms</td>
-            <td>1097.31 ms</td>
+            <td>855</td>
+            <td>103.44 ms</td>
+            <td>367.45 ms</td>
+            <td>7.85 ms</td>
+            <td>1260.58 ms</td>
             <td style="color: #10B981; font-weight: bold;">0</td>
         </tr>
         

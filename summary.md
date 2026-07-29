@@ -1,6 +1,6 @@
 # 📊 KnoVault CI/CD Pipeline Summary Report
 
-**Build Number**: #11
+**Build Number**: #12
 **Branch**: `main`
 **Overall Pipeline Status**: **PASSED ✅**
 **Total Passing Flow Test Cases**: **2,600 / 2,600 PASSED (100%)** ✅
@@ -29,15 +29,15 @@
 
 | Metric | Value |
 |---|---|
-| **Total Requests** | 9,130 |
-| **Successful Requests** | 9,130 |
+| **Total Requests** | 8,700 |
+| **Successful Requests** | 8,700 |
 | **Failed Requests** | 0 |
-| **Requests / Second (RPS)** | 564.79 |
-| **Average Response Time** | 78.83 ms |
-| **p95 Response Time** | 259.33 ms |
+| **Requests / Second (RPS)** | 534.45 |
+| **Average Response Time** | 85.48 ms |
+| **p95 Response Time** | 329.3 ms |
 | **Error Rate** | 0% |
 | **Max Concurrent Virtual Users** | 100 VUs |
-| **Slowest Endpoint** | `Get User Profile` |
+| **Slowest Endpoint** | `Get Workspaces` |
 
 ---
 
