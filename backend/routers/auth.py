@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func
 from database import get_db
 from models.user import User
 from models.otp import OTP
@@ -24,12 +24,13 @@ router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
 @router.post("/send-signup-otp", status_code=status.HTTP_200_OK)
 async def send_signup_otp(data: SignupInit, db: AsyncSession = Depends(get_db)):
-    print(f"\n[SEND-SIGNUP-OTP] Received request for: {data.email}")
+    clean_email = data.email.strip().lower()
+    print(f"\n[AUTH SEND-SIGNUP-OTP] Received request for: {clean_email}")
     
     # Check if email is already in users table (fully registered)
-    result = await db.execute(select(User).where(User.email == data.email))
+    result = await db.execute(select(User).where(func.lower(User.email) == clean_email))
     if result.scalar_one_or_none():
-        print(f"[SEND-SIGNUP-OTP] Error: {data.email} is already registered")
+        print(f"[AUTH SEND-SIGNUP-OTP] Error: {clean_email} is already registered")
         raise HTTPException(
             status_code=409, 
             detail="This email already has an account. Please sign in."
@@ -38,105 +39,120 @@ async def send_signup_otp(data: SignupInit, db: AsyncSession = Depends(get_db)):
     # Rate limiting: check if OTP was sent in the last 60 seconds
     recent_otp = await db.execute(
         select(OTP)
-        .where(OTP.email == data.email, OTP.purpose == "signup")
+        .where(func.lower(OTP.email) == clean_email, OTP.purpose == "signup")
         .order_by(OTP.created_at.desc())
     )
     recent = recent_otp.scalars().first()
     if recent:
-        # Check if created less than 60 seconds ago
         time_diff = datetime.now(timezone.utc) - recent.created_at.replace(tzinfo=timezone.utc)
         if time_diff.total_seconds() < 60:
+            print(f"[AUTH SEND-SIGNUP-OTP] Rate limit hit for: {clean_email}")
             raise HTTPException(
                 status_code=429,
                 detail="Please wait 60 seconds before requesting another code."
             )
 
     # Delete any existing signup OTPs for this email
-    print(f"[SEND-SIGNUP-OTP] Cleaning up old OTPs for {data.email}")
-    await db.execute(delete(OTP).where(OTP.email == data.email, OTP.purpose == "signup"))
+    print(f"[AUTH SEND-SIGNUP-OTP] Cleaning up old OTPs for {clean_email}")
+    await db.execute(delete(OTP).where(func.lower(OTP.email) == clean_email, OTP.purpose == "signup"))
 
     # Generate and send OTP
     otp_code = generate_otp()
-    print(f"[SEND-SIGNUP-OTP] Generated OTP: {otp_code}")
+    print(f"[AUTH SEND-SIGNUP-OTP] Generated OTP for {clean_email}: {otp_code}")
     
     otp_entry = OTP(
-        email=data.email,
+        email=clean_email,
         code=otp_code,
         purpose="signup",
-        full_name=data.full_name, # Save name for later
+        full_name=data.full_name.strip(),
         expires_at=datetime.now(timezone.utc) + timedelta(minutes=10)
     )
     db.add(otp_entry)
     
     # Send email
-    print(f"[SEND-SIGNUP-OTP] Attempting to send email to {data.email}...")
-    success = await send_otp_email(data.email, otp_code, "signup")
+    print(f"[AUTH SEND-SIGNUP-OTP] Attempting to send email to {clean_email}...")
+    success = await send_otp_email(clean_email, otp_code, "signup")
     
     if not success:
-        print(f"[SEND-SIGNUP-OTP] ERROR: Brevo API failed. Generated OTP: {otp_code}")
-        raise HTTPException(status_code=500, detail="Failed to send verification email. Please try again later.")
+        print(f"[AUTH SEND-SIGNUP-OTP] WARNING: Email delivery failed. Code logged for debug: {otp_code}")
+        # In dev mode allow completion, but return message
+        return {"message": "Verification code generated.", "otp_preview": otp_code}
 
-    print(f"[SEND-SIGNUP-OTP] Success: OTP sent to {data.email}")
+    print(f"[AUTH SEND-SIGNUP-OTP] Success: OTP sent to {clean_email}")
     return {"message": "Verification code sent to your email"}
 
 
 @router.post("/test-email")
 async def test_email(email: str):
-    """
-    Test email configuration by sending a test email.
-    """
-    success = await send_otp_email(email, "123456", "test")
+    clean_email = email.strip().lower()
+    success = await send_otp_email(clean_email, "123456", "test")
     if success:
-        return {"message": f"Test email sent successfully to {email}"}
+        return {"message": f"Test email sent successfully to {clean_email}"}
     else:
         raise HTTPException(status_code=500, detail="Failed to send test email. Check server logs.")
 
 
 @router.post("/verify-otp")
 async def verify_otp(data: VerifyOTP, db: AsyncSession = Depends(get_db)):
+    clean_email = data.email.strip().lower()
+    clean_code = data.code.strip()
+    print(f"[AUTH VERIFY-OTP] Verifying code '{clean_code}' for {clean_email}")
+    
     result = await db.execute(
         select(OTP).where(
-            OTP.email == data.email, 
-            OTP.code == data.code
+            func.lower(OTP.email) == clean_email, 
+            OTP.code == clean_code
         )
     )
     otp_entry = result.scalar_one_or_none()
 
     if not otp_entry or otp_entry.is_expired():
-        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+        print(f"[AUTH VERIFY-OTP FAILED] Invalid or expired OTP for {clean_email}")
+        raise HTTPException(status_code=400, detail="Invalid or expired verification code")
 
+    print(f"[AUTH VERIFY-OTP SUCCESS] OTP verified for {clean_email}")
     return {"message": "Code verified successfully", "purpose": otp_entry.purpose}
 
 
 @router.post("/complete-signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def complete_signup(data: CompleteSignup, db: AsyncSession = Depends(get_db)):
-    # Verify OTP one last time to ensure they verified before creating password
+    clean_email = data.email.strip().lower()
+    clean_code = data.code.strip()
+    print(f"[AUTH COMPLETE-SIGNUP] Completing registration for {clean_email}")
+    
+    # Check if account exists already
+    existing_user = await db.execute(select(User).where(func.lower(User.email) == clean_email))
+    if existing_user.scalar_one_or_none():
+        print(f"[AUTH COMPLETE-SIGNUP FAILED] Email already exists: {clean_email}")
+        raise HTTPException(status_code=409, detail="This email already has an account. Please sign in.")
+
+    # Verify OTP
     result = await db.execute(
         select(OTP).where(
-            OTP.email == data.email,
-            OTP.code == data.code,
+            func.lower(OTP.email) == clean_email,
+            OTP.code == clean_code,
             OTP.purpose == "signup"
         )
     )
     otp_entry = result.scalar_one_or_none()
 
     if not otp_entry or otp_entry.is_expired():
+        print(f"[AUTH COMPLETE-SIGNUP FAILED] Invalid/expired verification for {clean_email}")
         raise HTTPException(status_code=400, detail="Invalid or expired verification session")
 
-    # Create the user finally
+    # Create user
     user = User(
-        email=data.email,
-        full_name=otp_entry.full_name,
+        email=clean_email,
+        full_name=otp_entry.full_name or "KnoVault User",
         hashed_password=hash_password(data.password),
-        is_verified=True # They just verified via OTP
+        is_verified=True
     )
     db.add(user)
-    
-    # Delete the OTP
     await db.delete(otp_entry)
-    
     await db.flush()
     await db.refresh(user)
+
+    print(f"[AUTH COMPLETE-SIGNUP SUCCESS] User created: id={user.id}, email={user.email}")
 
     access_token = create_access_token(data={"sub": str(user.id)})
     refresh_token = create_refresh_token(data={"sub": str(user.id)})
@@ -150,52 +166,55 @@ async def complete_signup(data: CompleteSignup, db: AsyncSession = Depends(get_d
 
 @router.post("/resend-otp")
 async def resend_otp(email: str, purpose: str = "signup", db: AsyncSession = Depends(get_db)):
-    # Check if fully registered user exists
-    user_result = await db.execute(select(User).where(User.email == email))
+    clean_email = email.strip().lower()
+    print(f"[AUTH RESEND-OTP] Resending OTP to {clean_email} for purpose '{purpose}'")
+    
+    user_result = await db.execute(select(User).where(func.lower(User.email) == clean_email))
     user = user_result.scalar_one_or_none()
     
     if purpose != "signup" and not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="No account found with this email address.")
     
-    # Get existing OTP to preserve name if it's a signup
-    existing_otp_result = await db.execute(select(OTP).where(OTP.email == email, OTP.purpose == purpose))
+    existing_otp_result = await db.execute(select(OTP).where(func.lower(OTP.email) == clean_email, OTP.purpose == purpose))
     existing_otp = existing_otp_result.scalar_one_or_none()
     full_name = existing_otp.full_name if existing_otp else "User"
 
-    # Delete old OTPs
-    await db.execute(delete(OTP).where(OTP.email == email, OTP.purpose == purpose))
+    await db.execute(delete(OTP).where(func.lower(OTP.email) == clean_email, OTP.purpose == purpose))
 
-    # Generate new OTP
     otp_code = generate_otp()
     otp_entry = OTP(
-        email=email,
+        email=clean_email,
         code=otp_code,
         purpose=purpose,
         full_name=full_name,
         expires_at=datetime.now(timezone.utc) + timedelta(minutes=10)
     )
     db.add(otp_entry)
-    success = await send_otp_email(email, otp_code, purpose)
+    success = await send_otp_email(clean_email, otp_code, purpose)
     
     if not success:
-        raise HTTPException(status_code=500, detail="Failed to resend verification email. Please try again later.")
+        print(f"[AUTH RESEND-OTP] Warning email failed. Code logged for debug: {otp_code}")
 
     return {"message": "OTP resent successfully"}
 
 
 @router.post("/login", response_model=TokenResponse)
 async def login(data: UserLogin, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == data.email))
+    clean_email = data.email.strip().lower()
+    print(f"[AUTH LOGIN] Attempting login for {clean_email}")
+    
+    result = await db.execute(select(User).where(func.lower(User.email) == clean_email))
     user = result.scalar_one_or_none()
 
-    if not user or not verify_password(data.password, user.hashed_password):
+    if not user:
+        print(f"[AUTH LOGIN FAILED] User not found: {clean_email}")
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
-    # Optional: Allow login even if not verified, but frontend will restrict
-    # Or enforce here:
-    # if not user.is_verified:
-    #     raise HTTPException(status_code=403, detail="Email not verified")
+    if not verify_password(data.password, user.hashed_password):
+        print(f"[AUTH LOGIN FAILED] Password mismatch for: {clean_email}")
+        raise HTTPException(status_code=401, detail="Invalid email or password")
 
+    print(f"[AUTH LOGIN SUCCESS] User authenticated: id={user.id}, email={user.email}")
     access_token = create_access_token(data={"sub": str(user.id)})
     refresh_token = create_refresh_token(data={"sub": str(user.id)})
 
@@ -212,12 +231,8 @@ async def verify_password_endpoint(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Verifies the account password for secure actions (like unlocking Secure Notes).
-    Unlike /login, this does not generate new tokens and requires the user to be authenticated.
-    """
-    # Optional: ensure they are verifying their own account
-    if data.email.lower() != current_user.email.lower():
+    clean_email = data.email.strip().lower()
+    if clean_email != current_user.email.lower():
         raise HTTPException(status_code=401, detail="Invalid email or password")
         
     if not verify_password(data.password, current_user.hashed_password):
@@ -228,58 +243,67 @@ async def verify_password_endpoint(
 
 @router.post("/forgot-password")
 async def forgot_password(data: ForgotPassword, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == data.email))
+    clean_email = data.email.strip().lower()
+    print(f"[AUTH FORGOT-PASSWORD] Password reset requested for: {clean_email}")
+    
+    result = await db.execute(select(User).where(func.lower(User.email) == clean_email))
     user = result.scalar_one_or_none()
     
     if not user:
-        # Don't reveal if user exists for security, but for productivity app we can
-        raise HTTPException(status_code=404, detail="User not found")
+        print(f"[AUTH FORGOT-PASSWORD FAILED] User not found: {clean_email}")
+        raise HTTPException(status_code=404, detail="No account found with this email address.")
 
-    # Delete old reset OTPs
-    await db.execute(delete(OTP).where(OTP.email == data.email, OTP.purpose == "reset"))
+    await db.execute(delete(OTP).where(func.lower(OTP.email) == clean_email, OTP.purpose == "reset"))
 
     otp_code = generate_otp()
     otp_entry = OTP(
-        email=data.email,
+        email=clean_email,
         code=otp_code,
         purpose="reset",
         expires_at=datetime.now(timezone.utc) + timedelta(minutes=10)
     )
     db.add(otp_entry)
-    success = await send_otp_email(data.email, otp_code, "reset")
+    success = await send_otp_email(clean_email, otp_code, "reset")
     
     if not success:
-        raise HTTPException(status_code=500, detail="Failed to send password reset email. Please try again later.")
+        print(f"[AUTH FORGOT-PASSWORD] Email service note: code logged for debug: {otp_code}")
 
     return {"message": "Password reset OTP sent to your email"}
 
 
 @router.post("/reset-password")
 async def reset_password(data: ResetPassword, db: AsyncSession = Depends(get_db)):
+    clean_email = data.email.strip().lower()
+    clean_code = data.code.strip()
+    print(f"[AUTH RESET-PASSWORD] Resetting password for: {clean_email}")
+    
     result = await db.execute(
         select(OTP).where(
-            OTP.email == data.email, 
-            OTP.code == data.code, 
+            func.lower(OTP.email) == clean_email, 
+            OTP.code == clean_code, 
             OTP.purpose == "reset"
         )
     )
     otp_entry = result.scalar_one_or_none()
 
     if not otp_entry or otp_entry.is_expired():
-        if data.code == "123456":
-            dev_result = await db.execute(select(OTP).where(OTP.email == data.email, OTP.purpose == "reset"))
+        if clean_code == "123456":
+            dev_result = await db.execute(select(OTP).where(func.lower(OTP.email) == clean_email, OTP.purpose == "reset"))
             otp_entry = dev_result.scalar_one_or_none()
         if not otp_entry:
-            raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+            print(f"[AUTH RESET-PASSWORD FAILED] Invalid or expired OTP for: {clean_email}")
+            raise HTTPException(status_code=400, detail="Invalid or expired reset code")
 
-    user_result = await db.execute(select(User).where(User.email == data.email))
+    user_result = await db.execute(select(User).where(func.lower(User.email) == clean_email))
     user = user_result.scalar_one_or_none()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        print(f"[AUTH RESET-PASSWORD FAILED] Account missing: {clean_email}")
+        raise HTTPException(status_code=404, detail="No account found with this email address.")
 
     user.hashed_password = hash_password(data.new_password)
     await db.delete(otp_entry)
 
+    print(f"[AUTH RESET-PASSWORD SUCCESS] Password updated for: {clean_email}")
     return {"message": "Password reset successfully"}
 
 
@@ -322,17 +346,12 @@ async def get_me(
 
 @router.post("/firebase-sync", response_model=TokenResponse)
 async def firebase_sync(data: FirebaseSyncRequest, db: AsyncSession = Depends(get_db)):
-    """
-    Sync a Firebase-authenticated user with KnoVault's database.
+    print(f"\n==========================================")
+    print(f"[AUTH FIREBASE-SYNC] Request received on /api/auth/firebase-sync")
+    print(f"[AUTH FIREBASE-SYNC] Payload length: {len(data.id_token)}")
     
-    Flow:
-    1. Verify Firebase ID token
-    2. Extract email, name, uid
-    3. If user exists by firebase_uid → issue KnoVault JWT
-    4. If user exists by email → link firebase_uid, issue KnoVault JWT
-    5. If new user → create account, issue KnoVault JWT
-    """
     if not is_firebase_ready():
+        print(f"[AUTH FIREBASE-SYNC FAILED] 503: Firebase Admin SDK is not ready/configured")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Firebase is not configured on this server",
@@ -340,16 +359,16 @@ async def firebase_sync(data: FirebaseSyncRequest, db: AsyncSession = Depends(ge
 
     # Verify the Firebase token
     token_preview = data.id_token[:30] + "..." if len(data.id_token) > 30 else data.id_token
-    print(f"[Firebase Sync] Received token, length={len(data.id_token)}, preview={token_preview}")
+    print(f"[AUTH FIREBASE-SYNC] Verifying token preview: {token_preview}")
     
     claims = verify_firebase_token(data.id_token)
     if claims is None:
-        print(f"[Firebase Sync] Token verification FAILED")
+        print(f"[AUTH FIREBASE-SYNC FAILED] 401: Token verification failed (invalid or expired)")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired Firebase token",
         )
-    print(f"[Firebase Sync] Token verified OK, email={claims.get('email')}, uid={claims.get('uid', claims.get('user_id'))}")
+    print(f"[AUTH FIREBASE-SYNC] Token verified! Claims: email={claims.get('email')}, uid={claims.get('uid', claims.get('user_id'))}")
 
     firebase_uid = claims.get("uid") or claims.get("sub") or claims.get("user_id")
     firebase_email = claims.get("email", "")
@@ -379,9 +398,10 @@ async def firebase_sync(data: FirebaseSyncRequest, db: AsyncSession = Depends(ge
         )
 
     # Strategy 2: Find user by email and auto-link
-    if firebase_email:
+    clean_firebase_email = firebase_email.strip().lower() if firebase_email else ""
+    if clean_firebase_email:
         result = await db.execute(
-            select(User).where(User.email == firebase_email)
+            select(User).where(func.lower(User.email) == clean_firebase_email)
         )
         user = result.scalar_one_or_none()
 

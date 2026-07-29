@@ -1,5 +1,9 @@
+import os
+from pathlib import Path
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+
+env_path = Path(__file__).resolve().parent / ".env"
 
 
 class Settings(BaseSettings):
@@ -26,8 +30,9 @@ class Settings(BaseSettings):
     FERNET_SECRET_KEY: str = ""
 
     class Config:
-        env_file = ".env"
+        env_file = str(env_path) if env_path.exists() else ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"
 
 
 @lru_cache()

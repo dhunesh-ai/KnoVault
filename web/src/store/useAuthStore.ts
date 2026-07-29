@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand';
 import Cookies from 'js-cookie';
-import api from '../lib/axios';
+import api, { setAuthCookies, clearAuthCookies, API_BASE_URL } from '../lib/axios';
 
 export interface User {
   id: number;
@@ -28,13 +28,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true,
   setUser: (user) => set({ user, isAuthenticated: !!user }),
   login: (access_token, refresh_token, user) => {
-    Cookies.set('user_token', access_token, { expires: 7, secure: true });
-    Cookies.set('refresh_token', refresh_token, { expires: 30, secure: true });
+    setAuthCookies(access_token, refresh_token);
     set({ user, isAuthenticated: true, isLoading: false });
   },
   logout: () => {
-    Cookies.remove('user_token');
-    Cookies.remove('refresh_token');
+    clearAuthCookies();
     set({ user: null, isAuthenticated: false, isLoading: false });
     if (typeof window !== 'undefined') {
       window.location.href = '/login';
@@ -57,8 +55,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       console.error('Auth check failed:', error);
       // Only clear credentials and redirect if the server explicitly rejected the token (401/403)
       if (error.response?.status === 401 || error.response?.status === 403) {
-        Cookies.remove('user_token');
-        Cookies.remove('refresh_token');
+        clearAuthCookies();
         set({ user: null, isAuthenticated: false });
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
@@ -67,25 +64,51 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
   loginWithGoogle: async () => {
+    const targetUrl = `${API_BASE_URL}/api/auth/firebase-sync`;
     try {
-      console.log("Attempting Google Login");
+      console.log("[GOOGLE LOGIN] Step 1: Initiating Firebase OAuth Popup...");
       const { signInWithPopup } = await import('firebase/auth');
       const { auth, googleProvider } = await import('../lib/firebase');
       
       const result = await signInWithPopup(auth, googleProvider);
-      console.log("Current User:", result.user);
+      console.log("[GOOGLE LOGIN] Step 2: Firebase OAuth success, user:", result.user.email);
       const idToken = await result.user.getIdToken();
       
-      const response = await api.post('/api/auth/firebase-sync', { id_token: idToken });
-      const { access_token, refresh_token, user } = response.data;
+      const payload = { id_token: idToken };
+      const headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
       
-      Cookies.set('user_token', access_token, { expires: 7, secure: true });
-      Cookies.set('refresh_token', refresh_token, { expires: 30, secure: true });
+      console.log("[GOOGLE LOGIN] Step 3: Dispatching Token Exchange Request");
+      console.log(`[GOOGLE LOGIN] Request URL: POST ${targetUrl}`);
+      console.log("[GOOGLE LOGIN] Headers:", headers);
+      console.log("[GOOGLE LOGIN] Request Body (preview):", { id_token: idToken.slice(0, 20) + "..." });
+      
+      const response = await api.post('/api/auth/firebase-sync', payload);
+      
+      console.log("[GOOGLE LOGIN] Step 4: Token Exchange Success!");
+      console.log("[GOOGLE LOGIN] Response Status:", response.status);
+      console.log("[GOOGLE LOGIN] Response Body:", response.data);
+
+      const { access_token, refresh_token, user } = response.data;
+      setAuthCookies(access_token, refresh_token);
       set({ user, isAuthenticated: true, isLoading: false });
-    } catch (error: any  ) {
-      console.error("Firebase Auth Error:", error.code, error.message);
-      console.error('Google login failed:', error);
-      throw new Error(error.response?.data?.detail || "Google sign-in failed");
+    } catch (error: any) {
+      console.error("==========================================");
+      console.error("[GOOGLE LOGIN EXCEPTION LOG]");
+      console.error("Target URL:", targetUrl);
+      console.error("HTTP Method: POST");
+      console.error("Error Code:", error.code);
+      console.error("Error Message:", error.message);
+      if (error.response) {
+        console.error("Response Status:", error.response.status);
+        console.error("Response Body:", error.response.data);
+      } else {
+        console.error("No HTTP response received (Network Error / Connection Refused / CORS Failure)");
+      }
+      console.error("Stack Trace:", error.stack);
+      console.error("==========================================");
+
+      const errorDetail = error.response?.data?.detail || error.message || "Google sign-in failed. Please try again.";
+      throw new Error(errorDetail);
     }
   },
 }));

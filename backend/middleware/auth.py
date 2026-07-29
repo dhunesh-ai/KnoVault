@@ -12,7 +12,7 @@ import uuid
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from database import get_db
 from models.user import User
 from utils.auth import decode_token
@@ -82,8 +82,9 @@ async def get_current_user(
 
             # Try to find by email and auto-link firebase_uid
             if firebase_email:
+                clean_email = firebase_email.strip().lower()
                 result = await db.execute(
-                    select(User).where(User.email == firebase_email)
+                    select(User).where(func.lower(User.email) == clean_email)
                 )
                 user = result.scalar_one_or_none()
 

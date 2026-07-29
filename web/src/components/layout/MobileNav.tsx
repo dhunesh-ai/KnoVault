@@ -17,7 +17,7 @@ export function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="md:hidden fixed bottom-4 left-4 right-4 h-16 bg-card/75 backdrop-blur-2xl border border-border/30 z-30 flex items-center justify-around px-2 rounded-3xl shadow-[0_8px_32px_rgba(124,77,255,0.06)]">
+    <nav className="md:hidden fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 right-4 h-16 bg-card/75 backdrop-blur-2xl border border-border/30 z-30 flex items-center justify-around px-2 rounded-3xl shadow-[0_8px_32px_rgba(124,77,255,0.06)]">
       {mobileNavItems.map((item) => {
         const isActive = pathname.startsWith(item.href) && (item.href !== '/dashboard' || pathname === '/dashboard');
         

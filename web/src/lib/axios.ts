@@ -1,11 +1,25 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import Cookies from 'js-cookie';
 
-export const API_BASE_URL = process.env.NODE_ENV === 'production' ? 'https://knovault-jbph.onrender.com' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000');
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "https://knovault-jbph.onrender.com";
 
-const api = axios.create({
+export const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+
+export const setAuthCookies = (accessToken: string, refreshToken: string) => {
+  Cookies.set('user_token', accessToken, { expires: 7, secure: isHttps, sameSite: 'lax' });
+  Cookies.set('refresh_token', refreshToken, { expires: 30, secure: isHttps, sameSite: 'lax' });
+};
+
+export const clearAuthCookies = () => {
+  Cookies.remove('user_token');
+  Cookies.remove('refresh_token');
+};
+
+export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
@@ -61,23 +75,20 @@ api.interceptors.response.use(
           
           if (refreshResponse.status === 200) {
             const { access_token, refresh_token: new_refresh } = refreshResponse.data;
-            Cookies.set('user_token', access_token, { expires: 7, secure: true });
-            Cookies.set('refresh_token', new_refresh, { expires: 30, secure: true });
+            setAuthCookies(access_token, new_refresh);
             
             originalRequest.headers.Authorization = `Bearer ${access_token}`;
             return api(originalRequest);
           }
         }
       } catch (refreshError) {
-        Cookies.remove('user_token');
-        Cookies.remove('refresh_token');
+        clearAuthCookies();
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
         }
       }
     } else if (error.response?.status === 401 && !isAuthEndpoint) {
-      Cookies.remove('user_token');
-      Cookies.remove('refresh_token');
+      clearAuthCookies();
       if (typeof window !== 'undefined') {
         window.location.href = '/login';
       }

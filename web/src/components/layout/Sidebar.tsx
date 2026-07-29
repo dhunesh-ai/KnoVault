@@ -51,20 +51,20 @@ export function Sidebar() {
 
   return (
     <aside className="hidden md:flex flex-col w-64 h-[calc(100vh-2rem)] fixed top-4 left-4 rounded-3xl border border-border/40 bg-card/60 backdrop-blur-2xl z-30 shadow-[0_8px_30px_rgba(0,0,0,0.03)] p-4 transition-all duration-300">
-      <div className="p-4 flex items-center space-x-3 mb-4">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center shadow-[0_4px_20px_rgba(124,77,255,0.35)] relative overflow-hidden group">
+      <Link href="/" className="p-4 flex items-center space-x-3 mb-4 group cursor-pointer hover:opacity-90 transition-all duration-200" title="KnoVault Home Dashboard">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center shadow-[0_4px_20px_rgba(124,77,255,0.35)] relative overflow-hidden group-hover:scale-105 transition-transform duration-200">
           <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
           <Shield className="w-5 h-5 text-primary-foreground relative z-10" />
         </div>
         <div className="flex flex-col">
-          <span className="text-base font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent tracking-tight">
+          <span className="text-base font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent tracking-tight group-hover:text-primary transition-colors">
             KnoVault
           </span>
           <span className="text-[10px] font-semibold text-primary/70 tracking-widest uppercase">
             SECURE V2
           </span>
         </div>
-      </div>
+      </Link>
 
       <div className="flex-1 overflow-y-auto py-2 px-1 space-y-1.5 scrollbar-hide">
         {navItems.map((item) => {

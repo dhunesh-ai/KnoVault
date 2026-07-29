@@ -1,3 +1,4 @@
+import os
 import ssl
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
@@ -23,26 +24,6 @@ _db_url = settings.DATABASE_URL
 if _db_url.startswith("postgresql://"):
     _db_url = _db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-# Fix Neon IPv6 hang by resolving hostname to IPv4
-import socket
-from urllib.parse import urlparse, urlunparse
-try:
-    parsed = urlparse(_db_url)
-    if parsed.hostname and "neon.tech" in parsed.hostname:
-        ipv4 = socket.gethostbyname(parsed.hostname)
-        endpoint = parsed.hostname.split('.')[0]
-        netloc = f"{parsed.username}:{parsed.password}@{ipv4}:{parsed.port or 5432}"
-        # Keep original query params, but we will pass endpoint via connect_args
-        _db_url = urlunparse((parsed.scheme, netloc, parsed.path, parsed.params, parsed.query, parsed.fragment))
-        
-        # Pass endpoint via server_settings for asyncpg
-        if "server_settings" not in _connect_args:
-            _connect_args["server_settings"] = {}
-        _connect_args["server_settings"]["options"] = f"endpoint={endpoint}"
-except Exception as e:
-    print(f"[DB] Error resolving IPv4 for Neon: {e}")
-
-
 # Configure SSL context for Neon
 _ssl_ctx = ssl.create_default_context()
 _ssl_ctx.check_hostname = False
@@ -52,16 +33,21 @@ if "sqlite" in _db_url:
     engine = create_async_engine(
         _db_url,
         echo=False,
-        connect_args={"check_same_thread": False} if "sqlite" in _db_url else {},
+        connect_args={"check_same_thread": False},
     )
 else:
-    _connect_args["ssl"] = _ssl_ctx
+    # Ensure ssl=require is in URL or passed natively for asyncpg
+    if "sslmode=" not in _db_url and "ssl=" not in _db_url:
+        _db_url = _db_url + ("&ssl=require" if "?" in _db_url else "?ssl=require")
+    
     _connect_args["statement_cache_size"] = 0
+    _connect_args["timeout"] = 30
+    _connect_args["command_timeout"] = 30
     engine = create_async_engine(
         _db_url,
         echo=False,
-        pool_size=5,
-        max_overflow=10,
+        pool_size=10,
+        max_overflow=20,
         pool_timeout=30,
         pool_recycle=300,
         pool_pre_ping=True,
@@ -171,9 +157,26 @@ def run_migrations(connection):
 
 
 async def init_db():
-    print("[DB] Connecting to Neon PostgreSQL...")
-    async with engine.begin() as conn:
-        from models import user, note, goal, daily_goal, project_task, reminder, important_day, ai_chat, otp, workspace, notification, secure_note_security, support, scheduled_email  # noqa
-        await conn.run_sync(run_migrations)
-        await conn.run_sync(Base.metadata.create_all)
-    print("[DB] All tables created / verified on Neon PostgreSQL")
+    global engine, async_session
+    print(f"[DB] Initializing database connection...")
+    try:
+        async with engine.begin() as conn:
+            from models import user, note, goal, daily_goal, project_task, reminder, important_day, ai_chat, otp, workspace, notification, secure_note_security, support, scheduled_email  # noqa
+            await conn.run_sync(run_migrations)
+            await conn.run_sync(Base.metadata.create_all)
+        print("[DB] All tables created / verified successfully on primary database.")
+    except Exception as e:
+        print(f"[DB ERROR] Primary DB connection failed: {e}")
+        if os.getenv("ALLOW_SQLITE_FALLBACK", "false").lower() == "true":
+            print("[DB FALLBACK] Explicit fallback allowed. Switching to local SQLite database...")
+            fallback_url = "sqlite+aiosqlite:///./knovault.db"
+            engine = create_async_engine(fallback_url, echo=False, connect_args={"check_same_thread": False})
+            async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+            async with engine.begin() as conn:
+                from models import user, note, goal, daily_goal, project_task, reminder, important_day, ai_chat, otp, workspace, notification, secure_note_security, support, scheduled_email  # noqa
+                await conn.run_sync(run_migrations)
+                await conn.run_sync(Base.metadata.create_all)
+            print("[DB FALLBACK] SQLite fallback database initialized successfully!")
+        else:
+            raise e
+

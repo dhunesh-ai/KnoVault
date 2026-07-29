@@ -35,7 +35,10 @@ import {
   Target,
   PartyPopper,
   Loader2,
-  ShieldAlert
+  ShieldAlert,
+  PanelLeft,
+  Glasses,
+  Square
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { isToday } from "date-fns";
@@ -48,6 +51,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 export default function AIPage() {
   const {
@@ -76,12 +85,16 @@ export default function AIPage() {
   const { stats: goalStats, fetchGoals } = useGoalsStore();
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const [inputVal, setInputVal] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [mascotState, setMascotState] = useState<"idle" | "thinking" | "success">("idle");
+  const [isTempChat, setIsTempChat] = useState(false);
+  const [tempChatMessages, setTempChatMessages] = useState<any[]>([]);
   
   // Dialog open controls
   const [memoryOpen, setMemoryOpen] = useState(false);
@@ -91,6 +104,7 @@ export default function AIPage() {
   const [editingThreadId, setEditingThreadId] = useState<string | null>(null);
   const [renameText, setRenameText] = useState("");
 
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [contextLoaded, setContextLoaded] = useState(false);
 
   useEffect(() => {
@@ -113,11 +127,25 @@ export default function AIPage() {
 
   // Scroll to bottom of chat
   const activeThread = threads.find((t) => t.id === activeThreadId);
-  useEffect(() => {
-    if (scrollRef.current) {
+
+  const scrollToBottom = (smooth = true) => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: smooth ? "smooth" : "auto",
+        block: "end",
+      });
+    } else if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
+  };
+
+  useEffect(() => {
+    scrollToBottom(true);
   }, [activeThread?.messages, isSending]);
+
+  useEffect(() => {
+    scrollToBottom(false);
+  }, [activeThreadId]);
 
   // STT Voice Speech Recognition
   const toggleSpeechRecognition = () => {
@@ -193,20 +221,55 @@ export default function AIPage() {
     return false;
   };
 
+  const handleStopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsSending(false);
+    setMascotState("idle");
+    toast.info("AI generation stopped");
+  };
+
   const handleSendMessage = async (msgText: string) => {
-    if (!msgText.trim() || !activeThreadId) return;
+    if (!msgText.trim()) return;
 
     const userQuery = msgText.trim();
     setInputVal("");
-    addMessage(activeThreadId, "user", userQuery);
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsSending(true);
     setMascotState("thinking");
+
+    if (isTempChat) {
+      const userMsg = {
+        id: `temp_msg_${Date.now()}`,
+        role: "user",
+        content: userQuery,
+        timestamp: new Date().toISOString(),
+      };
+      setTempChatMessages((prev) => [...prev, userMsg]);
+    } else if (activeThreadId) {
+      addMessage(activeThreadId, "user", userQuery);
+    }
 
     // Client-side secure notes interceptor trigger
     if (checkSecureNotesQuery(userQuery)) {
       setTimeout(() => {
         const warning = "⚠️ KnoVault Security Shield: Secure Notes are end-to-end encrypted and completely isolated from KnoVault AI. To protect your privacy, the AI Chat Assistant cannot read, search, summarize, or retrieve contents from your Secure Notes. Please access them manually within the Secure Vault.";
-        addMessage(activeThreadId, "assistant", warning);
+        if (isTempChat) {
+          const assistantMsg = {
+            id: `temp_msg_${Date.now() + 1}`,
+            role: "assistant",
+            content: warning,
+            timestamp: new Date().toISOString(),
+          };
+          setTempChatMessages((prev) => [...prev, assistantMsg]);
+        } else if (activeThreadId) {
+          addMessage(activeThreadId, "assistant", warning);
+        }
         setIsSending(false);
         setMascotState("idle");
       }, 800);
@@ -229,19 +292,50 @@ export default function AIPage() {
     }
 
     try {
-      const response = await aiService.chat({ message: userQuery, context: contextStr });
-      addMessage(activeThreadId, "assistant", response.response);
+      const response = await aiService.chat(
+        { message: userQuery, context: contextStr, is_temporary: isTempChat },
+        controller.signal
+      );
+      if (isTempChat) {
+        const assistantMsg = {
+          id: `temp_msg_${Date.now() + 1}`,
+          role: "assistant",
+          content: response.response,
+          timestamp: new Date().toISOString(),
+        };
+        setTempChatMessages((prev) => [...prev, assistantMsg]);
+      } else if (activeThreadId) {
+        addMessage(activeThreadId, "assistant", response.response);
+      }
       setMascotState("success");
       setTimeout(() => setMascotState("idle"), 2500);
-    } catch (e) {
-      addMessage(activeThreadId, "assistant", "Error: I'm unable to reach the AI servers. Please check your connection.");
+    } catch (e: any) {
+      if (e?.name === "CanceledError" || e?.name === "AbortError" || e?.code === "ERR_CANCELED") {
+        // Generation cancelled cleanly by user - keep already output/thread state intact
+        return;
+      }
+      const errorMsg = "Error: I'm unable to reach the AI servers. Please check your connection.";
+      if (isTempChat) {
+        const assistantMsg = {
+          id: `temp_msg_${Date.now() + 1}`,
+          role: "assistant",
+          content: errorMsg,
+          timestamp: new Date().toISOString(),
+        };
+        setTempChatMessages((prev) => [...prev, assistantMsg]);
+      } else if (activeThreadId) {
+        addMessage(activeThreadId, "assistant", errorMsg);
+      }
       setMascotState("idle");
     } finally {
       setIsSending(false);
+      abortControllerRef.current = null;
     }
   };
 
   const handleCreateNewThread = () => {
+    setIsTempChat(false);
+    setTempChatMessages([]);
     const newId = createThread();
     toast.success("New chat thread created");
   };
@@ -282,11 +376,126 @@ export default function AIPage() {
 
   const todayMedsCount = medicineReminders.filter((r) => isToday(new Date(r.reminder_date)) && !r.is_completed).length;
 
+  const renderThreadsContent = (onSelect?: () => void) => (
+    <div className="space-y-4 flex-1 flex flex-col min-h-0">
+      {/* Search bar */}
+      <div className="relative shrink-0">
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/80" />
+        <Input
+          placeholder="Search chat history..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9.5 bg-card border-border/40 text-xs h-9 rounded-xl focus-visible:ring-primary/40 text-foreground"
+        />
+      </div>
+
+      {/* Threads List */}
+      <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-0 scrollbar-hide">
+        {filteredThreads.length === 0 ? (
+          <div className="text-center py-8 text-xs text-muted-foreground font-medium">
+            No conversations found
+          </div>
+        ) : (
+          filteredThreads.map((t) => {
+            const isActive = t.id === activeThreadId;
+            const isEditing = editingThreadId === t.id;
+
+            return (
+              <div
+                key={t.id}
+                onClick={() => {
+                  if (!isEditing) {
+                    setActiveThreadId(t.id);
+                    if (onSelect) onSelect();
+                  }
+                }}
+                className={`group relative rounded-2xl border p-3.5 flex flex-col justify-between transition-all cursor-pointer ${
+                  isActive
+                    ? "bg-primary/10 border-primary/30 text-foreground shadow-[0_4px_12px_rgba(124,77,255,0.05)]"
+                    : "bg-card/20 border-border/30 text-muted-foreground hover:bg-accent/30"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  {isEditing ? (
+                    <div className="flex gap-1.5 w-full items-center" onClick={(e) => e.stopPropagation()}>
+                      <Input
+                        value={renameText}
+                        onChange={(e) => setRenameText(e.target.value)}
+                        className="bg-card text-xs h-7 py-0 px-2 rounded-lg"
+                        autoFocus
+                        maxLength={35}
+                      />
+                      <Button size="icon" variant="ghost" onClick={() => handleRenameSubmit(t.id)} className="w-6 h-6 shrink-0 rounded-lg">
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => setEditingThreadId(null)} className="w-6 h-6 shrink-0 rounded-lg">
+                        <X className="w-3.5 h-3.5 text-destructive" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <span className="font-bold text-xs truncate max-w-[170px] text-foreground">
+                      {t.title}
+                    </span>
+                  )}
+
+                  {!isEditing && (
+                    <div className="flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          togglePinThread(t.id);
+                        }}
+                        className="p-0.5 text-muted-foreground hover:text-foreground"
+                        title={t.isPinned ? "Unpin thread" : "Pin thread"}
+                      >
+                        {t.isPinned ? <PinOff className="w-3 h-3 text-primary" /> : <Pin className="w-3 h-3" />}
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingThreadId(t.id);
+                          setRenameText(t.title);
+                        }}
+                        className="p-0.5 text-muted-foreground hover:text-primary"
+                        title="Rename thread"
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteThread(t.id);
+                        }}
+                        className="p-0.5 text-muted-foreground hover:text-destructive"
+                        title="Delete thread"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-between items-center text-[10px] text-muted-foreground mt-2 font-medium">
+                  <span>{t.messages.length} messages</span>
+                  {t.isPinned && (
+                    <span className="flex items-center gap-0.5 text-primary uppercase font-bold text-[8px] tracking-wider bg-primary/10 px-1.5 py-0.5 rounded-lg">
+                      Pinned
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="flex gap-6 h-[calc(100vh-6.5rem)] overflow-hidden -mx-4 sm:mx-0 px-4 sm:px-0 pb-6">
+    <div className="flex gap-6 h-[calc(100dvh-12.5rem-env(safe-area-inset-bottom,0px))] md:h-[calc(100dvh-6.5rem)] overflow-hidden -mx-4 sm:mx-0 px-4 sm:px-0 pb-2 md:pb-6">
       
-      {/* Threads Sidebar Panel */}
-      <div className="w-80 shrink-0 bg-card/45 backdrop-blur-md border border-border/40 rounded-3xl p-4 flex flex-col justify-between overflow-hidden hidden md:flex shadow-sm">
+      {/* Threads Sidebar Panel (Desktop ≥1024px) */}
+      <div className="w-80 shrink-0 bg-card/45 backdrop-blur-md border border-border/40 rounded-3xl p-4 flex flex-col justify-between overflow-hidden hidden lg:flex shadow-sm">
         <div className="space-y-4 flex-1 flex flex-col min-h-0">
           
           {/* Sidebar Header & Create button */}
@@ -299,102 +508,7 @@ export default function AIPage() {
             </Button>
           </div>
 
-          {/* Search bar */}
-          <div className="relative shrink-0">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/80" />
-            <Input
-              placeholder="Search chat history..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9.5 bg-card border-border/40 text-xs h-9 rounded-xl focus-visible:ring-primary/40"
-            />
-          </div>
-
-          {/* Threads List */}
-          <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-0 scrollbar-hide">
-            {filteredThreads.map((t) => {
-              const isActive = t.id === activeThreadId;
-              const isEditing = editingThreadId === t.id;
-
-              return (
-                <div
-                  key={t.id}
-                  onClick={() => !isEditing && setActiveThreadId(t.id)}
-                  className={`group relative rounded-2xl border p-3.5 flex flex-col justify-between transition-all cursor-pointer ${
-                    isActive
-                      ? "bg-primary/10 border-primary/30 text-foreground shadow-[0_4px_12px_rgba(124,77,255,0.05)]"
-                      : "bg-card/20 border-border/30 text-muted-foreground hover:bg-accent/30"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    {isEditing ? (
-                      <div className="flex gap-1.5 w-full items-center" onClick={(e) => e.stopPropagation()}>
-                        <Input
-                          value={renameText}
-                          onChange={(e) => setRenameText(e.target.value)}
-                          className="bg-card text-xs h-7 py-0 px-2 rounded-lg"
-                          autoFocus
-                          maxLength={35}
-                        />
-                        <Button size="icon" variant="ghost" onClick={() => handleRenameSubmit(t.id)} className="w-6 h-6 shrink-0 rounded-lg">
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
-                        </Button>
-                        <Button size="icon" variant="ghost" onClick={() => setEditingThreadId(null)} className="w-6 h-6 shrink-0 rounded-lg">
-                          <X className="w-3.5 h-3.5 text-destructive" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <span className="font-bold text-xs truncate max-w-[170px] text-foreground">
-                        {t.title}
-                      </span>
-                    )}
-
-                    {!isEditing && (
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            togglePinThread(t.id);
-                          }}
-                          className="p-0.5 text-muted-foreground hover:text-foreground"
-                        >
-                          {t.isPinned ? <PinOff className="w-3 h-3 text-primary" /> : <Pin className="w-3 h-3" />}
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingThreadId(t.id);
-                            setRenameText(t.title);
-                          }}
-                          className="p-0.5 text-muted-foreground hover:text-primary"
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteThread(t.id);
-                          }}
-                          className="p-0.5 text-muted-foreground hover:text-destructive"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex justify-between items-center text-[10px] text-muted-foreground mt-2 font-medium">
-                    <span>{t.messages.length} messages</span>
-                    {t.isPinned && (
-                      <span className="flex items-center gap-0.5 text-primary uppercase font-bold text-[8px] tracking-wider bg-primary/10 px-1.5 py-0.5 rounded-lg">
-                        Pinned
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          {renderThreadsContent()}
         </div>
 
         {/* Sidebar Footer */}
@@ -413,69 +527,142 @@ export default function AIPage() {
       <div className="flex-1 bg-card/35 backdrop-blur-md border border-border/40 rounded-3xl flex flex-col overflow-hidden relative shadow-sm">
         
         {/* Top Header Bar */}
-        <div className="shrink-0 p-4 border-b border-border/20 flex items-center justify-between bg-card/60 backdrop-blur-md z-10">
-          <div className="flex items-center gap-3">
-            <KnoMascot state={mascotState} className="w-10 h-10 shrink-0" />
-            <div>
-              <h1 className="text-sm font-extrabold text-foreground truncate max-w-[200px]">
-                {activeThread?.title || "KnoVault AI Assistant"}
-              </h1>
-              <p className="text-[10px] text-muted-foreground font-semibold">Always active, secure assistant</p>
+        <div className="shrink-0 py-6 px-6 md:px-8 border-b border-border/30 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-card/60 backdrop-blur-xl z-10 shadow-xs">
+          {/* Left Section: Avatar, Title, Subtitle + Mobile Drawer Trigger */}
+          <div className="flex items-center gap-3.5 shrink-0 min-w-0">
+            {/* Mobile/Tablet Conversations Drawer Button (< lg) */}
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setMobileDrawerOpen(true)}
+              className="lg:hidden h-11 w-11 rounded-[14px] border-border/50 bg-card/80 text-foreground hover:bg-accent/60 shrink-0 shadow-xs"
+              title="Open Conversations"
+            >
+              <PanelLeft className="w-5 h-5 text-primary" />
+            </Button>
+
+            <div className="relative shrink-0">
+              <KnoMascot state={mascotState} className="w-11 h-11 rounded-2xl shrink-0 shadow-sm border border-border/30" />
+            </div>
+            <div className="flex flex-col justify-center min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl lg:text-[22px] font-bold text-foreground tracking-tight truncate max-w-[240px] sm:max-w-[360px] lg:max-w-[420px]">
+                  {isTempChat ? "Incognito Session" : (activeThread?.title || "First Conversation")}
+                </h1>
+                {isTempChat && (
+                  <span className="bg-purple-500/20 text-purple-300 border border-purple-500/40 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm shrink-0">
+                    <Glasses className="w-3 h-3 text-purple-400" /> Incognito
+                  </span>
+                )}
+              </div>
+              <p className="text-sm font-medium text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                <span className={`w-2 h-2 rounded-full ${isTempChat ? "bg-purple-400" : "bg-emerald-500"} animate-pulse shrink-0`} />
+                <span>{isTempChat ? "Temporary Mode" : "Always active"}</span>
+                <span className="text-muted-foreground/40">•</span>
+                <span>{isTempChat ? "History Disabled" : "Secure Assistant"}</span>
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Right Section: Action Buttons */}
+          <div className="flex items-center gap-3 md:gap-3.5 overflow-x-auto scrollbar-hide py-0.5 shrink-0 max-w-full">
+            <Button
+              variant={isTempChat ? "default" : "outline"}
+              onClick={() => {
+                const nextState = !isTempChat;
+                setIsTempChat(nextState);
+                if (nextState) {
+                  setTempChatMessages([]);
+                  toast.info("Incognito Chat Session Started");
+                } else {
+                  toast.info("Returned to Normal Chat");
+                }
+              }}
+              className={`h-11 px-4 rounded-[14px] font-semibold text-xs md:text-sm shadow-xs flex items-center gap-2 shrink-0 transition-all duration-200 ${
+                isTempChat
+                  ? "bg-purple-600 hover:bg-purple-700 text-white shadow-purple-500/20 border-purple-500/40"
+                  : "border-border/50 bg-card/80 hover:bg-accent/60 text-foreground"
+              }`}
+              title={isTempChat ? "Disable Temporary Chat" : "Enable Temporary Chat"}
+            >
+              <Glasses className="w-4 h-4 text-purple-300 shrink-0" />
+              <span>{isTempChat ? "Incognito Active" : "Temporary Chat"}</span>
+            </Button>
+
             <Button
               variant="outline"
-              size="sm"
               onClick={() => setMemoryOpen(true)}
-              className="border-border/50 bg-card md:hidden flex rounded-xl text-xs"
+              className="h-11 px-4 rounded-[14px] border-border/50 bg-card/80 hover:bg-accent/60 text-foreground font-semibold text-xs md:text-sm shadow-xs flex items-center gap-2 shrink-0 transition-all duration-200"
             >
-              <Brain className="w-3.5 h-3.5 mr-1 text-purple-500" /> Memory
+              <Brain className="w-4 h-4 text-purple-500 shrink-0" />
+              <span>Memory</span>
             </Button>
-            {activeThread && activeThread.messages.length > 0 && (
+
+            {activeThread && activeThread.messages.length > 0 && !isTempChat && (
               <>
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={() => handleExport(activeThread.id)}
-                  className="border-border/50 bg-card rounded-xl text-xs"
+                  className="h-11 px-4 rounded-[14px] border-border/50 bg-card/80 hover:bg-accent/60 text-foreground font-semibold text-xs md:text-sm shadow-xs flex items-center gap-2 shrink-0 transition-all duration-200"
                 >
-                  <Download className="w-3.5 h-3.5 mr-1 text-blue-400" /> Export MD
+                  <Download className="w-4 h-4 text-blue-400 shrink-0" />
+                  <span>Export</span>
                 </Button>
+
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl"
+                  variant="outline"
                   onClick={() => deleteThread(activeThread.id)}
+                  className="h-11 px-4 rounded-[14px] border-border/50 bg-card/80 hover:bg-destructive/10 hover:border-destructive/30 text-muted-foreground hover:text-destructive font-semibold text-xs md:text-sm shadow-xs flex items-center gap-2 shrink-0 transition-all duration-200"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-4 h-4 shrink-0" />
+                  <span>Delete</span>
                 </Button>
               </>
             )}
+
             <Button
-              variant="outline"
-              size="sm"
               onClick={handleCreateNewThread}
-              className="border-border/50 bg-card hidden sm:flex rounded-xl text-xs font-semibold"
+              className="h-11 px-4.5 rounded-[14px] bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs md:text-sm shadow-md shadow-primary/20 flex items-center gap-2 shrink-0 transition-all duration-200"
             >
-              <Plus className="w-3.5 h-3.5 mr-1" /> New Chat
+              <Plus className="w-4 h-4 shrink-0" />
+              <span>New Chat</span>
             </Button>
           </div>
         </div>
 
+        {/* Temporary Chat Glassmorphism Banner */}
+        <AnimatePresence>
+          {isTempChat && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="mx-4 md:mx-6 mt-3 px-4 py-2.5 rounded-2xl bg-purple-950/40 border border-purple-500/30 backdrop-blur-md flex items-center gap-3 text-xs text-purple-200 shadow-md shrink-0"
+            >
+              <Glasses className="w-4.5 h-4.5 text-purple-400 shrink-0 animate-pulse" />
+              <span className="font-medium">
+                This conversation won't appear in your history and won't be used to improve memory.
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Message Feed Grid */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 min-h-0 scrollbar-hide" ref={scrollRef}>
-          {(!activeThread || activeThread.messages.length === 0) ? (
+          {((isTempChat ? tempChatMessages : (activeThread?.messages || [])).length === 0) ? (
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               className="flex flex-col items-center justify-center pt-8 pb-8 text-center"
             >
               <KnoMascot state="idle" className="w-20 h-20 mb-4" />
-              <h3 className="text-lg font-extrabold text-foreground mb-1">Welcome to KnoVault AI</h3>
+              <h3 className="text-lg font-extrabold text-foreground mb-1">
+                {isTempChat ? "Incognito AI Chat" : "Welcome to KnoVault AI"}
+              </h3>
               <p className="text-xs text-muted-foreground max-w-sm mb-6 leading-relaxed">
-                I can summarize medicines, check streaks, log goals, and lookup files.
+                {isTempChat 
+                  ? "Temporary chat session. Messages are processed in real-time but discarded when closed." 
+                  : "I can summarize medicines, check streaks, log goals, and lookup files."}
               </p>
 
               {/* Context Summary Cards */}
@@ -516,8 +703,7 @@ export default function AIPage() {
               <div className="flex flex-wrap items-center justify-center gap-2 max-w-lg">
                 {[
                   "What's my schedule today?",
-                  "Analyze my daily goals",
-                  "Suggest healthy habit tips"
+                  "Analyze my daily goals"
                 ].map((sug, idx) => (
                   <button
                     key={idx}
@@ -530,9 +716,9 @@ export default function AIPage() {
               </div>
             </motion.div>
           ) : (
-            <div className="space-y-6 max-w-3xl mx-auto">
+            <div className="space-y-6 max-w-3xl mx-auto pb-4 md:pb-6">
               <AnimatePresence>
-                {activeThread.messages.map((msg) => {
+                {(isTempChat ? tempChatMessages : (activeThread?.messages || [])).map((msg: any) => {
                   const isUser = msg.role === "user";
                   const isSecurityAlert = msg.content.includes("KnoVault Security Shield");
 
@@ -606,6 +792,7 @@ export default function AIPage() {
                   </div>
                 </div>
               )}
+              <div ref={messagesEndRef} className="h-px w-full" />
             </div>
           )}
         </div>
@@ -632,16 +819,28 @@ export default function AIPage() {
             </Button>
 
             <Input
-              placeholder="Ask a question about medicines, streak, goals..."
+              placeholder={isTempChat ? "Ask temporary question (Incognito mode)..." : "Ask a question about medicines, streak, goals..."}
               value={inputVal}
               onChange={(e) => setInputVal(e.target.value)}
               className="flex-1 bg-card border-border/40 rounded-2xl text-xs h-11 focus-visible:ring-primary/30"
               disabled={isSending}
             />
 
-            <Button type="submit" size="icon" disabled={isSending} className="bg-primary hover:bg-primary/90 text-white rounded-2xl shrink-0 h-11 w-11">
-              {isSending ? <Loader2 className="w-4.5 h-4.5 animate-spin" /> : <Send className="w-4.5 h-4.5" />}
-            </Button>
+            {isSending ? (
+              <Button
+                type="button"
+                onClick={handleStopGeneration}
+                className="bg-destructive hover:bg-destructive/90 text-white rounded-2xl shrink-0 h-11 px-4 flex items-center gap-1.5 font-bold text-xs shadow-md transition-all duration-200"
+                title="Stop AI Generation"
+              >
+                <Square className="w-3.5 h-3.5 fill-current" />
+                <span>Stop</span>
+              </Button>
+            ) : (
+              <Button type="submit" size="icon" disabled={!inputVal.trim()} className="bg-primary hover:bg-primary/90 text-white rounded-2xl shrink-0 h-11 w-11 transition-all duration-200">
+                <Send className="w-4.5 h-4.5" />
+              </Button>
+            )}
           </form>
         </div>
       </div>
@@ -707,6 +906,45 @@ export default function AIPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Mobile Conversations Slide-over Drawer (< lg) */}
+      <Sheet open={mobileDrawerOpen} onOpenChange={setMobileDrawerOpen}>
+        <SheetContent side="left" className="w-[85vw] max-w-[340px] p-5 bg-card/95 backdrop-blur-2xl border-r border-border/40 text-foreground flex flex-col justify-between h-full">
+          <SheetHeader className="p-0 pb-3 border-b border-border/20 flex flex-row items-center justify-between">
+            <SheetTitle className="font-extrabold text-foreground text-base flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-primary" /> Conversations
+            </SheetTitle>
+            <Button
+              size="sm"
+              onClick={() => {
+                handleCreateNewThread();
+                setMobileDrawerOpen(false);
+              }}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl h-8 px-3 flex items-center gap-1 shrink-0 mr-8"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>New</span>
+            </Button>
+          </SheetHeader>
+
+          <div className="flex-1 overflow-hidden flex flex-col min-h-0 pt-4">
+            {renderThreadsContent(() => setMobileDrawerOpen(false))}
+          </div>
+
+          <div className="shrink-0 pt-4 border-t border-border/20 mt-3">
+            <Button 
+              onClick={() => {
+                setMemoryOpen(true);
+                setMobileDrawerOpen(false);
+              }} 
+              variant="outline" 
+              className="w-full border-border/50 bg-card rounded-2xl font-bold text-xs h-10 hover:bg-accent/40"
+            >
+              <Brain className="w-4 h-4 mr-2 text-purple-500" /> AI Memory Box
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
 
     </div>
   );

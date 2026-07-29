@@ -2,8 +2,8 @@ import api from "@/lib/axios";
 import { AIChatMessage, AIChatRequest, AIHistoryResponse } from "@/types/AIChat";
 
 export const aiService = {
-  chat: async (data: AIChatRequest) => {
-    const response = await api.post<AIChatMessage>("/api/ai/chat", data);
+  chat: async (data: AIChatRequest, signal?: AbortSignal) => {
+    const response = await api.post<AIChatMessage>("/api/ai/chat", data, { signal });
     return response.data;
   },
 

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -164,14 +165,14 @@ export function TopBar() {
       </div>
       
       {/* Mobile Title */}
-      <div className="md:hidden flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-secondary flex items-center justify-center">
+      <Link href="/" className="md:hidden flex items-center gap-2 group cursor-pointer hover:opacity-90 transition-all duration-200" title="KnoVault Home Dashboard">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-secondary flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
           <Shield className="w-4 h-4 text-primary-foreground" />
         </div>
-        <span className="text-base font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">
+        <span className="text-base font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent group-hover:text-primary transition-colors">
           KnoVault
         </span>
-      </div>
+      </Link>
 
       <div className="flex items-center space-x-2">
         <Button

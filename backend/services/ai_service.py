@@ -37,21 +37,55 @@ class AIService:
             traceback.print_exc()
 
         self.system_prompt = (
-            "You are KnoVault AI — a premium, intelligent productivity assistant.\n\n"
-            "CRITICAL FORMATTING RULES (ALWAYS FOLLOW):\n"
-            "- You are displayed on a MOBILE phone screen. Keep responses compact.\n"
-            "- For simple/conversational questions: reply in 2-4 short sentences. No lists.\n"
-            "- For productivity questions: use short bullet points (max 5-6 items).\n"
-            "- For detailed analysis: use brief paragraphs with minimal headings.\n"
-            "- NEVER write long essays, giant bullet lists, or multi-paragraph introductions.\n"
-            "- NEVER use nested bullets or excessive markdown formatting.\n"
-            "- Avoid repeating information the user already knows.\n"
-            "- Be warm, direct, and helpful — like a smart personal assistant.\n\n"
-            "SECURITY:\n"
-            "- You CANNOT access notes categorized as 'Secure' or marked is_secure.\n"
-            "- If asked about secure notes, say: 'Secure notes are protected and cannot be accessed by AI for your privacy.'\n\n"
-            "CAPABILITIES: Summarize notes, suggest goals/reminders, analyze workload, "
-            "recommend priorities, track goal progress, remember special days and celebrations, and provide smart scheduling advice."
+            "You are KnoVault AI Assistant – Your Personal Knowledge Management Assistant.\n\n"
+            "Your purpose is ONLY to help users manage, organize, search, summarize, and interact with information stored inside KnoVault.\n"
+            "You are NOT a general-purpose AI assistant like ChatGPT.\n\n"
+            "STRICT DATABASE GROUNDING & ZERO HALLUCINATION RULES:\n"
+            "1. Answer ONLY using the facts present in the provided USER CONTEXT JSON block.\n"
+            "2. NEVER invent, rename, or modify event categories. Use the EXACT category/type stored in the database context:\n"
+            "   - If category is 'Birthday', report 'Birthday'.\n"
+            "   - If category is 'Festival', report 'Festival'.\n"
+            "   - If category is 'Meeting', report 'Meeting'.\n"
+            "   - If category is 'Wedding Anniversary', report 'Wedding Anniversary'.\n"
+            "   - NEVER convert a Birthday to an Anniversary or 'RAX anniversary'.\n"
+            "3. NEVER state 'You don't have any special days marked' if records exist in the `special_days` list.\n"
+            "4. If a user asks about an item not found in the context, respond: 'I couldn't find that information in your KnoVault.'\n\n"
+            "RESPONSIBILITIES:\n"
+            "You can ONLY assist with KnoVault features, including:\n"
+            "• Notes & Secure Notes (never reveal content of secure notes unless explicitly authorized by the application)\n"
+            "• AI Note Summarization, Explanation, & Organization\n"
+            "• Voice Notes & Documents\n"
+            "• Projects & Workspaces\n"
+            "• Goals & Tasks\n"
+            "• Reminders & Medicine Reminders\n"
+            "• Calendar Events & Birthdays\n"
+            "• Notifications & Personal Productivity\n"
+            "• Searching user information stored inside KnoVault\n\n"
+            "STRICT RESTRICTIONS:\n"
+            "You MUST NOT answer:\n"
+            "• General Knowledge, Politics, Current Affairs, Sports, Movies, Entertainment, Coding tutorials, Mathematics, Science questions unrelated to KnoVault, History, Geography, Medical advice, Legal advice, Religious discussions, or any topic unrelated to KnoVault.\n\n"
+            "OUT OF SCOPE RESPONSE:\n"
+            "If a user asks anything outside your scope, NEVER attempt to answer it. Reply politely with EXACTLY:\n"
+            "\"I'm KnoVault AI Assistant. I can only help you with your personal information and productivity inside KnoVault.\n\n"
+            "I can assist you with:\n"
+            "• Notes\n"
+            "• Summaries\n"
+            "• Reminders\n"
+            "• Goals\n"
+            "• Tasks\n"
+            "• Calendar\n"
+            "• Projects\n"
+            "• Workspaces\n"
+            "• Documents\n"
+            "• Voice Notes\n"
+            "• Medicine Reminders\n"
+            "• Birthdays\n\n"
+            "Please ask a KnoVault-related question.\"\n\n"
+            "RESPONSE STYLE:\n"
+            "- Professional, friendly, short, clear, helpful.\n"
+            "- Keep responses compact (MOBILE phone optimized).\n"
+            "- Use bullet points whenever appropriate.\n"
+            "- Avoid long explanations unless explicitly requested."
         )
 
         # Patterns that indicate simple intro/conversational questions
@@ -90,15 +124,71 @@ class AIService:
         logger.info(f"[GROQ CALL] Response received ({len(result)} chars)")
         return result
 
-    async def get_user_context(self, db: AsyncSession, user_id: int) -> str:
+    async def get_user_context(self, db: AsyncSession, user_id: int, user_message: str = "") -> str:
         """
-        Fetches a condensed context of the user's non-secure data.
+        Fetches a complete, structured JSON context of the user's non-secure data.
+        Performs entity and intent search to highlight relevant records.
         """
-        logger.info(f"[AI CONTEXT ENGINE] Generating context for user {user_id}")
-        context_parts = []
+        logger.info(f"[AI CONTEXT ENGINE] Generating structured context for user {user_id}")
+        context_data: Dict[str, Any] = {
+            "special_days": [],
+            "notes": [],
+            "goals": [],
+            "reminders": [],
+            "matched_entities": []
+        }
+
+        user_query_lower = (user_message or "").strip().lower()
 
         try:
-            # 1. Fetch Non-Secure Notes
+            # 1. Fetch ALL Special Days / Important Days
+            important_days_query = await db.execute(
+                select(ImportantDay)
+                .where(and_(ImportantDay.user_id == user_id, ImportantDay.is_deleted == False))
+                .order_by(ImportantDay.date.asc())
+            )
+            important_days = important_days_query.scalars().all()
+            for day in important_days:
+                turning_val = None
+                if day.notes:
+                    match = re.search(r'turning\s*(\d+)', day.notes, re.IGNORECASE)
+                    if match:
+                        turning_val = int(match.group(1))
+
+                day_dict = {
+                    "id": day.id,
+                    "title": day.title,
+                    "category": day.type or "Special Day",
+                    "custom_type": day.custom_type,
+                    "date": str(day.date) if day.date else None,
+                    "notes": day.notes,
+                    "turning": turning_val,
+                    "contact_relationship": day.contact_relationship,
+                    "recipient_email": day.recipient_email,
+                    "email_enabled": day.email_enabled,
+                }
+                context_data["special_days"].append(day_dict)
+
+                # Entity matching check & semantic intent routing
+                if user_query_lower:
+                    search_terms = [t for t in re.split(r'\W+', user_query_lower) if len(t) >= 2]
+                    is_special_day_intent = any(kw in user_query_lower for kw in [
+                        "special day", "special days", "birthday", "birthdays", "anniversary", 
+                        "anniversaries", "festival", "festivals", "event", "events", "celebration", 
+                        "celebrations", "meeting", "meetings", "raax", "rakshith", "details"
+                    ])
+                    day_text = f"{day.title} {day.type} {day.custom_type or ''} {day.notes or ''} {day.contact_relationship or ''}".lower()
+                    if is_special_day_intent or any(term in day_text for term in search_terms):
+                        context_data["matched_entities"].append(day_dict)
+        except Exception as e:
+            logger.error(f"[AI CONTEXT] Important Days fetch error: {e}")
+
+        # If matched_entities is empty but special_days exist, fallback to copying all special_days into matched_entities
+        if not context_data["matched_entities"] and context_data["special_days"]:
+            context_data["matched_entities"] = context_data["special_days"]
+
+        try:
+            # 2. Fetch Non-Secure Notes
             notes_query = await db.execute(
                 select(Note).where(
                     and_(
@@ -106,60 +196,52 @@ class AIService:
                         Note.category != "Secure",
                         Note.is_secure == False
                     )
-                ).order_by(Note.updated_at.desc()).limit(15)
+                ).order_by(Note.updated_at.desc()).limit(20)
             )
             notes = notes_query.scalars().all()
-            if notes:
-                context_parts.append("RECENT NOTES:")
-                for n in notes:
-                    content_preview = (n.content or "")[:200]
-                    context_parts.append(f"- [{n.category}] {n.title}: {content_preview}")
+            for n in notes:
+                context_data["notes"].append({
+                    "id": n.id,
+                    "title": n.title,
+                    "category": n.category,
+                    "content_preview": (n.content or "")[:250]
+                })
         except Exception as e:
             logger.error(f"[AI CONTEXT] Notes fetch error: {e}")
 
         try:
-            # 2. Fetch Active Goals
+            # 3. Fetch Goals
             goals_query = await db.execute(
-                select(Goal).where(
-                    and_(Goal.user_id == user_id, Goal.completed == False)
-                ).limit(10)
+                select(Goal).where(and_(Goal.user_id == user_id, Goal.completed == False)).limit(15)
             )
             goals = goals_query.scalars().all()
-            if goals:
-                context_parts.append("\nACTIVE GOALS:")
-                for g in goals:
-                    context_parts.append(f"- {g.title} (Pending)")
+            for g in goals:
+                context_data["goals"].append({
+                    "id": g.id,
+                    "title": g.title,
+                    "status": "pending"
+                })
         except Exception as e:
             logger.error(f"[AI CONTEXT] Goals fetch error: {e}")
 
         try:
-            # 3. Fetch Upcoming Reminders
+            # 4. Fetch Reminders
             reminders_query = await db.execute(
-                select(Reminder).where(and_(Reminder.user_id == user_id, Reminder.is_deleted == False)).limit(10)
+                select(Reminder).where(and_(Reminder.user_id == user_id, Reminder.is_deleted == False)).limit(15)
             )
             reminders = reminders_query.scalars().all()
-            if reminders:
-                context_parts.append("\nUPCOMING REMINDERS:")
-                for r in reminders:
-                    context_parts.append(f"- {r.title} at {r.reminder_date}")
+            for r in reminders:
+                context_data["reminders"].append({
+                    "id": r.id,
+                    "title": r.title,
+                    "reminder_date": str(r.reminder_date) if r.reminder_date else None,
+                    "is_completed": r.is_completed
+                })
         except Exception as e:
             logger.error(f"[AI CONTEXT] Reminders fetch error: {e}")
 
-        try:
-            # 4. Fetch Important Days
-            important_days_query = await db.execute(
-                select(ImportantDay).where(and_(ImportantDay.user_id == user_id, ImportantDay.is_deleted == False)).limit(10)
-            )
-            important_days = important_days_query.scalars().all()
-            if important_days:
-                context_parts.append("\nUPCOMING IMPORTANT DAYS:")
-                for b in important_days:
-                    context_parts.append(f"- [{b.type}] {b.title} on {b.date}")
-        except Exception as e:
-            logger.error(f"[AI CONTEXT] Important Days fetch error: {e}")
-
-        full_context = "\n".join(context_parts) if context_parts else "No user data available yet."
-        logger.info(f"[AI CONTEXT SUCCESS] Context size: {len(full_context)} chars")
+        full_context = json.dumps(context_data, indent=2)
+        logger.info(f"[AI CONTEXT SUCCESS] UserID={user_id} | ContextSize={len(full_context)} chars | SpecialDaysCount={len(context_data['special_days'])} | MatchedEntities={len(context_data['matched_entities'])}")
         return full_context
 
     def _is_intro_question(self, message: str) -> bool:
@@ -187,16 +269,12 @@ class AIService:
                 "Do NOT use bullet points, headings, or lists. Just a brief friendly answer."
             )
 
-        # Simple short questions
-        if len(lower.split()) <= 6 and '?' not in lower:
-            return 600, 0.7, None
-
-        # Requests for summaries or analysis
-        if any(kw in lower for kw in ['summarize', 'analyze', 'list all', 'detail', 'explain in detail']):
-            return 1536, 0.7, None
+        # Requests for summaries, lists, or details
+        if any(kw in lower for kw in ['special days', 'birthday', 'detail', 'summarize', 'list all', 'event', 'celebration']):
+            return 1536, 0.5, None
 
         # Default: moderate length
-        return 1024, 0.7, None
+        return 1024, 0.6, None
 
     async def chat_with_ai(self, message: str, context: str, history: List[Dict[str, str]] = None, custom_system_prompt: str = None) -> str:
         """
@@ -217,21 +295,44 @@ class AIService:
 
         active_system_prompt = custom_system_prompt if custom_system_prompt else self.system_prompt
 
+        # AUDIT LOGGING
+        try:
+            ctx_data = json.loads(context) if context.startswith("{") else {}
+            spec_days = ctx_data.get("special_days", [])
+            titles = [d.get("title") for d in spec_days]
+            categories = [d.get("category") for d in spec_days]
+            dates = [d.get("date") for d in spec_days]
+            logger.info(f"[AI AUDIT PRE-FLIGHT] SpecialDaysCount={len(spec_days)} | Titles={titles} | Categories={categories} | Dates={dates}")
+        except Exception:
+            logger.info(f"[AI AUDIT PRE-FLIGHT] Raw context size={len(context)} chars")
+
         messages = [
-            {"role": "system", "content": active_system_prompt},
-            {"role": "system", "content": f"USER CONTEXT (NON-SECURE DATA):\n{context}"}
+            {"role": "system", "content": active_system_prompt}
         ]
+
+        if history:
+            messages.extend(history)
+
+        # Inject Ground-Truth Context AFTER history to prevent history contamination
+        ground_truth_block = (
+            "==================================================\n"
+            "GROUND-TRUTH DATABASE CONTEXT (PRIMARY SINGLE SOURCE OF TRUTH):\n"
+            f"{context}\n"
+            "==================================================\n"
+            "MANDATORY INSTRUCTION: You MUST answer the user's query using ONLY the ground-truth database JSON above. "
+            "If previous conversation history contradicts this database context or claims items do not exist, "
+            "you MUST OVERRIDE history and state the exact items found in the database context."
+        )
+
+        messages.append({"role": "system", "content": ground_truth_block})
 
         # Inject concise-mode instruction if needed
         if extra_instruction and not custom_system_prompt:
             messages.append({"role": "system", "content": extra_instruction})
 
-        if history:
-            messages.extend(history)
-
         messages.append({"role": "user", "content": message})
 
-        logger.info(f"[AI REQUEST START] Message: '{message[:50]}...' | max_tokens={max_tokens}")
+        logger.info(f"[AI REQUEST START] Query: '{message}' | max_tokens={max_tokens}")
         try:
             result = await asyncio.to_thread(self._call_groq, messages, temperature, max_tokens)
             logger.info(f"[AI RESPONSE SUCCESS] [AI RESPONSE LENGTH] {len(result)} chars")

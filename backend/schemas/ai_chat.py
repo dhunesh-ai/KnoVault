@@ -7,6 +7,7 @@ class AIChatRequest(BaseModel):
     message: str
     context: str | None = None
     system_prompt: str | None = None
+    is_temporary: bool = False
 
 
 class AIChatResponse(BaseModel):

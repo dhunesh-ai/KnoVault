@@ -10,6 +10,7 @@ export interface AIChatRequest {
   message: string;
   context?: string | null;
   system_prompt?: string | null;
+  is_temporary?: boolean;
 }
 
 export interface AIHistoryResponse {

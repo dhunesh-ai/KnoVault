@@ -151,12 +151,12 @@ export default function DashboardPage() {
         goalsRes,
         specialDaysRes
       ] = await Promise.all([
-        api.get('/api/notes').catch(() => ({ data: [] })),
-        api.get('/api/reminders').catch(() => ({ data: [] })),
-        api.get('/api/projects').catch(() => ({ data: [] })),
-        api.get('/api/goals').catch(() => ({ data: [] })),
-        api.get('/api/important-days').catch(() => ({ data: [] })),
-        fetchCalendarNotes().catch(() => null)
+        api.get('/api/notes').catch((err) => { console.warn("[Dashboard] /api/notes fetch error:", err); return { data: [] }; }),
+        api.get('/api/reminders').catch((err) => { console.warn("[Dashboard] /api/reminders fetch error:", err); return { data: [] }; }),
+        api.get('/api/projects').catch((err) => { console.warn("[Dashboard] /api/projects fetch error:", err); return { data: [] }; }),
+        api.get('/api/goals').catch((err) => { console.warn("[Dashboard] /api/goals fetch error:", err); return { data: [] }; }),
+        api.get('/api/important-days').catch((err) => { console.warn("[Dashboard] /api/important-days fetch error:", err); return { data: [] }; }),
+        fetchCalendarNotes().catch((err) => { console.warn("[Dashboard] fetchCalendarNotes error:", err); return null; })
       ]);
 
       const notes = notesRes.data || [];

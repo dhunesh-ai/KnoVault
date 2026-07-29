@@ -57,11 +57,12 @@ async def chat(
             await db.refresh(chat_entry)
             return AIChatResponse.model_validate(chat_entry)
 
-        # 1. Fetch User Context (Non-Secure data only)
+        # 1. Fetch User Context from Database
+        db_context = await ai_service.get_user_context(db, current_user.id, user_message=data.message)
         if data.context:
-            context = data.context
+            context = f"{db_context}\n\nCLIENT MEMORY & DASHBOARD CONTEXT:\n{data.context}"
         else:
-            context = await ai_service.get_user_context(db, current_user.id)
+            context = db_context
 
         # 2. Fetch recent history for conversational continuity
         history_result = await db.execute(
@@ -90,17 +91,25 @@ async def chat(
         if "Authentication failed" in ai_response or "temporarily unavailable" in ai_response:
             raise HTTPException(status_code=503, detail=ai_response)
 
-        # 4. Save to history
-        chat_entry = AIChat(
-            user_id=current_user.id,
-            message=data.message,
-            response=ai_response,
-        )
-        db.add(chat_entry)
-        await db.commit() # Use commit instead of flush for persistence
-        await db.refresh(chat_entry)
-        
-        return AIChatResponse.model_validate(chat_entry)
+        # 4. Save to history (if not temporary)
+        if not data.is_temporary:
+            chat_entry = AIChat(
+                user_id=current_user.id,
+                message=data.message,
+                response=ai_response,
+            )
+            db.add(chat_entry)
+            await db.commit() # Use commit instead of flush for persistence
+            await db.refresh(chat_entry)
+            return AIChatResponse.model_validate(chat_entry)
+        else:
+            from datetime import datetime
+            return AIChatResponse(
+                id=0,
+                message=data.message,
+                response=ai_response,
+                created_at=datetime.now()
+            )
     except HTTPException:
         raise
     except Exception as e:

@@ -56,10 +56,21 @@ app = FastAPI(
 )
 
 # CORS
-origins = settings.ALLOWED_ORIGINS.split(",") if settings.ALLOWED_ORIGINS != "*" else ["*"]
+raw_origins = settings.ALLOWED_ORIGINS.split(",") if settings.ALLOWED_ORIGINS and settings.ALLOWED_ORIGINS != "*" else []
+default_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "https://knovault-jbph.onrender.com",
+    "https://knovault.app",
+]
+origins = list(set(default_origins + [o.strip() for o in raw_origins if o.strip()]))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=origins if settings.ALLOWED_ORIGINS != "*" else ["*"],
+    allow_origin_regex=r"https?://.*" if settings.ALLOWED_ORIGINS == "*" else None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
