@@ -13,7 +13,7 @@ export interface Goal {
   status?: string; 
   progress?: number; 
   deadline?: string | null;
-  subtasks?: Milestone[];
+  subtasks?: Milestone[] | null;
   daily_target?: number;
   target_unit?: string;
   start_date?: string | null;

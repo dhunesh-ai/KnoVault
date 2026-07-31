@@ -1554,8 +1554,8 @@ export default function WorkspaceDetailScreen() {
   const chatScrollRef = useRef<ScrollView>(null);
 
   const handleAskAI = async () => {
-    if (!aiInput.trim()) return;
-    const question = aiInput;
+    if (!aiInput.trim() || aiLoading) return;
+    const question = aiInput.trim();
     setAiInput('');
     setAiChatHistory(prev => [...prev, { sender: 'user', text: question }]);
     setAiLoading(true);

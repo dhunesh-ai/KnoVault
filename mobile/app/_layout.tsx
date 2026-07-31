@@ -114,32 +114,32 @@ function RootLayoutContent() {
   const [isAppReady, setIsAppReady] = React.useState(false);
   const [bootError, setBootError] = React.useState<string | null>(null);
 
-  // Initialize auth and db on app start
+  // Initialize auth and db on app start using strict Staged Initialization Pipeline
   useEffect(() => {
     let isMounted = true;
     const bootstrap = async () => {
       try {
-        console.log('[App Startup] Mounting - initializing auth & db...');
+        console.log('[App Startup Stage 0] Opening SQLite, applying PRAGMAs, and running migrations...');
         
-        // Initialize DB FIRST to avoid concurrent SQLite.openDatabaseSync NullPointerException
+        // Stage 0: Initialize DB FIRST, apply PRAGMAs, and await databaseReadyPromise
         await initDB();
         
-        // Background sync can run without blocking
-        registerBackgroundSync().catch(e => console.warn('Background sync init failed', e));
-
-        // Parallel initialize stores
+        console.log('[App Startup Stage 1] Restoring Auth and Settings...');
+        // Stage 1: Parallel initialize auth and settings stores after DB is ready
         await Promise.all([
           initialize(),
           initializeSettings(),
           setupNotificationChannelsAndCategories()
         ]);
         
-        // Schedule daily planner once on app open
+        // Background sync task registration (Stage 5 priority)
+        registerBackgroundSync().catch(e => console.warn('Background sync init failed', e));
+
+        // Schedule local alarms
         scheduleDailyPlanner().catch(e => console.warn('Daily planner schedule failed', e));
-        
-        // Schedule special days reminders
         scheduleSpecialDaysReminders().catch(e => console.warn('Special days schedule failed', e));
 
+        // Stage 2: UI Ready
         if (isMounted) setIsAppReady(true);
       } catch (e: any) {
         console.error('[RootLayout] Fatal Boot Error:', e);
@@ -170,8 +170,9 @@ function RootLayoutContent() {
         useAppStore.getState().setNetworkReady(true);
 
         if (prevOffline && !offline && isAuthenticated && user) {
-          console.log('[RootLayout] Connection restored. Running auto-sync...');
-          syncWorkspace().catch((e: any) => console.warn('Sync on connection restore failed', e));
+          console.log('[RootLayout] Connection restored. Scheduling auto-sync via SyncManager...');
+          const { syncManager, TaskPriority } = require('../src/services/syncManager');
+          syncManager.scheduleTask('conn_restore_sync', TaskPriority.BACKGROUND_SYNC, syncWorkspace).catch((e: any) => console.warn('Sync on connection restore failed', e));
 
           const { syncWebSocket } = require('../src/services/syncWebSocket');
           syncWebSocket.connect().catch((e: any) => console.warn('WebSocket reconnect failed', e));
@@ -254,14 +255,39 @@ function RootLayoutContent() {
     return () => subscription.remove();
   }, [router]);
 
-  // Sync workspace notifications and start WebSocket on successful authentication
+  // Staged initialization of background services via SyncManager
   useEffect(() => {
     if (isAuthenticated && user) {
-      console.log('[RootLayout] Authenticated - syncing workspace notifications & connecting WS...');
-      syncWorkspaceNotifications().catch((e: any) => console.warn('Workspace notifications sync failed', e));
+      console.log('[RootLayout Stage 2] Authenticated user confirmed.');
       
-      const { syncWebSocket } = require('../src/services/syncWebSocket');
-      syncWebSocket.connect().catch((e: any) => console.warn('WebSocket connect failed', e));
+      // Stage 4: Background Workspace Sync via SyncManager
+      const stage4Timer = setTimeout(() => {
+        console.log('[RootLayout Stage 4] Scheduling background workspace sync via SyncManager...');
+        const { syncManager, TaskPriority } = require('../src/services/syncManager');
+        syncManager.scheduleTask('workspace_sync_bg', TaskPriority.BACKGROUND_SYNC, syncWorkspace).catch((e: any) => console.warn('Background sync failed', e));
+      }, 600);
+
+      // Stage 5: Workspace Notifications via SyncManager
+      const stage5Timer = setTimeout(() => {
+        console.log('[RootLayout Stage 5] Scheduling workspace notifications via SyncManager...');
+        const { syncManager, TaskPriority } = require('../src/services/syncManager');
+        syncManager.scheduleTask('workspace_notifs_sync', TaskPriority.NOTIFICATIONS, syncWorkspaceNotifications).catch((e: any) => console.warn('Workspace notifications sync failed', e));
+      }, 2500);
+
+      // Stage 6: WebSocket Connection
+      const stage6Timer = setTimeout(() => {
+        console.log('[RootLayout Stage 6] Connecting WebSocket...');
+        try {
+          const { syncWebSocket } = require('../src/services/syncWebSocket');
+          syncWebSocket.connect().catch((e: any) => console.warn('WebSocket connect failed', e));
+        } catch (e) {}
+      }, 4500);
+
+      return () => {
+        clearTimeout(stage4Timer);
+        clearTimeout(stage5Timer);
+        clearTimeout(stage6Timer);
+      };
     } else {
       try {
         const { syncWebSocket } = require('../src/services/syncWebSocket');
@@ -293,13 +319,20 @@ function RootLayoutContent() {
     return () => sub.remove();
   }, [isAuthenticated, user]);
 
-  // Listen for local DB modifications to trigger auto-sync
+  // Listen for local DB modifications to trigger auto-sync safely (throttled)
   useEffect(() => {
+    let syncDebounceTimer: any = null;
     const sub = DeviceEventEmitter.addListener('TRIGGER_AUTO_SYNC', () => {
-      console.log('[RootLayout] Auto-sync triggered from DB mutation');
-      syncWorkspace().catch(e => console.warn('Auto-sync failed', e));
+      if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+      syncDebounceTimer = setTimeout(() => {
+        console.log('[RootLayout] Throttled auto-sync triggered from DB mutation');
+        syncWorkspace().catch(e => console.warn('Auto-sync failed', e));
+      }, 3000);
     });
-    return () => sub.remove();
+    return () => {
+      if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+      sub.remove();
+    };
   }, []);
 
   // Handle SplashScreen and Auth redirection

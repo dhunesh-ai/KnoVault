@@ -18,6 +18,20 @@ class User(Base):
     fcm_token: Mapped[str | None] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now())
 
+    # Admin & Moderation Fields
+    role: Mapped[str] = mapped_column(String(50), default="user", nullable=False)  # user, super_admin, admin, support_admin, moderator
+    is_blocked: Mapped[bool] = mapped_column(default=False, nullable=False)
+    block_reason: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    block_type: Mapped[str | None] = mapped_column(String(50), nullable=True)  # temporary, permanent
+    blocked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(default=False, nullable=False)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_active_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_platform: Mapped[str | None] = mapped_column(String(50), nullable=True)  # web, mobile
+    totp_secret: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    totp_enabled: Mapped[bool] = mapped_column(default=False, nullable=False)
+
     # Relationships
     notes = relationship("Note", back_populates="user", cascade="all, delete-orphan")
     goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
@@ -26,6 +40,7 @@ class User(Base):
     reminders = relationship("Reminder", back_populates="user", cascade="all, delete-orphan")
     important_days = relationship("ImportantDay", back_populates="user", cascade="all, delete-orphan")
     ai_chats = relationship("AIChat", back_populates="user", cascade="all, delete-orphan")
+    ai_conversations = relationship("AIConversation", back_populates="user", cascade="all, delete-orphan")
     calendar_notes = relationship("CalendarNote", back_populates="user", cascade="all, delete-orphan")
     scheduled_emails = relationship("ScheduledEmail", back_populates="user", cascade="all, delete-orphan")
 

@@ -17,7 +17,7 @@ interface AuthState {
   isLoading: boolean;
   setUser: (user: User | null) => void;
   login: (access_token: string, refresh_token: string, user: User) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
   loginWithGoogle: () => Promise<void>;
 }
@@ -31,11 +31,23 @@ export const useAuthStore = create<AuthState>((set) => ({
     setAuthCookies(access_token, refresh_token);
     set({ user, isAuthenticated: true, isLoading: false });
   },
-  logout: () => {
-    clearAuthCookies();
-    set({ user: null, isAuthenticated: false, isLoading: false });
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login';
+  logout: async () => {
+    try {
+      const { signOut } = await import('firebase/auth');
+      const { auth } = await import('../lib/firebase');
+      await signOut(auth);
+    } catch (e) {
+      console.warn("Firebase sign out error:", e);
+    } finally {
+      clearAuthCookies();
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      set({ user: null, isAuthenticated: false, isLoading: false });
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
     }
   },
   checkAuth: async () => {
@@ -56,6 +68,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       // Only clear credentials and redirect if the server explicitly rejected the token (401/403)
       if (error.response?.status === 401 || error.response?.status === 403) {
         clearAuthCookies();
+        if (typeof window !== 'undefined') {
+          localStorage.clear();
+          sessionStorage.clear();
+        }
         set({ user: null, isAuthenticated: false });
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
@@ -64,27 +80,45 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
   loginWithGoogle: async () => {
-    const targetUrl = `${API_BASE_URL}/api/auth/firebase-sync`;
+    const { getApiBaseUrl } = await import('../lib/axios');
+    const baseUrl = getApiBaseUrl();
+    const targetUrl = `${baseUrl}/api/auth/firebase-sync`;
     try {
-      console.log("[GOOGLE LOGIN] Step 1: Initiating Firebase OAuth Popup...");
-      const { signInWithPopup } = await import('firebase/auth');
-      const { auth, googleProvider } = await import('../lib/firebase');
+      console.log("[GOOGLE LOGIN] Step 1: Pre-login cleanup & resetting Firebase Auth...");
+      const { signInWithPopup, signOut } = await import('firebase/auth');
+      const { auth, getGoogleProvider } = await import('../lib/firebase');
       
-      const result = await signInWithPopup(auth, googleProvider);
-      console.log("[GOOGLE LOGIN] Step 2: Firebase OAuth success, user:", result.user.email);
+      // Ensure any existing Firebase session or cached tokens are completely cleared
+      try {
+        await signOut(auth);
+      } catch (e) {
+        console.warn("[GOOGLE LOGIN] Pre-login Firebase signout warning:", e);
+      }
+      clearAuthCookies();
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+
+      console.log("[GOOGLE LOGIN] Step 2: Instantiating GoogleAuthProvider with prompt='select_account'...");
+      const provider = getGoogleProvider();
+
+      console.log("[GOOGLE LOGIN] Step 3: Initiating Firebase OAuth Popup...");
+      const result = await signInWithPopup(auth, provider);
+      console.log("[GOOGLE LOGIN] Step 4: Firebase OAuth success, user:", result.user.email);
       const idToken = await result.user.getIdToken();
       
       const payload = { id_token: idToken };
       const headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
       
-      console.log("[GOOGLE LOGIN] Step 3: Dispatching Token Exchange Request");
+      console.log("[GOOGLE LOGIN] Step 5: Dispatching Token Exchange Request");
       console.log(`[GOOGLE LOGIN] Request URL: POST ${targetUrl}`);
       console.log("[GOOGLE LOGIN] Headers:", headers);
       console.log("[GOOGLE LOGIN] Request Body (preview):", { id_token: idToken.slice(0, 20) + "..." });
       
       const response = await api.post('/api/auth/firebase-sync', payload);
       
-      console.log("[GOOGLE LOGIN] Step 4: Token Exchange Success!");
+      console.log("[GOOGLE LOGIN] Step 6: Token Exchange Success!");
       console.log("[GOOGLE LOGIN] Response Status:", response.status);
       console.log("[GOOGLE LOGIN] Response Body:", response.data);
 
@@ -107,7 +141,16 @@ export const useAuthStore = create<AuthState>((set) => ({
       console.error("Stack Trace:", error.stack);
       console.error("==========================================");
 
-      const errorDetail = error.response?.data?.detail || error.message || "Google sign-in failed. Please try again.";
+      let errorDetail = error.response?.data?.detail;
+      if (!errorDetail) {
+        if (error.message === "Network Error") {
+          errorDetail = `Backend unreachable at ${baseUrl}. Please ensure FastAPI is running and CORS is allowed.`;
+        } else if (error.code === "auth/popup-closed-by-user") {
+          errorDetail = "Google sign-in popup was closed before completing.";
+        } else {
+          errorDetail = error.message || "Google sign-in failed. Please try again.";
+        }
+      }
       throw new Error(errorDetail);
     }
   },

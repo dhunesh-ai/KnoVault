@@ -621,7 +621,7 @@ export default function SettingsPage() {
             <div className="w-full pt-4 border-t border-border/40">
               <Button
                 variant="ghost"
-                onClick={logout}
+                onClick={() => { void logout(); }}
                 className="w-full h-11 rounded-2xl text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 font-black text-xs gap-2"
               >
                 <LogOut className="w-4 h-4" /> Sign Out of Account

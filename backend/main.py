@@ -1,19 +1,21 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+import os
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from database.connection import engine, init_db
+from sqlalchemy import text
+
+import database.connection as db_conn
+from database.connection import init_db
 from config import get_settings
 from routers import (
     auth_router, notes_router, goals_router, projects_router,
     reminders_router, birthdays_router, special_days_router, important_days_router,
     ai_chat_router, profile_router, backup_router, calendar_router,
     notifications_router, sync_router, files_router, calendar_notes_router,
-    workspaces_router, secure_notes_router, scheduled_emails_router
+    workspaces_router, secure_notes_router, scheduled_emails_router, admin_router
 )
 from utils.firebase import initialize_firebase
-
-import os
 
 settings = get_settings()
 
@@ -55,8 +57,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS
-raw_origins = settings.ALLOWED_ORIGINS.split(",") if settings.ALLOWED_ORIGINS and settings.ALLOWED_ORIGINS != "*" else []
+# CORS configuration
+raw_origins = settings.ALLOWED_ORIGINS.split(",") if settings.ALLOWED_ORIGINS else []
 default_origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -65,12 +67,13 @@ default_origins = [
     "https://knovault-jbph.onrender.com",
     "https://knovault.app",
 ]
-origins = list(set(default_origins + [o.strip() for o in raw_origins if o.strip()]))
+configured_origins = [o.strip() for o in raw_origins if o.strip() and o.strip() != "*"]
+origins = list(set(default_origins + configured_origins))
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins if settings.ALLOWED_ORIGINS != "*" else ["*"],
-    allow_origin_regex=r"https?://.*" if settings.ALLOWED_ORIGINS == "*" else None,
+    allow_origins=origins,
+    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -99,11 +102,8 @@ app.include_router(files_router)
 app.include_router(workspaces_router)
 app.include_router(secure_notes_router)
 app.include_router(scheduled_emails_router)
+app.include_router(admin_router)
 
-
-
-from sqlalchemy import text
-from fastapi import HTTPException
 
 @app.get("/")
 async def root():
@@ -113,8 +113,9 @@ async def root():
 @app.get("/health")
 async def health():
     try:
-        async with engine.begin() as conn:
+        async with db_conn.engine.begin() as conn:
             await conn.execute(text("SELECT 1"))
-        return {"status": "healthy", "database": "connected"}
+        db_type = "sqlite" if "sqlite" in str(db_conn.engine.url) else "postgresql"
+        return {"status": "healthy", "database": "connected", "database_type": db_type}
     except Exception as e:
         raise HTTPException(status_code=503, detail={"status": "unhealthy", "database": "disconnected", "error": str(e)})

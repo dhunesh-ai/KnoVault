@@ -1,8 +1,17 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import Cookies from 'js-cookie';
 
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://knovault-jbph.onrender.com";
+export const getApiBaseUrl = () => {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return 'http://localhost:8000';
+    }
+  }
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 export const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
 
@@ -26,9 +35,10 @@ export const api = axios.create({
   },
 });
 
-// Request Interceptor: Attach JWT
+// Request Interceptor: Attach JWT and Dynamic Base URL
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    config.baseURL = getApiBaseUrl();
     const token = Cookies.get('user_token');
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;

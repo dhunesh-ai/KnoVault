@@ -40,7 +40,9 @@ else:
     if "sslmode=" not in _db_url and "ssl=" not in _db_url:
         _db_url = _db_url + ("&ssl=require" if "?" in _db_url else "?ssl=require")
     
+    _connect_args["ssl"] = _ssl_ctx
     _connect_args["statement_cache_size"] = 0
+    _connect_args["prepared_statement_name_func"] = lambda: None
     _connect_args["timeout"] = 30
     _connect_args["command_timeout"] = 30
     engine = create_async_engine(
@@ -78,66 +80,90 @@ def run_migrations(connection):
     inspector = inspect(connection)
     tables = inspector.get_table_names()
 
-    if "special_days" in tables and "important_days" not in tables:
-        connection.execute(text("ALTER TABLE special_days RENAME TO important_days"))
-        print("[MIGRATION] Successfully renamed 'special_days' table to 'important_days' table.")
-        tables.append("important_days")
+    # 1. Handle special_days / birthdays rename safely
+    if "important_days" not in tables:
         if "special_days" in tables:
+            connection.execute(text("ALTER TABLE special_days RENAME TO important_days"))
+            tables.append("important_days")
             tables.remove("special_days")
-
-    if "birthdays" in tables and "important_days" not in tables:
-        connection.execute(text("ALTER TABLE birthdays RENAME TO important_days"))
-        connection.execute(text("ALTER TABLE important_days RENAME COLUMN person_name TO title"))
-        connection.execute(text("ALTER TABLE important_days RENAME COLUMN birth_date TO date"))
-        print("[MIGRATION] Successfully migrated 'birthdays' table to 'important_days' table.")
-        tables.append("important_days")
-        if "birthdays" in tables:
+        elif "birthdays" in tables:
+            connection.execute(text("ALTER TABLE birthdays RENAME TO important_days"))
+            connection.execute(text("ALTER TABLE important_days RENAME COLUMN person_name TO title"))
+            connection.execute(text("ALTER TABLE important_days RENAME COLUMN birth_date TO date"))
+            tables.append("important_days")
             tables.remove("birthdays")
 
     if "important_days" in tables:
-        # Ensure all columns exist
-        try:
-            connection.execute(text("ALTER TABLE important_days ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'Birthday' NOT NULL"))
-            connection.execute(text("ALTER TABLE important_days ADD COLUMN IF NOT EXISTS is_recurring BOOLEAN DEFAULT TRUE NOT NULL"))
-            connection.execute(text("ALTER TABLE important_days ADD COLUMN IF NOT EXISTS custom_type VARCHAR(100)"))
-            connection.execute(text("ALTER TABLE important_days ADD COLUMN IF NOT EXISTS timezone VARCHAR(50) DEFAULT 'UTC'"))
-            connection.execute(text("ALTER TABLE important_days ADD COLUMN IF NOT EXISTS email_status VARCHAR(20) DEFAULT 'PENDING'"))
-            connection.execute(text("ALTER TABLE important_days ADD COLUMN IF NOT EXISTS email_retry_count INTEGER DEFAULT 0 NOT NULL"))
-        except Exception as e:
-            print(f"[MIGRATION] Warning ensuring columns: {e}")
+        imp_cols = [c["name"] for c in inspector.get_columns("important_days")]
+        if "type" not in imp_cols:
+            connection.execute(text("ALTER TABLE important_days ADD COLUMN type VARCHAR(50) DEFAULT 'Birthday' NOT NULL"))
+        if "is_recurring" not in imp_cols:
+            connection.execute(text("ALTER TABLE important_days ADD COLUMN is_recurring BOOLEAN DEFAULT TRUE NOT NULL"))
+        if "custom_type" not in imp_cols:
+            connection.execute(text("ALTER TABLE important_days ADD COLUMN custom_type VARCHAR(100)"))
+        if "timezone" not in imp_cols:
+            connection.execute(text("ALTER TABLE important_days ADD COLUMN timezone VARCHAR(50) DEFAULT 'UTC'"))
+        if "email_status" not in imp_cols:
+            connection.execute(text("ALTER TABLE important_days ADD COLUMN email_status VARCHAR(20) DEFAULT 'PENDING'"))
+        if "email_retry_count" not in imp_cols:
+            connection.execute(text("ALTER TABLE important_days ADD COLUMN email_retry_count INTEGER DEFAULT 0 NOT NULL"))
 
-    # ── Firebase columns migration ────────────────────────────────────
+    # 2. Firebase & Admin columns on users
     if "users" in tables:
-        try:
-            connection.execute(text(
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS firebase_uid VARCHAR(128) UNIQUE"
-            ))
-            connection.execute(text(
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS fcm_token VARCHAR(500)"
-            ))
-            print("[MIGRATION] ✅ Firebase columns verified on users table")
-        except Exception as e:
-            print(f"[MIGRATION] Warning ensuring Firebase columns: {e}")
+        user_cols = [c["name"] for c in inspector.get_columns("users")]
+        if "firebase_uid" not in user_cols:
+            connection.execute(text("ALTER TABLE users ADD COLUMN firebase_uid VARCHAR(128) UNIQUE"))
+        if "fcm_token" not in user_cols:
+            connection.execute(text("ALTER TABLE users ADD COLUMN fcm_token VARCHAR(500)"))
+        if "role" not in user_cols:
+            connection.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR(50) DEFAULT 'user' NOT NULL"))
+        if "is_blocked" not in user_cols:
+            connection.execute(text("ALTER TABLE users ADD COLUMN is_blocked BOOLEAN DEFAULT FALSE NOT NULL"))
+        if "block_reason" not in user_cols:
+            connection.execute(text("ALTER TABLE users ADD COLUMN block_reason VARCHAR(255)"))
+        if "block_type" not in user_cols:
+            connection.execute(text("ALTER TABLE users ADD COLUMN block_type VARCHAR(50)"))
+        if "blocked_at" not in user_cols:
+            connection.execute(text("ALTER TABLE users ADD COLUMN blocked_at TIMESTAMP WITH TIME ZONE"))
+        if "is_deleted" not in user_cols:
+            connection.execute(text("ALTER TABLE users ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE NOT NULL"))
+        if "deleted_at" not in user_cols:
+            connection.execute(text("ALTER TABLE users ADD COLUMN deleted_at TIMESTAMP WITH TIME ZONE"))
+        if "last_login_at" not in user_cols:
+            connection.execute(text("ALTER TABLE users ADD COLUMN last_login_at TIMESTAMP WITH TIME ZONE"))
+        if "last_active_at" not in user_cols:
+            connection.execute(text("ALTER TABLE users ADD COLUMN last_active_at TIMESTAMP WITH TIME ZONE"))
+        if "last_platform" not in user_cols:
+            connection.execute(text("ALTER TABLE users ADD COLUMN last_platform VARCHAR(50)"))
+        if "totp_secret" not in user_cols:
+            connection.execute(text("ALTER TABLE users ADD COLUMN totp_secret VARCHAR(255)"))
+        if "totp_enabled" not in user_cols:
+            connection.execute(text("ALTER TABLE users ADD COLUMN totp_enabled BOOLEAN DEFAULT FALSE NOT NULL"))
 
-    # ── Reminders columns migration ───────────────────────────────────
+    # 3. Reminders columns
     if "reminders" in tables:
-        try:
-            connection.execute(text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS start_date TIMESTAMP WITH TIME ZONE"))
-            connection.execute(text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS end_date TIMESTAMP WITH TIME ZONE"))
-            connection.execute(text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS timing_label VARCHAR(100)"))
-            connection.execute(text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS dose_index INTEGER"))
-            connection.execute(text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS course_day INTEGER"))
-            connection.execute(text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS notification_id VARCHAR(200)"))
-            connection.execute(text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS is_completed BOOLEAN DEFAULT FALSE NOT NULL"))
-            connection.execute(text("ALTER TABLE reminders ADD COLUMN IF NOT EXISTS series_id VARCHAR(200)"))
-            print("[MIGRATION] ✅ Reminders columns verified on reminders table")
-        except Exception as e:
-            print(f"[MIGRATION] Warning ensuring Reminders columns: {e}")
+        rem_cols = [c["name"] for c in inspector.get_columns("reminders")]
+        if "start_date" not in rem_cols:
+            connection.execute(text("ALTER TABLE reminders ADD COLUMN start_date TIMESTAMP WITH TIME ZONE"))
+        if "end_date" not in rem_cols:
+            connection.execute(text("ALTER TABLE reminders ADD COLUMN end_date TIMESTAMP WITH TIME ZONE"))
+        if "timing_label" not in rem_cols:
+            connection.execute(text("ALTER TABLE reminders ADD COLUMN timing_label VARCHAR(100)"))
+        if "dose_index" not in rem_cols:
+            connection.execute(text("ALTER TABLE reminders ADD COLUMN dose_index INTEGER"))
+        if "course_day" not in rem_cols:
+            connection.execute(text("ALTER TABLE reminders ADD COLUMN course_day INTEGER"))
+        if "notification_id" not in rem_cols:
+            connection.execute(text("ALTER TABLE reminders ADD COLUMN notification_id VARCHAR(200)"))
+        if "is_completed" not in rem_cols:
+            connection.execute(text("ALTER TABLE reminders ADD COLUMN is_completed BOOLEAN DEFAULT FALSE NOT NULL"))
+        if "series_id" not in rem_cols:
+            connection.execute(text("ALTER TABLE reminders ADD COLUMN series_id VARCHAR(200)"))
 
-    # ── Notifications columns migration ───────────────────────────────────
+    # 4. Notifications index
     if "notifications" in tables:
-        try:
-            # Delete duplicates safely on both SQLite and PostgreSQL
+        notif_cols = [c["name"] for c in inspector.get_columns("notifications")]
+        if "related_item_id" in notif_cols:
             connection.execute(text("""
                 DELETE FROM notifications 
                 WHERE id NOT IN (
@@ -150,10 +176,6 @@ def run_migrations(connection):
                 "CREATE UNIQUE INDEX IF NOT EXISTS uq_notifications_user_related "
                 "ON notifications (user_id, related_item_id) WHERE related_item_id IS NOT NULL"
             ))
-            print("[MIGRATION] ✅ Unique index verified on notifications table")
-        except Exception as e:
-            print(f"[MIGRATION] Warning ensuring Notifications index: {e}")
-
 
 
 async def init_db():
@@ -161,22 +183,32 @@ async def init_db():
     print(f"[DB] Initializing database connection...")
     try:
         async with engine.begin() as conn:
-            from models import user, note, goal, daily_goal, project_task, reminder, important_day, ai_chat, otp, workspace, notification, secure_note_security, support, scheduled_email  # noqa
-            await conn.run_sync(run_migrations)
+            from models import user, note, goal, daily_goal, project_task, reminder, important_day, ai_chat, otp, workspace, notification, secure_note_security, support, scheduled_email, admin  # noqa
             await conn.run_sync(Base.metadata.create_all)
+            await conn.run_sync(run_migrations)
         print("[DB] All tables created / verified successfully on primary database.")
     except Exception as e:
-        print(f"[DB ERROR] Primary DB connection failed: {e}")
-        if os.getenv("ALLOW_SQLITE_FALLBACK", "false").lower() == "true":
+        import traceback
+        err_type = type(e).__name__
+        err_msg = str(e) if str(e) else repr(e)
+        print(f"[DB ERROR] Primary DB connection failed ({err_type}): {err_msg}")
+        print(f"[DB ERROR DETAILS]\n{traceback.format_exc().strip()}")
+        allow_fallback = getattr(settings, "ALLOW_SQLITE_FALLBACK", False) or os.getenv("ALLOW_SQLITE_FALLBACK", "false").lower() == "true"
+        if allow_fallback:
             print("[DB FALLBACK] Explicit fallback allowed. Switching to local SQLite database...")
             fallback_url = "sqlite+aiosqlite:///./knovault.db"
-            engine = create_async_engine(fallback_url, echo=False, connect_args={"check_same_thread": False})
-            async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-            async with engine.begin() as conn:
-                from models import user, note, goal, daily_goal, project_task, reminder, important_day, ai_chat, otp, workspace, notification, secure_note_security, support, scheduled_email  # noqa
-                await conn.run_sync(run_migrations)
-                await conn.run_sync(Base.metadata.create_all)
-            print("[DB FALLBACK] SQLite fallback database initialized successfully!")
+            try:
+                engine = create_async_engine(fallback_url, echo=False, connect_args={"check_same_thread": False})
+                async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+                async with engine.begin() as conn:
+                    from models import user, note, goal, daily_goal, project_task, reminder, important_day, ai_chat, otp, workspace, notification, secure_note_security, support, scheduled_email  # noqa
+                    await conn.run_sync(Base.metadata.create_all)
+                    await conn.run_sync(run_migrations)
+                print("[DB FALLBACK] SQLite fallback database initialized successfully!")
+            except Exception as fb_err:
+                print(f"[DB FALLBACK ERROR] SQLite fallback failed ({type(fb_err).__name__}): {fb_err}")
+                print(f"[DB FALLBACK ERROR TRACEBACK]\n{traceback.format_exc().strip()}")
+                raise e
         else:
             raise e
 

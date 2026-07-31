@@ -2,7 +2,8 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { useSettingsStore } from '../store/settingsStore';
 import { logNotificationToHistory } from '../store/notificationStore';
-import { getDB } from '../services/db';
+import { dbQueue } from '../services/db';
+import { networkConcurrencyQueue } from './concurrencyQueue';
 import { getAgeInfo, getReminderTriggerDate, getSmartNotificationMessage, EventReminder, ReminderType } from './important_day';
 import { workspacesApi, WorkspaceMeeting, WorkspaceEvent } from '../api/workspaces';
 
@@ -241,8 +242,9 @@ export const scheduleSpecialDaysReminders = async () => {
   if (!hasPermission) return;
 
   try {
-    const db = getDB();
-    const importantDays = await db.getAllAsync('SELECT * FROM ImportantDays WHERE is_deleted = 0');
+    const importantDays = await dbQueue.read(async (db) => {
+      return db.getAllAsync('SELECT * FROM ImportantDays WHERE is_deleted = 0');
+    });
     console.log("[REMINDER DEBUG] SQLITE ImportantDays Count:", importantDays.length);
     
     // Clear previously scheduled special day reminders
@@ -481,32 +483,34 @@ export const syncWorkspaceNotifications = async () => {
     const eventsToSchedule: { event: WorkspaceEvent; wsName: string }[] = [];
 
     for (const ws of workspaces) {
-      try {
-        const meetings = await workspacesApi.getMeetings(ws.id);
-        for (const meeting of meetings) {
-          const dateMs = new Date(meeting.date).getTime();
-          // Keep meetings in the future or started in the last 10 minutes
-          if (dateMs > nowMs - 10 * 60 * 1000) {
-            upcomingMeetingIds.add(meeting.id);
-            meetingsToSchedule.push({ meeting, wsName: ws.name });
+      await networkConcurrencyQueue.add(async () => {
+        try {
+          const meetings = await workspacesApi.getMeetings(ws.id);
+          for (const meeting of meetings) {
+            const dateMs = new Date(meeting.date).getTime();
+            // Keep meetings in the future or started in the last 10 minutes
+            if (dateMs > nowMs - 10 * 60 * 1000) {
+              upcomingMeetingIds.add(meeting.id);
+              meetingsToSchedule.push({ meeting, wsName: ws.name });
+            }
           }
+        } catch (e) {
+          console.warn(`[SyncWorkspaceNotifications] Failed to fetch meetings for workspace ${ws.id}`, e);
         }
-      } catch (e) {
-        console.warn(`[SyncWorkspaceNotifications] Failed to fetch meetings for workspace ${ws.id}`, e);
-      }
 
-      try {
-        const events = await workspacesApi.getEvents(ws.id);
-        for (const event of events) {
-          const dateMs = new Date(event.date).getTime();
-          if (dateMs > nowMs - 10 * 60 * 1000) {
-            upcomingEventIds.add(event.id);
-            eventsToSchedule.push({ event, wsName: ws.name });
+        try {
+          const events = await workspacesApi.getEvents(ws.id);
+          for (const event of events) {
+            const dateMs = new Date(event.date).getTime();
+            if (dateMs > nowMs - 10 * 60 * 1000) {
+              upcomingEventIds.add(event.id);
+              eventsToSchedule.push({ event, wsName: ws.name });
+            }
           }
+        } catch (e) {
+          console.warn(`[SyncWorkspaceNotifications] Failed to fetch events for workspace ${ws.id}`, e);
         }
-      } catch (e) {
-        console.warn(`[SyncWorkspaceNotifications] Failed to fetch events for workspace ${ws.id}`, e);
-      }
+      });
     }
 
     // Get all scheduled notifications on the device
@@ -684,14 +688,15 @@ export const syncRemindersNotifications = async () => {
   if (!hasPermission) return;
 
   try {
-    const db = getDB();
     const nowIso = new Date().toISOString();
     
     // Fetch future active reminders
-    const activeReminders = await db.getAllAsync(
-      'SELECT * FROM Reminders WHERE is_deleted = 0 AND is_completed = 0 AND reminder_date > ? ORDER BY reminder_date ASC LIMIT 50',
-      [nowIso]
-    );
+    const activeReminders = await dbQueue.read(async (db) => {
+      return db.getAllAsync(
+        'SELECT * FROM Reminders WHERE is_deleted = 0 AND is_completed = 0 AND reminder_date > ? ORDER BY reminder_date ASC LIMIT 50',
+        [nowIso]
+      );
+    });
     console.log("[LocalNotifications] Active future reminders count:", activeReminders.length);
 
     // Get all scheduled notifications
@@ -745,7 +750,9 @@ export const syncRemindersNotifications = async () => {
           'REMINDER_ACTION'
         );
         if (notifId) {
-          await db.runAsync('UPDATE Reminders SET notification_id = ? WHERE id = ?', [notifId, reminder.id]);
+          await dbQueue.write(async (db) => {
+            await db.runAsync('UPDATE Reminders SET notification_id = ? WHERE id = ?', [notifId, reminder.id]);
+          });
         }
       } catch (scheduleErr) {
         console.error(`[LocalNotifications] Failed to schedule reminder for ${reminder.title}:`, scheduleErr);

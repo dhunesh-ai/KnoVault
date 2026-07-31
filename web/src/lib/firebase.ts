@@ -15,8 +15,21 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
-// Request profile info
+// Always force account selection dialog on Google Auth
+googleProvider.setCustomParameters({
+  prompt: 'select_account',
+});
 googleProvider.addScope('profile');
 googleProvider.addScope('email');
+
+export const getGoogleProvider = (): GoogleAuthProvider => {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({
+    prompt: 'select_account',
+  });
+  provider.addScope('profile');
+  provider.addScope('email');
+  return provider;
+};
 
 export { app, auth, googleProvider };

@@ -1,9 +1,8 @@
 import client, { checkHealth } from '../api/client';
-import { getDB, getSyncQueue, clearSyncQueue, localInsert, localUpdate, localDelete } from './db';
+import { dbQueue, getSyncQueue, clearSyncQueue } from './db';
 import { queryClient } from '../config/queryClient';
 
 export const syncWorkspace = async () => {
-    const db = getDB();
     console.log('[Sync Start] Starting workspace synchronization...');
 
     const isHealthy = await checkHealth();
@@ -24,52 +23,56 @@ export const syncWorkspace = async () => {
 
         const idsToDelete: number[] = [];
 
-        for (const item of queue as any[]) {
-            idsToDelete.push(item.id);
-            const data: any = await db.getFirstAsync(`SELECT * FROM ${item.entity} WHERE id = ?`, [item.record_id]);
-            if (!data) continue;
+        await dbQueue.read(async (db) => {
+            for (const item of queue as any[]) {
+                idsToDelete.push(item.id);
+                const data: any = await db.getFirstAsync(`SELECT * FROM ${item.entity} WHERE id = ?`, [item.record_id]);
+                if (!data) continue;
 
-            const entityMap: any = {
-                'Notes': 'notes',
-                'Goals': 'goals',
-                'Reminders': 'reminders',
-                'ImportantDays': 'important_days'
-            };
-            const eKey = entityMap[item.entity];
+                const entityMap: any = {
+                    'Notes': 'notes',
+                    'Goals': 'goals',
+                    'Reminders': 'reminders',
+                    'ImportantDays': 'important_days'
+                };
+                const eKey = entityMap[item.entity];
 
-            if (item.action === 'INSERT') {
-                data.temp_id = item.temp_id;
-                payload[`new_${eKey}`].push(data);
-            } else if (item.action === 'UPDATE' || item.action === 'DELETE') {
-                if (data.remote_id) {
-                    data.id = data.remote_id;
-                    payload[`updated_${eKey}`].push(data);
-                } else {
-                     // Unsynced but updated/deleted locally
-                    if (item.action === 'UPDATE') {
-                        payload[`new_${eKey}`].push(data);
+                if (item.action === 'INSERT') {
+                    data.temp_id = item.temp_id;
+                    payload[`new_${eKey}`].push(data);
+                } else if (item.action === 'UPDATE' || item.action === 'DELETE') {
+                    if (data.remote_id) {
+                        data.id = data.remote_id;
+                        payload[`updated_${eKey}`].push(data);
+                    } else {
+                        // Unsynced but updated/deleted locally
+                        if (item.action === 'UPDATE') {
+                            payload[`new_${eKey}`].push(data);
+                        }
                     }
                 }
             }
-        }
+        });
 
         try {
             const res = await client.post('/api/sync/push', payload);
             const { note_id_map, goal_id_map, reminder_id_map, important_day_id_map } = res.data;
 
-            // Update local DB with new remote IDs
-            for (const [temp_id, remote_id] of Object.entries(note_id_map)) {
-                await db.runAsync('UPDATE Notes SET remote_id = ? WHERE temp_id = ?', [remote_id as number, temp_id as string]);
-            }
-            for (const [temp_id, remote_id] of Object.entries(goal_id_map)) {
-                await db.runAsync('UPDATE Goals SET remote_id = ? WHERE temp_id = ?', [remote_id as number, temp_id as string]);
-            }
-            for (const [temp_id, remote_id] of Object.entries(reminder_id_map)) {
-                await db.runAsync('UPDATE Reminders SET remote_id = ? WHERE temp_id = ?', [remote_id as number, temp_id as string]);
-            }
-            for (const [temp_id, remote_id] of Object.entries(important_day_id_map)) {
-                await db.runAsync('UPDATE ImportantDays SET remote_id = ? WHERE temp_id = ?', [remote_id as number, temp_id as string]);
-            }
+            // Batch update local DB with new remote IDs in a single transaction
+            await dbQueue.transaction(async (db) => {
+                for (const [temp_id, remote_id] of Object.entries(note_id_map)) {
+                    await db.runAsync('UPDATE Notes SET remote_id = ? WHERE temp_id = ?', [remote_id as number, temp_id as string]);
+                }
+                for (const [temp_id, remote_id] of Object.entries(goal_id_map)) {
+                    await db.runAsync('UPDATE Goals SET remote_id = ? WHERE temp_id = ?', [remote_id as number, temp_id as string]);
+                }
+                for (const [temp_id, remote_id] of Object.entries(reminder_id_map)) {
+                    await db.runAsync('UPDATE Reminders SET remote_id = ? WHERE temp_id = ?', [remote_id as number, temp_id as string]);
+                }
+                for (const [temp_id, remote_id] of Object.entries(important_day_id_map)) {
+                    await db.runAsync('UPDATE ImportantDays SET remote_id = ? WHERE temp_id = ?', [remote_id as number, temp_id as string]);
+                }
+            });
 
             await clearSyncQueue(idsToDelete);
             console.log('[Sync] Push completed');
@@ -81,80 +84,81 @@ export const syncWorkspace = async () => {
 
     // 2. PULL remote changes from server
     try {
-        const meta: any = await db.getFirstAsync('SELECT last_sync FROM SyncMetadata LIMIT 1');
-        const since = meta?.last_sync || '1970-01-01T00:00:00Z';
+        const since = await dbQueue.read(async (db) => {
+            const meta: any = await db.getFirstAsync('SELECT last_sync FROM SyncMetadata LIMIT 1');
+            return meta?.last_sync || '1970-01-01T00:00:00Z';
+        });
+
         console.log(`[Sync] Pulling changes since ${since}`);
 
         const res = await client.get(`/api/sync/pull?since=${encodeURIComponent(since)}`);
         const { timestamp, notes, goals, reminders, important_days } = res.data;
 
-        const processPull = async (table: string, records: any[]) => {
-            for (const record of records) {
-                const existing: any = await db.getFirstAsync(`SELECT id FROM ${table} WHERE remote_id = ?`, [record.id]);
-                
-                const { id: remoteId, created_at, updated_at, contact_relationship, person_name, birth_date, ...rest } = record as any;
-                const dbObj: any = { ...rest, remote_id: remoteId, created_at, updated_at };
-                
-                if (table === 'ImportantDays') {
-                    if (contact_relationship !== undefined) {
-                        dbObj.relationship = contact_relationship;
-                    } else if (record.relationship !== undefined) {
-                        dbObj.relationship = record.relationship;
-                    }
-                    if (record.reminders !== undefined) {
-                        dbObj.reminders_json = record.reminders ? JSON.stringify(record.reminders) : null;
-                    }
-                    delete dbObj.reminders;
-                    delete dbObj.contact_relationship;
-                } else {
-                    if (contact_relationship !== undefined) {
-                        dbObj.relationship = contact_relationship;
-                    }
-                }
-                
-                // Convert booleans to integers for SQLite
-                for (const key of Object.keys(dbObj)) {
-                    if (typeof dbObj[key] === 'boolean') {
-                        dbObj[key] = dbObj[key] ? 1 : 0;
-                    }
-                }
-
-                if (existing) {
-                    // Update existing
-                    const keys = Object.keys(dbObj);
-                    const values = Object.values(dbObj);
-                    const setString = keys.map(k => `${k} = ?`).join(', ');
-                    try {
-                        await db.runAsync(`UPDATE ${table} SET ${setString} WHERE remote_id = ?`, [...values, remoteId]);
-                    } catch (err) {
-                        console.error(`[SYNC PULL ERROR] Failed to update ${table}`, err);
-                    }
-                } else {
-                    // Insert new
-                    const keys = Object.keys(dbObj);
-                    const values = Object.values(dbObj);
-                    const placeholders = keys.map(() => '?').join(', ');
-                    try {
-                        if (table === 'ImportantDays') {
-                            console.log(`[SYNC IMPORTANT DAYS RECEIVED] ID: ${remoteId}, Keys:`, keys);
+        // Process all pulled records inside a single transaction to guarantee speed & no locks
+        await dbQueue.transaction(async (db) => {
+            const processPullTable = async (table: string, records: any[]) => {
+                for (const record of records) {
+                    const existing: any = await db.getFirstAsync(`SELECT id FROM ${table} WHERE remote_id = ?`, [record.id]);
+                    
+                    const { id: remoteId, created_at, updated_at, contact_relationship, person_name, birth_date, ...rest } = record as any;
+                    const dbObj: any = { ...rest, remote_id: remoteId, created_at, updated_at };
+                    
+                    if (table === 'ImportantDays') {
+                        if (contact_relationship !== undefined) {
+                            dbObj.relationship = contact_relationship;
+                        } else if (record.relationship !== undefined) {
+                            dbObj.relationship = record.relationship;
                         }
-                        await db.runAsync(`INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders})`, values as any[]);
-                        if (table === 'ImportantDays') {
-                            console.log(`[SYNC IMPORTANT DAYS INSERTED] Remote ID: ${remoteId}`);
+                        if (record.reminders !== undefined) {
+                            dbObj.reminders_json = record.reminders ? JSON.stringify(record.reminders) : null;
                         }
-                    } catch (err) {
-                        console.error(`[SYNC PULL ERROR] Failed to insert ${table}`, err);
+                        delete dbObj.reminders;
+                        delete dbObj.contact_relationship;
+                    } else {
+                        if (contact_relationship !== undefined) {
+                            dbObj.relationship = contact_relationship;
+                        }
+                    }
+                    
+                    // Convert booleans to integers for SQLite
+                    for (const key of Object.keys(dbObj)) {
+                        if (typeof dbObj[key] === 'boolean') {
+                            dbObj[key] = dbObj[key] ? 1 : 0;
+                        }
+                    }
+
+                    if (existing) {
+                        // Update existing
+                        const keys = Object.keys(dbObj);
+                        const values = Object.values(dbObj);
+                        const setString = keys.map(k => `${k} = ?`).join(', ');
+                        try {
+                            await db.runAsync(`UPDATE ${table} SET ${setString} WHERE remote_id = ?`, [...values, remoteId]);
+                        } catch (err) {
+                            console.error(`[SYNC PULL ERROR] Failed to update ${table}`, err);
+                        }
+                    } else {
+                        // Insert new
+                        const keys = Object.keys(dbObj);
+                        const values = Object.values(dbObj);
+                        const placeholders = keys.map(() => '?').join(', ');
+                        try {
+                            await db.runAsync(`INSERT INTO ${table} (${keys.join(', ')}) VALUES (${placeholders})`, values as any[]);
+                        } catch (err) {
+                            console.error(`[SYNC PULL ERROR] Failed to insert ${table}`, err);
+                        }
                     }
                 }
-            }
-        };
+            };
 
-        await processPull('Notes', notes);
-        await processPull('Goals', goals);
-        await processPull('Reminders', reminders);
-        await processPull('ImportantDays', important_days);
+            await processPullTable('Notes', notes);
+            await processPullTable('Goals', goals);
+            await processPullTable('Reminders', reminders);
+            await processPullTable('ImportantDays', important_days);
 
-        await db.runAsync('UPDATE SyncMetadata SET last_sync = ?', [timestamp]);
+            await db.runAsync('UPDATE SyncMetadata SET last_sync = ?', [timestamp]);
+        });
+
         console.log('[Sync Completion] Pull completed. Workspace synchronized.');
 
         // After successful sync: schedule notifications, reminder alarms, etc.

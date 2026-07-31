@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   KeyboardAvoidingView, Platform, FlatList, ActivityIndicator,
   Keyboard, Dimensions, Alert, Modal, ScrollView, Share,
-  LayoutAnimation, StatusBar
+  LayoutAnimation, StatusBar, NativeSyntheticEvent, NativeScrollEvent
 } from 'react-native';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -37,6 +37,7 @@ import { useSTT } from '../../src/hooks/useSTT';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSettingsStore } from '../../src/store/settingsStore';
 import { showMicAccessDisabledAlert } from '../../src/utils/micAccessAlert';
+import { syncManager } from '../../src/services/syncManager';
 
 // APIs & Context Helpers
 import { aiApi } from '../../src/api/ai';
@@ -120,14 +121,168 @@ const TypingIndicator = ({ theme }: { theme: any }) => {
   );
 };
 
+// ── MEMOIZED CHAT MESSAGE ITEM ───────────────────────────────────────
+interface ChatMessageItemProps {
+  item: Message;
+  activeMessageId: string | null;
+  isSpeaking: boolean;
+  isPaused: boolean;
+  theme: any;
+  colors: any;
+  isDark: boolean;
+  ds: any;
+  mdStyles: any;
+  copyText: (text: string) => void;
+  shareText: (text: string) => void;
+  speak: (text: string, id: string, lang?: 'en-US' | 'ta-IN') => void;
+  pauseSpeech: () => void;
+  resumeSpeech: () => void;
+  stopSpeech: () => void;
+  retryLastMessage: () => void;
+  getSpeechLanguage: (text: string) => 'en-US' | 'ta-IN';
+}
+
+const ChatMessageItem = React.memo(({
+  item,
+  activeMessageId,
+  isSpeaking,
+  isPaused,
+  theme,
+  colors,
+  isDark,
+  ds,
+  mdStyles,
+  copyText,
+  shareText,
+  speak,
+  pauseSpeech,
+  resumeSpeech,
+  stopSpeech,
+  retryLastMessage,
+  getSpeechLanguage,
+}: ChatMessageItemProps) => {
+  const isUser = item.sender === 'user';
+  const isActive = activeMessageId === item.id && (isSpeaking || isPaused);
+  const lang = getSpeechLanguage(item.content);
+
+  return (
+    <View style={[ds.msgRow, isUser ? ds.userRow : ds.aiRow]}>
+      {!isUser && (
+        <View style={ds.aiAvatarWrapper}>
+          <KnoMascot state={item.isStreaming ? 'thinking' : (item.isError ? 'alert' : 'idle')} size={26} />
+        </View>
+      )}
+      
+      <View style={[
+        ds.bubbleContainer,
+        isUser ? ds.userBubbleContainer : ds.aiBubbleContainer
+      ]}>
+        <View style={[
+          ds.bubble,
+          isUser ? ds.userBubble : ds.aiBubble,
+          item.isError && ds.errorBubble,
+          isActive && ds.activeBubble,
+        ]}>
+          {isUser ? (
+            <Text style={ds.userText}>{item.content}</Text>
+          ) : (
+            <Markdown style={mdStyles}>{item.content || "Thinking..."}</Markdown>
+          )}
+
+          {/* Quick Action Control for User Message: ICON ONLY */}
+          {isUser && item.content.length > 0 && (
+            <View style={ds.userCopyRow}>
+              <TouchableOpacity 
+                style={ds.userCopyBtn} 
+                onPress={() => copyText(item.content)}
+                activeOpacity={0.6}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityLabel="Copy message text"
+                accessibilityRole="button"
+              >
+                <Ionicons name="copy-outline" size={13} color="rgba(255, 255, 255, 0.85)" />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Speaking indicator */}
+          {isActive && isSpeaking && (
+            <SpeakingPulse colors={colors} isDark={isDark} theme={theme} />
+          )}
+
+          {/* Retry Button */}
+          {item.isError && (
+            <TouchableOpacity style={ds.retryBtn} onPress={retryLastMessage}>
+              <Ionicons name="refresh" size={13} color="#FFFFFF" />
+              <Text style={ds.retryText}>Retry</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Quick Action Controls on AI Bubbles */}
+          {!isUser && !item.isStreaming && !item.isError && item.content.length > 0 && (
+            <View style={ds.quickActionsRow}>
+              {(!isActive || Platform.OS === 'ios') && (
+                <TouchableOpacity 
+                  style={[ds.quickActionBtn, isActive && ds.quickActionBtnActive]}
+                  onPress={() => {
+                    if (!isActive) {
+                      speak(item.content, item.id, lang);
+                    } else if (isSpeaking) {
+                      pauseSpeech();
+                    } else if (isPaused) {
+                      resumeSpeech();
+                    }
+                  }}
+                >
+                  <Ionicons 
+                    name={isActive && isSpeaking ? "pause-circle" : (isActive && isPaused ? "play-circle" : "volume-medium")} 
+                    size={13} 
+                    color={isActive ? "#FFFFFF" : colors.text.tertiary} 
+                  />
+                  <Text style={[ds.quickActionText, { color: isActive ? "#FFFFFF" : colors.text.tertiary }]}>
+                    {isActive && isSpeaking ? "Pause" : (isActive && isPaused ? "Resume" : `Listen (${lang === 'ta-IN' ? 'Tamil' : 'Eng'})`)}
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {isActive && (
+                <TouchableOpacity 
+                  style={ds.quickActionBtn}
+                  onPress={() => stopSpeech()}
+                >
+                  <Ionicons name="stop-circle" size={13} color={colors.text.tertiary} />
+                  <Text style={[ds.quickActionText, { color: colors.text.tertiary }]}>Stop</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity style={ds.quickActionBtn} onPress={() => copyText(item.content)}>
+                <Ionicons name="copy-outline" size={12} color={colors.text.tertiary} />
+                <Text style={[ds.quickActionText, { color: colors.text.tertiary }]}>Copy</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={ds.quickActionBtn} onPress={() => shareText(item.content)}>
+                <Ionicons name="share-social-outline" size={12} color={colors.text.tertiary} />
+                <Text style={[ds.quickActionText, { color: colors.text.tertiary }]}>Share</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
+        {/* Time Stamp label */}
+        <Text style={[ds.timeText, isUser ? ds.userTime : ds.aiTime]}>
+          {new Date(item.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </Text>
+      </View>
+    </View>
+  );
+});
+
 // ── MAIN SCREEN ──────────────────────────────────────────────────────
 const DEFAULT_QUICK_ACTIONS = [
   { label: "Pending Works", icon: "clipboard-outline", prompt: "Show my pending works" },
   { label: "Today's Focus", icon: "compass-outline", prompt: "Help me identify my highest priority items and focus areas for today." },
   { label: "Plan My Day", icon: "map-outline", prompt: "Create a structured hourly schedule for today based on my goals." },
-  { label: "Summarize Notes", icon: "document-text-outline", prompt: "Search my recent notes and summarize the main action items." },
   { label: "Active Projects", icon: "rocket-outline", prompt: "List my active projects and their current status." },
-  { label: "Study Planner", icon: "book-outline", prompt: "Help me organize my study schedule and topics to review." },
   { label: "Daily Goals", icon: "flame-outline", prompt: "Show my current goals and help me track my progress." },
   { label: "Upcoming Events", icon: "calendar-outline", prompt: "Check my calendar for upcoming events and reminders." },
 ];
@@ -154,7 +309,7 @@ function AIScreen() {
   const { 
     threads, activeThreadId, isLoading: isThreadsLoading, searchQuery: threadSearchQuery,
     loadThreads, createThread, deleteThread, renameThread, togglePinThread, setActiveThread, setSearchQuery: setThreadSearchQuery,
-    addMessage, updateMessage, clearActiveThreadMessages, exportThreadMarkdown,
+    addMessage, syncResponse, updateMessage, clearActiveThreadMessages, exportThreadMarkdown,
     isTemporaryChat, temporaryMessages, setTemporaryChat, addTemporaryMessage, updateTemporaryMessage, clearTemporaryMessages
   } = useChatStore();
 
@@ -168,6 +323,9 @@ function AIScreen() {
   const [isAITyping, setIsAITyping] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const isSendingRef = useRef(false);
+  const lastSendTimeRef = useRef<number>(0);
+  const statusTimerRef = useRef<any>(null);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [recentTopics, setRecentTopics] = useState<string[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -232,17 +390,75 @@ function AIScreen() {
     }
   }, [params?.initialPrompt]);
 
+  // Load threads and memories ONCE on initial mount
   useEffect(() => {
     loadThreads();
     loadMemories();
+  }, []);
 
+  // Update syncManager AI Chat active state on focus/generation changes
+  useEffect(() => {
+    syncManager.setAIChatActive(isFocused || isGenerating);
+    return () => {
+      syncManager.setAIChatActive(false);
+    };
+  }, [isFocused, isGenerating]);
+
+  // Scroll Position & Near-Bottom Detection
+  const isNearBottomRef = useRef(true);
+  const isUserScrollingRef = useRef(false);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Toast Auto-dismiss Timer (1.5 - 2.0s)
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => {
+        setToastMessage(null);
+      }, 1800);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
+
+  const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
+    const distanceFromBottom = contentSize.height - contentOffset.y - layoutMeasurement.height;
+    const isBottom = distanceFromBottom < 80;
+    isNearBottomRef.current = isBottom;
+    if (isBottom) {
+      setShowScrollToBottom(false);
+    }
+  }, []);
+
+  const copyText = useCallback((text: string) => {
+    try { 
+      Clipboard.setString(text); 
+      setToastMessage("✓ Copied");
+    } catch (e) { 
+      console.warn('[COPY] Clipboard not available:', e); 
+    }
+  }, []);
+
+  const shareText = useCallback(async (text: string) => {
+    try {
+      await Share.share({ message: text });
+    } catch (e) {
+      console.warn('[SHARE] Failed to share message:', e);
+    }
+  }, []);
+
+  // Manage Keyboard listeners and Speech cleanup
+  useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
     const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
     
     const showListener = Keyboard.addListener(showEvent, () => {
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setKeyboardVisible(true);
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      if (isNearBottomRef.current) {
+        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50);
+        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 150);
+      }
     });
     const hideListener = Keyboard.addListener(hideEvent, () => {
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -317,42 +533,97 @@ function AIScreen() {
   }, [threads, threadSearchQuery]);
 
   const simulateStreaming = async (fullText: string, threadId: string, messageId: string, signal: AbortSignal) => {
-    let currentText = "";
-    const words = fullText.split(" ");
-    for (let i = 0; i < words.length; i++) {
-      if (signal.aborted) {
-        updateMessage(threadId, messageId, { content: currentText, isStreaming: false });
-        return;
-      }
-      currentText += (i === 0 ? "" : " ") + words[i];
-      updateMessage(threadId, messageId, { content: currentText, isStreaming: i < words.length - 1 });
-      const delay = fullText.length > 500 ? 10 : 25;
-      await new Promise(resolve => setTimeout(resolve, delay));
-      if (i % 6 === 0) flatListRef.current?.scrollToEnd({ animated: true });
-    }
     updateMessage(threadId, messageId, { content: fullText, isStreaming: false });
+    if (isNearBottomRef.current) {
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50);
+    } else {
+      setShowScrollToBottom(true);
+    }
   };
 
   const simulateTemporaryStreaming = async (fullText: string, messageId: string, signal: AbortSignal) => {
-    let currentText = "";
-    const words = fullText.split(" ");
-    for (let i = 0; i < words.length; i++) {
-      if (signal.aborted) {
-        updateTemporaryMessage(messageId, { content: currentText, isStreaming: false });
-        return;
-      }
-      currentText += (i === 0 ? "" : " ") + words[i];
-      updateTemporaryMessage(messageId, { content: currentText, isStreaming: i < words.length - 1 });
-      const delay = fullText.length > 500 ? 10 : 25;
-      await new Promise(resolve => setTimeout(resolve, delay));
-      if (i % 6 === 0) flatListRef.current?.scrollToEnd({ animated: true });
-    }
     updateTemporaryMessage(messageId, { content: fullText, isStreaming: false });
+    if (isNearBottomRef.current) {
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50);
+    } else {
+      setShowScrollToBottom(true);
+    }
   };
 
   const sendMessage = async (textOverride?: string) => {
-    const textToSend = textOverride || inputText;
-    if (!textToSend.trim()) return;
+    const now = Date.now();
+    // ═══ DEBOUNCE & SINGLE REQUEST LOCK ═══
+    if (isSendingRef.current || isGenerating || (now - lastSendTimeRef.current < 500)) {
+      console.log('[AI CHAT] Request locked or debounced. Suppressing duplicate invocation.');
+      return;
+    }
+
+    const rawText = textOverride || inputText;
+    const textToSend = rawText.trim();
+    if (!textToSend) return;
+
+    // User is explicitly sending a new message: force scroll to bottom
+    isNearBottomRef.current = true;
+    setShowScrollToBottom(false);
+
+    // Acquire request lock immediately
+    isSendingRef.current = true;
+    lastSendTimeRef.current = now;
+    setIsGenerating(true);
+
+    // Immediately clear input field & maintain focus
+    if (!textOverride) {
+      setInputText('');
+    }
+    inputRef.current?.focus();
+
+    stopSpeech();
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    // Setup Messages with optimistic UI
+    const userMsgId = `user-${Date.now()}`;
+    const userMsg: Omit<Message, 'timestamp'> = {
+      id: userMsgId,
+      sender: 'user',
+      content: textToSend,
+    };
+
+    const aiMsgId = `ai-${Date.now()}`;
+    const placeholderMsg: Omit<Message, 'timestamp'> = {
+      id: aiMsgId,
+      sender: 'assistant',
+      content: "Thinking...",
+      isStreaming: true,
+    };
+
+    let currentThreadId = activeThreadId;
+
+    if (isTemporaryChat) {
+      addTemporaryMessage(userMsg);
+      setIsAITyping(true);
+      addTemporaryMessage(placeholderMsg);
+    } else {
+      if (!currentThreadId || threads.length === 0) {
+        currentThreadId = await createThread(textToSend);
+      }
+      await addMessage(currentThreadId!, userMsg);
+      setIsAITyping(true);
+      await addMessage(currentThreadId!, placeholderMsg);
+    }
+
+    // Dynamic loading feedback timer: update "Thinking..." to "Still working..." if request > 5s
+    if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+    statusTimerRef.current = setTimeout(() => {
+      if (isSendingRef.current || isGenerating) {
+        if (isTemporaryChat) {
+          updateTemporaryMessage(aiMsgId, { content: "Still working...", isStreaming: true });
+        } else if (currentThreadId) {
+          updateMessage(currentThreadId, aiMsgId, { content: "Still working...", isStreaming: true });
+        }
+      }
+    }, 5000);
 
     // ═══ PHASE 0: Pre-flight Security Checks for Secure Notes ═══
     const lowerInput = textToSend.toLowerCase();
@@ -391,47 +662,8 @@ function AIScreen() {
       }
     }
 
-    stopSpeech();
-    Keyboard.dismiss();
-
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-    setIsGenerating(true);
-
-    // Setup Messages
-    const userMsgId = `user-${Date.now()}`;
-    const userMsg: Omit<Message, 'timestamp'> = {
-      id: userMsgId,
-      sender: 'user',
-      content: textToSend.trim(),
-    };
-
-    const aiMsgId = `ai-${Date.now()}`;
-    const placeholderMsg: Omit<Message, 'timestamp'> = {
-      id: aiMsgId,
-      sender: 'assistant',
-      content: "",
-      isStreaming: true,
-    };
-
-    let currentThreadId = activeThreadId;
-
-    if (isTemporaryChat) {
-      addTemporaryMessage(userMsg);
-      if (!textOverride) setInputText('');
-      setIsAITyping(true);
-      addTemporaryMessage(placeholderMsg);
-    } else {
-      if (!currentThreadId || threads.length === 0) {
-        currentThreadId = await createThread(textToSend);
-      }
-      await addMessage(currentThreadId!, userMsg);
-      if (!textOverride) setInputText('');
-      setIsAITyping(true);
-      await addMessage(currentThreadId!, placeholderMsg);
-    }
-
     if (isTargetingSecureNote) {
+      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
       setIsAITyping(false);
       const warningResponse = "For your privacy, Secure Notes are protected with end-to-end encryption and are not accessible to KnoVault AI. Please unlock and view them directly from the Secure Notes section.";
       if (isTemporaryChat) {
@@ -440,13 +672,14 @@ function AIScreen() {
         await simulateStreaming(warningResponse, currentThreadId!, aiMsgId, controller.signal);
       }
       setIsGenerating(false);
+      isSendingRef.current = false;
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
       return;
     }
 
     try {
       // ═══ PHASE 1: Intent Detection ═══
-      const intent = detectIntent(textToSend.trim());
+      const intent = detectIntent(textToSend);
       
       // ═══ PHASE 2: Smart Note Retrieval ═══
       const noteRetrieval = await retrieveRelevantNotes(
@@ -465,8 +698,7 @@ function AIScreen() {
       if (noteRetrieval.noteContext) {
         fullContext += '\n\n' + noteRetrieval.noteContext;
       }
-      
-      // Inject user memory context only if NOT in temporary mode
+
       if (!isTemporaryChat) {
         const memoryContext = getMemoryContextString();
         if (memoryContext) {
@@ -479,7 +711,6 @@ function AIScreen() {
         ? "You are Kno, a helpful AI assistant. You are in Temporary Chat mode. Do not refer to or update any permanent memories. Be concise, fast, and helpful."
         : generateSystemPrompt(recentTopics, intent.intent, new Date().toISOString());
 
-      // Update recent topics only if NOT in temporary mode
       if (!isTemporaryChat) {
         const topicText = textToSend.substring(0, 50).trim();
         setRecentTopics(prev => {
@@ -490,7 +721,25 @@ function AIScreen() {
       }
 
       // ═══ PHASE 6: Call AI Backend ═══
-      const res = await aiApi.chat(textToSend, fullContext, systemPrompt, controller.signal);
+      const res = await aiApi.chat(
+        textToSend,
+        isTemporaryChat ? undefined : activeThreadId,
+        fullContext,
+        systemPrompt,
+        isTemporaryChat,
+        controller.signal
+      );
+
+      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
+
+      if (!isTemporaryChat) {
+        await syncResponse(
+          res.conversation_id,
+          res.title,
+          res.user_message,
+          res.assistant_message
+        );
+      }
       
       let responseText = res.response;
       let actionBlockError: string | null = null;
@@ -504,7 +753,6 @@ function AIScreen() {
           const actionObj = JSON.parse(jsonText);
           const { action, ...params } = actionObj;
 
-          // Strip the JSON block from the displayed responseText
           responseText = responseText.replace(jsonRegex, '').trim();
 
           if (action === 'create_reminder') {
@@ -518,7 +766,6 @@ function AIScreen() {
               reminder_date,
               type: 'custom',
             });
-            // Invalidate reminders & calendar queries
             await queryClient.invalidateQueries({ queryKey: ['upcoming-reminders'] });
             await queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
             await queryClient.invalidateQueries({ queryKey: ['reminders'] });
@@ -533,7 +780,6 @@ function AIScreen() {
               category: category || "General",
             });
             noteCreatedId = newNote.id;
-            // Invalidate notes queries
             await queryClient.invalidateQueries({ queryKey: ['notes'] });
           } else if (action === 'create_goal') {
             const { title } = params;
@@ -543,7 +789,6 @@ function AIScreen() {
             await goalsApi.createGoal({
               title,
             });
-            // Invalidate goals queries
             await queryClient.invalidateQueries({ queryKey: ['goals'] });
             await queryClient.invalidateQueries({ queryKey: ['goalStats'] });
           } else if (action === 'create_special_day') {
@@ -557,7 +802,6 @@ function AIScreen() {
               type: type || "Birthday",
               is_recurring: true,
             });
-            // Invalidate special days & calendar queries
             await queryClient.invalidateQueries({ queryKey: ['important-days'] });
             await queryClient.invalidateQueries({ queryKey: ['today-important-days'] });
             await queryClient.invalidateQueries({ queryKey: ['special-days'] });
@@ -573,7 +817,6 @@ function AIScreen() {
               content: content || null,
               note_date,
             });
-            // Invalidate calendar notes & calendar queries
             await queryClient.invalidateQueries({ queryKey: ['calendar-notes'] });
             await queryClient.invalidateQueries({ queryKey: ['calendar-events'] });
             await queryClient.invalidateQueries({ queryKey: ['today-calendar-notes'] });
@@ -587,7 +830,6 @@ function AIScreen() {
       if (actionBlockError) {
         responseText = `Failed to execute action: ${actionBlockError}. Please make sure you provide all required details and try again.`;
       } else if (noteCreatedId) {
-        // Return note ID as requested
         responseText += `\n\n(Note ID: ${noteCreatedId})`;
       }
 
@@ -598,6 +840,7 @@ function AIScreen() {
         await simulateStreaming(responseText, currentThreadId!, aiMsgId, controller.signal);
       }
     } catch (e: any) {
+      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
       if (axios.isCancel(e) || e.name === 'CanceledError' || e.code === 'ERR_CANCELED') {
         console.log('[AI CHAT] Request canceled by user');
         setIsAITyping(false);
@@ -618,39 +861,29 @@ function AIScreen() {
 
       console.warn('[AI CHAT ERROR]', e);
       setIsAITyping(false);
+      const errorMessage = "Something went wrong. Please try again.";
       if (isTemporaryChat) {
         updateTemporaryMessage(aiMsgId, {
-          content: "I'm sorry, I'm having trouble connecting to KnoVault Intelligence right now. Please try again in a few moments.",
+          content: errorMessage,
           isStreaming: false,
           isError: true
         });
       } else {
         updateMessage(currentThreadId!, aiMsgId, {
-          content: "I'm sorry, I'm having trouble connecting to KnoVault Intelligence right now. Please try again in a few moments.",
+          content: errorMessage,
           isStreaming: false,
           isError: true
         });
       }
     } finally {
+      if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
       setIsGenerating(false);
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
-    }
-  };
-
-  const copyText = (text: string) => {
-    try { 
-      Clipboard.setString(text); 
-      Alert.alert("Success", "Message copied to clipboard!");
-    } catch (e) { 
-      console.warn('[COPY] Clipboard not available:', e); 
-    }
-  };
-
-  const shareText = async (text: string) => {
-    try {
-      await Share.share({ message: text });
-    } catch (e) {
-      console.warn('[SHARE] Failed to share message:', e);
+      isSendingRef.current = false;
+      if (isNearBottomRef.current) {
+        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      } else {
+        setShowScrollToBottom(true);
+      }
     }
   };
 
@@ -672,10 +905,15 @@ function AIScreen() {
   const handleStopGeneration = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    if (statusTimerRef.current) {
+      clearTimeout(statusTimerRef.current);
     }
     stopSpeech();
     setIsGenerating(false);
     setIsAITyping(false);
+    isSendingRef.current = false;
   };
 
   // Smart suggestions handlers
@@ -770,7 +1008,7 @@ function AIScreen() {
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        keyboardVerticalOffset={0}
       >
 
         {/* ── STICKY HEADER ─────────────────────────────────────────── */}
@@ -845,6 +1083,42 @@ function AIScreen() {
           </View>
         )}
 
+        {/* ── TOAST NOTIFICATION ─────────────────────────────────────── */}
+        {toastMessage && (
+          <Animated.View 
+            entering={FadeInDown.duration(200)} 
+            exiting={FadeOut.duration(200)} 
+            style={ds.toastContainer}
+          >
+            <View style={ds.toastBubble}>
+              <Ionicons name="checkmark-circle" size={16} color="#10B981" style={{ marginRight: 6 }} />
+              <Text style={ds.toastText}>{toastMessage}</Text>
+            </View>
+          </Animated.View>
+        )}
+
+        {/* ── FLOATING SCROLL TO BOTTOM BUTTON ────────────────────────── */}
+        {showScrollToBottom && (
+          <Animated.View 
+            entering={FadeInDown.duration(200)} 
+            exiting={FadeOut.duration(200)} 
+            style={[ds.scrollToBottomBtnContainer, { bottom: keyboardVisible ? 60 : (tabBarHeight + 64) }]}
+          >
+            <TouchableOpacity 
+              style={ds.scrollToBottomBtn}
+              onPress={() => {
+                isNearBottomRef.current = true;
+                setShowScrollToBottom(false);
+                flatListRef.current?.scrollToEnd({ animated: true });
+              }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="chevron-down" size={16} color="#FFFFFF" />
+              <Text style={ds.scrollToBottomText}>New Messages</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
         {/* ── CHAT LIST OR EMPTY HERO ─────────────────────────────── */}
         {activeMessages.length === 0 ? (
           <ScrollView 
@@ -869,116 +1143,54 @@ function AIScreen() {
             data={activeMessages}
             keyExtractor={(item) => item.id}
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ flexGrow: 1 }}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: keyboardVisible ? 16 : (tabBarHeight + 100) }}
             style={{ flex: 1 }}
             showsVerticalScrollIndicator={false}
+            removeClippedSubviews={Platform.OS === 'android'}
+            maxToRenderPerBatch={10}
+            windowSize={10}
+            initialNumToRender={15}
+            updateCellsBatchingPeriod={50}
+            onScroll={handleScroll}
+            onScrollBeginDrag={() => {
+              isUserScrollingRef.current = true;
+            }}
+            onScrollEndDrag={() => {
+              isUserScrollingRef.current = false;
+            }}
+            onMomentumScrollEnd={() => {
+              isUserScrollingRef.current = false;
+            }}
             onContentSizeChange={() => {
               if (activeMessages.length > 0) {
-                flatListRef.current?.scrollToEnd({ animated: true });
+                if (isNearBottomRef.current) {
+                  flatListRef.current?.scrollToEnd({ animated: true });
+                } else if (isGenerating) {
+                  setShowScrollToBottom(true);
+                }
               }
             }}
-            renderItem={({ item }) => {
-              const isUser = item.sender === 'user';
-              const isActive = activeMessageId === item.id && (isSpeaking || isPaused);
-              const lang = getSpeechLanguage(item.content);
-
-              return (
-                <View style={[ds.msgRow, isUser ? ds.userRow : ds.aiRow]}>
-                  {!isUser && (
-                    <View style={ds.aiAvatarWrapper}>
-                      <KnoMascot state={item.isStreaming ? 'thinking' : (item.isError ? 'alert' : 'idle')} size={26} />
-                    </View>
-                  )}
-                  
-                  <View style={[
-                    ds.bubbleContainer,
-                    isUser ? ds.userBubbleContainer : ds.aiBubbleContainer
-                  ]}>
-                    <View style={[
-                      ds.bubble,
-                      isUser ? ds.userBubble : ds.aiBubble,
-                      item.isError && ds.errorBubble,
-                      isActive && ds.activeBubble,
-                    ]}>
-                      {isUser ? (
-                        <Text style={ds.userText}>{item.content}</Text>
-                      ) : (
-                        <Markdown style={mdStyles}>{item.content || "Thinking..."}</Markdown>
-                      )}
-
-                      {/* Speaking indicator */}
-                      {isActive && isSpeaking && (
-                        <SpeakingPulse colors={colors} isDark={isDark} theme={theme} />
-                      )}
-
-                      {/* Attachments removed */}
-
-                      {/* Retry Button */}
-                      {item.isError && (
-                        <TouchableOpacity style={ds.retryBtn} onPress={retryLastMessage}>
-                          <Ionicons name="refresh" size={13} color="#FFFFFF" />
-                          <Text style={ds.retryText}>Retry</Text>
-                        </TouchableOpacity>
-                      )}
-
-                      {/* Quick Action Controls on AI Bubbles */}
-                      {!isUser && !item.isStreaming && !item.isError && item.content.length > 0 && (
-                        <View style={ds.quickActionsRow}>
-                          {(!isActive || Platform.OS === 'ios') && (
-                            <TouchableOpacity 
-                              style={[ds.quickActionBtn, isActive && ds.quickActionBtnActive]}
-                              onPress={() => {
-                                if (!isActive) {
-                                  speak(item.content, item.id, lang);
-                                } else if (isSpeaking) {
-                                  pauseSpeech();
-                                } else if (isPaused) {
-                                  resumeSpeech();
-                                }
-                              }}
-                            >
-                              <Ionicons 
-                                name={isActive && isSpeaking ? "pause-circle" : (isActive && isPaused ? "play-circle" : "volume-medium")} 
-                                size={13} 
-                                color={isActive ? "#FFFFFF" : colors.text.tertiary} 
-                              />
-                              <Text style={[ds.quickActionText, { color: isActive ? "#FFFFFF" : colors.text.tertiary }]}>
-                                {isActive && isSpeaking ? "Pause" : (isActive && isPaused ? "Resume" : `Listen (${lang === 'ta-IN' ? 'Tamil' : 'Eng'})`)}
-                              </Text>
-                            </TouchableOpacity>
-                          )}
-
-                          {isActive && (
-                            <TouchableOpacity 
-                              style={ds.quickActionBtn}
-                              onPress={() => stopSpeech()}
-                            >
-                              <Ionicons name="stop-circle" size={13} color={colors.text.tertiary} />
-                              <Text style={[ds.quickActionText, { color: colors.text.tertiary }]}>Stop</Text>
-                            </TouchableOpacity>
-                          )}
-
-                          <TouchableOpacity style={ds.quickActionBtn} onPress={() => copyText(item.content)}>
-                            <Ionicons name="copy-outline" size={12} color={colors.text.tertiary} />
-                            <Text style={[ds.quickActionText, { color: colors.text.tertiary }]}>Copy</Text>
-                          </TouchableOpacity>
-
-                          <TouchableOpacity style={ds.quickActionBtn} onPress={() => shareText(item.content)}>
-                            <Ionicons name="share-social-outline" size={12} color={colors.text.tertiary} />
-                            <Text style={[ds.quickActionText, { color: colors.text.tertiary }]}>Share</Text>
-                          </TouchableOpacity>
-                        </View>
-                      )}
-                    </View>
-
-                    {/* Time Stamp label */}
-                    <Text style={[ds.timeText, isUser ? ds.userTime : ds.aiTime]}>
-                      {new Date(item.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                  </View>
-                </View>
-              );
-            }}
+            renderItem={({ item }) => (
+              <ChatMessageItem
+                item={item}
+                activeMessageId={activeMessageId}
+                isSpeaking={isSpeaking}
+                isPaused={isPaused}
+                theme={theme}
+                colors={colors}
+                isDark={isDark}
+                ds={ds}
+                mdStyles={mdStyles}
+                copyText={copyText}
+                shareText={shareText}
+                speak={speak}
+                pauseSpeech={pauseSpeech}
+                resumeSpeech={resumeSpeech}
+                stopSpeech={stopSpeech}
+                retryLastMessage={retryLastMessage}
+                getSpeechLanguage={getSpeechLanguage}
+              />
+            )}
             ListFooterComponent={
               isAITyping ? (
                 <View style={ds.aiRow}>
@@ -994,46 +1206,70 @@ function AIScreen() {
           />
         )}
 
-        {/* ── SUGGESTION CHIPS (INLINE BETWEEN FLATLIST AND COMPOSER) ── */}
-        <View style={ds.suggestionsContainerOutside}>
-          <FlatList
-            horizontal
-            data={DEFAULT_QUICK_ACTIONS}
-            keyExtractor={(item, index) => index.toString()}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingLeft: 16, paddingRight: 32 }}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() => handleSuggestionPress(item.prompt)}
-                style={[ds.suggestionChip, { marginRight: 8 }]}
-              >
-                <Ionicons name={item.icon as any} size={14} color={theme.primary} style={{ marginRight: 6 }} />
-                <Text style={ds.suggestionChipLabel}>{item.label}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        </View>
+        {/* ── BOTTOM DOCK CONTAINER (CHATGPT PILL + SUGGESTIONS) ── */}
+        <View style={[ds.bottomDockContainer, { paddingBottom: keyboardVisible ? 4 : (tabBarHeight + Math.max(insets.bottom, 4)) }]}>
+          {/* SUGGESTION CHIPS – hidden during typing (ChatGPT behavior) */}
+          {!keyboardVisible && (
+            <View style={ds.suggestionsContainerOutside}>
+              <FlatList
+                horizontal
+                data={DEFAULT_QUICK_ACTIONS}
+                keyExtractor={(item, index) => index.toString()}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingLeft: 12, paddingRight: 12 }}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    onPress={() => handleSuggestionPress(item.prompt)}
+                    style={[ds.suggestionChip, { marginRight: 6 }]}
+                  >
+                    <Ionicons name={item.icon as any} size={13} color={theme.primary} style={{ marginRight: 5 }} />
+                    <Text style={ds.suggestionChipLabel}>{item.label}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          )}
 
-        {/* Chat Input Component */}
-        <View style={[ds.composerContainer, { paddingBottom: bottomOffset, backgroundColor: theme.card }]}>
-          <View style={ds.inputWrapperHorizontal}>
-            {/* Mic button inside input row (or Stop button if generating) */}
-            {isGenerating ? (
-              <TouchableOpacity
-                onPress={handleStopGeneration}
+          {/* ChatGPT-style Pill Input Component */}
+          <View style={ds.composerContainer}>
+            <View style={ds.inputWrapperHorizontal}>
+              {/* Multiline TextInput */}
+              <TextInput
+                ref={inputRef}
                 style={[
-                  ds.micBtnHorizontal,
-                  { backgroundColor: '#EF4444', borderColor: '#EF4444' }
+                  ds.inputHorizontal,
+                  { height: Math.min(104, Math.max(38, inputHeight)) }
                 ]}
-                activeOpacity={0.7}
-              >
-                <Ionicons 
-                  name="square" 
-                  size={16} 
-                  color="#FFFFFF" 
-                />
-              </TouchableOpacity>
-            ) : (
+                placeholder={
+                  status === 'listening' ? "🔴 Listening..." :
+                  status === 'processing' ? "⏳ Processing..." :
+                  status === 'error' ? "⚠️ Voice unavailable" :
+                  "Ask KnoVault AI..."
+                }
+                placeholderTextColor={colors.text.tertiary}
+                value={inputText}
+                onChangeText={setInputText}
+                onFocus={() => {
+                  setKeyboardVisible(true);
+                  if (isNearBottomRef.current) {
+                    setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 50);
+                    setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 150);
+                  }
+                }}
+                onSubmitEditing={() => {
+                  if (!isGenerating && !isSendingRef.current && inputText.trim()) {
+                    sendMessage();
+                  }
+                }}
+                multiline={true}
+                onContentSizeChange={(e) => {
+                  setInputHeight(e.nativeEvent.contentSize.height);
+                }}
+                textAlignVertical="center"
+                maxLength={2000}
+              />
+
+              {/* Mic button inside input row */}
               <TouchableOpacity
                 onPress={() => {
                   if (!microphoneAccessEnabled) {
@@ -1082,64 +1318,49 @@ function AIScreen() {
                     status === 'error' ? "alert-circle" :
                     "mic-outline"
                   } 
-                  size={20} 
+                  size={18} 
                   color={
                     status === 'listening' ? "#FFFFFF" :
                     status === 'processing' ? theme.primary :
                     status === 'error' ? "#EF4444" :
-                    theme.primary
+                    theme.textSecondary
                   } 
                 />
               </TouchableOpacity>
-            )}
 
-            {/* TextInput */}
-            <TextInput
-              ref={inputRef}
-              style={[
-                ds.inputHorizontal,
-                { height: Math.min(104, Math.max(40, inputHeight)) }
-              ]}
-              placeholder={
-                status === 'listening' ? "🔴 Listening..." :
-                status === 'processing' ? "⏳ Processing..." :
-                status === 'error' ? "⚠️ Voice unavailable" :
-                "Ask KnoVault AI..."
-              }
-              placeholderTextColor={colors.text.tertiary}
-              value={inputText}
-              onChangeText={setInputText}
-              multiline={true}
-              onContentSizeChange={(e) => {
-                setInputHeight(e.nativeEvent.contentSize.height);
-              }}
-              textAlignVertical="center"
-              maxLength={2000}
-              autoFocus
-            />
-
-            {/* Send button inside input row */}
-            <TouchableOpacity
-              onPress={() => sendMessage()}
-              disabled={!inputText.trim() || isGenerating}
-              style={[ds.sendBtnHorizontal, (!inputText.trim() || isGenerating) && ds.sendBtnDisabled]}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={inputText.trim() && !isGenerating ? colors.gradient.primary : (isDark ? ['#1A243D', '#151F32'] : ['#F1F5F9', '#E2E8F0'])}
-                style={ds.sendGradientHorizontal}
+              {/* ChatGPT Circular Send / Stop Up-Arrow button */}
+              <TouchableOpacity
+                onPress={isGenerating ? handleStopGeneration : () => sendMessage()}
+                disabled={isGenerating ? false : (isSendingRef.current || !inputText.trim())}
+                style={[ds.sendBtnHorizontal, (!isGenerating && (isSendingRef.current || !inputText.trim())) && ds.sendBtnDisabled]}
+                activeOpacity={0.8}
               >
-                {isGenerating ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Ionicons 
-                    name="paper-plane" 
-                    size={16} 
-                    color={isDark && !inputText.trim() ? '#64748B' : '#FFFFFF'} 
-                  />
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
+                <View
+                  style={[
+                    ds.sendGradientHorizontal,
+                    {
+                      backgroundColor: isGenerating
+                        ? '#EF4444'
+                        : (inputText.trim() ? theme.primary : (isDark ? '#263044' : '#E2E8F0'))
+                    }
+                  ]}
+                >
+                  {isGenerating ? (
+                    <Ionicons 
+                      name="square" 
+                      size={12} 
+                      color="#FFFFFF" 
+                    />
+                  ) : (
+                    <Ionicons 
+                      name="arrow-up" 
+                      size={18} 
+                      color={inputText.trim() ? '#FFFFFF' : (isDark ? '#64748B' : '#94A3B8')} 
+                    />
+                  )}
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -1499,8 +1720,13 @@ const dsFunc = (theme: any, colors: any, isDark: boolean) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 6,
   },
+  bottomDockContainer: {
+    backgroundColor: 'transparent',
+    paddingTop: 4,
+  },
   suggestionsContainerOutside: {
-    paddingVertical: 8,
+    paddingVertical: 4,
+    marginBottom: 4,
     backgroundColor: 'transparent',
   },
   suggestionChip: {
@@ -1509,7 +1735,7 @@ const dsFunc = (theme: any, colors: any, isDark: boolean) => StyleSheet.create({
     backgroundColor: theme.card,
     borderRadius: 20,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 7,
     borderWidth: 1,
     borderColor: theme.border,
   },
@@ -1638,59 +1864,60 @@ const dsFunc = (theme: any, colors: any, isDark: boolean) => StyleSheet.create({
     marginLeft: 4,
   },
 
-  // Input Container styles
+  // Input Container styles (ChatGPT Pill)
   composerContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingHorizontal: 12,
+    paddingTop: 0,
+    paddingBottom: 0,
+    backgroundColor: 'transparent',
   },
   inputWrapperHorizontal: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: theme.card,
-    borderRadius: 28,
+    borderRadius: 26,
     borderWidth: 1.2,
     borderColor: theme.border,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     paddingVertical: 4,
-    minHeight: 56,
-    maxHeight: 120,
+    minHeight: 48,
+    maxHeight: 116,
     ...getThemedShadow(theme, 'soft'),
   },
   inputHorizontal: {
     flex: 1,
     ...typography.bodyMedium,
     color: theme.text,
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    fontSize: 14,
-    minHeight: 40,
+    paddingLeft: 12,
+    paddingRight: 6,
+    paddingVertical: 6,
+    fontSize: 14.5,
+    minHeight: 36,
     maxHeight: 104,
   },
   micBtnHorizontal: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: theme.surface,
-    borderWidth: 1,
-    borderColor: theme.border,
+    backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+    marginRight: 2,
   },
   micBtnActive: {
     backgroundColor: '#EF4444',
     borderColor: '#EF4444',
   },
   sendBtnHorizontal: {
-    marginLeft: 8,
+    marginLeft: 4,
   },
   sendBtnDisabled: {
-    opacity: 0.4,
+    opacity: 0.5,
   },
   sendGradientHorizontal: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     justifyContent: 'center',
     alignItems: 'center',
     ...getThemedShadow(theme, 'soft'),
@@ -1878,6 +2105,73 @@ const dsFunc = (theme: any, colors: any, isDark: boolean) => StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 12,
+  },
+
+  // User Copy Icon Button style
+  userCopyRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 4,
+    alignSelf: 'flex-end',
+  },
+  userCopyBtn: {
+    padding: 4,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Toast Banner styles
+  toastContainer: {
+    position: 'absolute',
+    top: 70,
+    alignSelf: 'center',
+    zIndex: 1100,
+  },
+  toastBubble: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: isDark ? '#1E293B' : '#0F172A',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  toastText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+
+  // Floating Scroll to Bottom Button styles
+  scrollToBottomBtnContainer: {
+    position: 'absolute',
+    alignSelf: 'center',
+    zIndex: 100,
+  },
+  scrollToBottomBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  scrollToBottomText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
   },
 });
 

@@ -114,14 +114,14 @@ export function TopBar() {
   };
 
   return (
-    <header className="h-14 sm:h-16 rounded-2xl sm:rounded-3xl border border-border/40 bg-card/50 backdrop-blur-xl sticky top-0 z-20 px-4 sm:px-6 flex items-center justify-between shadow-[0_8px_30px_rgba(0,0,0,0.015)] transition-all">
-      <div className="flex-1 max-w-xl hidden md:flex items-center relative">
+    <header className="h-10 sm:h-11 rounded-xl sm:rounded-2xl border border-border/30 bg-card/60 backdrop-blur-xl sticky top-0 z-20 px-3 sm:px-4 flex items-center justify-between shadow-2xs transition-all">
+      <div className="flex-1 max-w-md hidden md:flex items-center relative">
         <Popover open={searchOpen} onOpenChange={setSearchOpen}>
           <PopoverTrigger asChild>
             <div className="relative w-full">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/80" />
+              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70" />
               <Input
-                placeholder="Search notes, reminders, or goals (Cmd+K)"
+                placeholder="Search notes, reminders, goals..."
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -130,7 +130,7 @@ export function TopBar() {
                 onFocus={() => {
                   if (searchQuery.length > 0) setSearchOpen(true);
                 }}
-                className="w-full bg-accent/30 border-border/40 pl-11 text-sm h-10 rounded-2xl focus-visible:ring-primary/40 text-foreground placeholder:text-muted-foreground/75 transition-all duration-300 hover:bg-accent/50"
+                className="w-full bg-accent/20 border-border/30 pl-8 text-xs h-7.5 rounded-xl focus-visible:ring-primary/30 text-foreground placeholder:text-muted-foreground/60 transition-all duration-200 hover:bg-accent/40"
               />
             </div>
           </PopoverTrigger>
@@ -143,8 +143,8 @@ export function TopBar() {
                       Search Results for "{searchQuery}"
                     </div>
                     {searchResults.map((res) => (
-                      <Button key={res.id} variant="ghost" className="justify-start font-medium text-xs h-auto py-2.5 px-3 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-200" onClick={() => handleSearchNav(res.route)}>
-                        <res.icon className="w-4 h-4 mr-2.5 shrink-0 text-muted-foreground" />
+                      <Button key={res.id} variant="ghost" className="justify-start font-medium text-xs h-auto py-2 px-2.5 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-200" onClick={() => handleSearchNav(res.route)}>
+                        <res.icon className="w-3.5 h-3.5 mr-2 shrink-0 text-muted-foreground" />
                         <span className="truncate">{res.title}</span>
                       </Button>
                     ))}
@@ -165,16 +165,16 @@ export function TopBar() {
       </div>
       
       {/* Mobile Title */}
-      <Link href="/" className="md:hidden flex items-center gap-2 group cursor-pointer hover:opacity-90 transition-all duration-200" title="KnoVault Home Dashboard">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-secondary flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-          <Shield className="w-4 h-4 text-primary-foreground" />
+      <Link href="/" className="md:hidden flex items-center gap-1.5 group cursor-pointer hover:opacity-90 transition-all duration-200" title="KnoVault Home Dashboard">
+        <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-primary to-secondary flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+          <Shield className="w-3.5 h-3.5 text-primary-foreground" />
         </div>
-        <span className="text-base font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent group-hover:text-primary transition-colors">
+        <span className="text-sm font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent group-hover:text-primary transition-colors">
           KnoVault
         </span>
       </Link>
 
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-1">
         <Button
           variant="ghost"
           size="icon"
@@ -183,21 +183,21 @@ export function TopBar() {
             setTheme(targetTheme);
             setSettingsTheme(targetTheme);
           }}
-          className="text-muted-foreground hover:text-foreground relative rounded-xl h-10 w-10 hover:bg-accent/40 transition-colors"
+          className="text-muted-foreground hover:text-foreground relative rounded-lg h-8 w-8 hover:bg-accent/40 transition-colors"
         >
           {mounted && resolvedTheme === 'dark' ? (
-            <Sun className="h-4.5 w-4.5 transition-all text-amber-500" />
+            <Sun className="h-4 w-4 transition-all text-amber-500" />
           ) : (
-            <Moon className="h-4.5 w-4.5 transition-all text-indigo-500" />
+            <Moon className="h-4 w-4 transition-all text-indigo-500" />
           )}
         </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground relative rounded-xl h-10 w-10 hover:bg-accent/40 transition-colors">
-              <Bell className="w-4.5 h-4.5" />
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground relative rounded-lg h-8 w-8 hover:bg-accent/40 transition-colors">
+              <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-primary rounded-full ring-2 ring-background flex items-center justify-center" />
+                <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-primary rounded-full ring-2 ring-background flex items-center justify-center" />
               )}
             </Button>
           </DropdownMenuTrigger>

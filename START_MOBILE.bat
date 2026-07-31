@@ -38,6 +38,9 @@ echo ---------------------------------------------------------
 timeout /t 5 /nobreak >nul
 adb wait-for-device
 
+echo [3.5/4] Setting up ADB port forwarding (port 8000)...
+adb reverse tcp:8000 tcp:8000
+
 echo.
 echo [4/4] Starting Expo build and Metro bundler...
 set EXPO_USE_LOCAL_ADB=1

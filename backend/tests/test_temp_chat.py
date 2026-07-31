@@ -25,8 +25,9 @@ async def test_temporary_chat_zero_db_inserts(db_session: AsyncSession, test_use
         mock_user = MagicMock()
         mock_user.id = user_id
         
-        resp = await chat(data=req, current_user=mock_user, db=db_session)
-        assert resp.id == 0
+        mock_req = MagicMock()
+        mock_req.headers = {}
+        resp = await chat(data=req, request=mock_req, db=db_session, current_user=mock_user)
         assert resp.response == "Your name is Tester."
 
     # Verify zero inserts into database

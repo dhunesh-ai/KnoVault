@@ -389,16 +389,10 @@ export default function LandingPage() {
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#7C4DFF] transition-all duration-300 group-hover:w-full" />
               </button>
             ))}
-            <span className="text-sm font-bold text-gray-400 cursor-not-allowed flex items-center gap-1 bg-gray-100/50 px-2.5 py-1 rounded-full border border-gray-200/20">
-              Pricing <span className="text-[8px] uppercase bg-purple-100 text-purple-600 px-1 py-0.5 rounded font-black">Soon</span>
-            </span>
           </nav>
 
           {/* CTA Actions */}
           <div className="hidden md:flex items-center gap-5">
-            <a href="https://github.com" target="_blank" rel="noreferrer" className="text-gray-500 hover:text-gray-900 transition-colors">
-              <GithubIcon className="w-5 h-5" />
-            </a>
             <button onClick={() => router.push("/login")} className="text-sm font-bold text-gray-600 hover:text-gray-900">Sign In</button>
             <Button 
               onClick={handleGetStarted}
@@ -1031,10 +1025,10 @@ export default function LandingPage() {
 
       {/* 12. MULTI-COLUMN FOOTER */}
       <footer className="bg-white border-t border-gray-200/50 py-16 relative z-10">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-5 gap-12 text-xs text-gray-500">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between gap-12 text-xs text-gray-500">
           
           {/* Logo & Info */}
-          <div className="space-y-4 md:col-span-2">
+          <div className="space-y-4 max-w-sm">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#7C4DFF] to-[#8B5CF6] flex items-center justify-center text-white font-extrabold text-sm">
                 K
@@ -1054,34 +1048,6 @@ export default function LandingPage() {
               <li><button onClick={() => scrollToSection("ecosystem")} className="hover:text-gray-900 transition-colors">Ecosystem</button></li>
               <li><button onClick={() => router.push("/login")} className="hover:text-gray-900 transition-colors">Sign In</button></li>
             </ul>
-          </div>
-
-          {/* Links 2 */}
-          <div className="space-y-3">
-            <h4 className="font-extrabold text-gray-900 uppercase tracking-widest text-[9px]">Developer</h4>
-            <ul className="space-y-2.5 font-bold">
-              <li><a href="https://github.com" target="_blank" rel="noreferrer" className="hover:text-gray-900 transition-colors flex items-center gap-1.5"><GithubIcon className="w-3.5 h-3.5" /> GitHub Repository</a></li>
-              <li><span className="text-gray-400 cursor-not-allowed">Roadmap Logs</span></li>
-              <li><span className="text-gray-400 cursor-not-allowed">Client APIs</span></li>
-            </ul>
-          </div>
-
-          {/* Links 3 & newsletter */}
-          <div className="space-y-4">
-            <h4 className="font-extrabold text-gray-900 uppercase tracking-widest text-[9px]">Newsletter</h4>
-            <div className="space-y-2">
-              <p className="text-gray-400 leading-relaxed">Subscribe to get updates on feature updates and ciphers.</p>
-              <div className="flex gap-1.5 items-center">
-                <input 
-                  type="email" 
-                  placeholder="Enter email"
-                  className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-[11px] outline-none w-full"
-                />
-                <button className="p-2.5 bg-[#7C4DFF] hover:bg-[#8B5CF6] text-white rounded-xl">
-                  <Mail className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
           </div>
 
         </div>

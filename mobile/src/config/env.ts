@@ -10,14 +10,20 @@ import Constants from 'expo-constants';
  */
 
 const getLocalApiUrl = (): string => {
-  const hostUri = Constants.expoConfig?.hostUri; // e.g., "192.168.1.15:8081" or "localhost:8081"
-  if (hostUri) {
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
+  // When running over ADB USB debugging with `adb reverse tcp:8000 tcp:8000`,
+  // http://localhost:8000 is directly forwarded to PC backend over USB.
+  // This bypasses campus Wi-Fi AP isolation and Windows firewall issues.
+  const hostUri = Constants.expoConfig?.hostUri;
+  if (process.env.EXPO_PUBLIC_USE_LAN === 'true' && hostUri) {
     const ip = hostUri.split(':')[0];
     if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
       return `http://${ip}:8000`;
     }
   }
-  return 'http://10.0.2.2:8000'; // Fallback for standard Android Emulator
+  return 'http://localhost:8000';
 };
 
 import { buildConfig } from './buildConfig';

@@ -30,7 +30,7 @@ class AIService:
         self.model = settings.GROQ_MODEL
         
         try:
-            self.client = Groq(api_key=settings.GROQ_API_KEY)
+            self.client = Groq(api_key=settings.GROQ_API_KEY, timeout=10.0)
             logger.info(f"[GROQ CONNECTED] Model: {self.model}")
         except Exception as e:
             logger.error(f"[GROQ FAILED] Initialization error: {e}")
@@ -107,22 +107,37 @@ class AIService:
 
     def _call_groq(self, messages: list, temperature: float = 0.7, max_tokens: int = 1024) -> str:
         """
-        Synchronous Groq API call - meant to be run via asyncio.to_thread
+        Synchronous Groq API call with fallback model chain
         """
-        logger.info("[GROQ CALL] Sending request...")
-        api_model = self.model
-        if api_model == "gpt-oss-20b":
-            api_model = "openai/gpt-oss-20b"
-            
-        completion = self.client.chat.completions.create(
-            messages=messages,
-            model=api_model,
-            temperature=temperature,
-            max_tokens=max_tokens,
-        )
-        result = completion.choices[0].message.content
-        logger.info(f"[GROQ CALL] Response received ({len(result)} chars)")
-        return result
+        candidate_models = [self.model, "llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768", "gemma2-9b-it"]
+        seen = set()
+        models = []
+        for m in candidate_models:
+            if m and m not in seen:
+                seen.add(m)
+                models.append(m)
+
+        last_error = None
+        for m in models:
+            api_model = "openai/gpt-oss-20b" if m == "gpt-oss-20b" else m
+            try:
+                logger.info(f"[GROQ CALL] Sending request with model: {api_model}...")
+                completion = self.client.chat.completions.create(
+                    messages=messages,
+                    model=api_model,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                )
+                result = completion.choices[0].message.content
+                logger.info(f"[GROQ CALL SUCCESS] Model={api_model} | Length={len(result)} chars")
+                return result
+            except Exception as e:
+                logger.warning(f"[GROQ CALL WARN] Model {api_model} failed: {e}")
+                last_error = e
+
+        if last_error:
+            raise last_error
+        raise RuntimeError("No Groq LLM model succeeded.")
 
     async def get_user_context(self, db: AsyncSession, user_id: int, user_message: str = "") -> str:
         """

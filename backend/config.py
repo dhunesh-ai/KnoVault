@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = "your_groq_api_key"
     GROQ_MODEL: str = "gpt-oss-20b"
     ALLOWED_ORIGINS: str = "*"
+    ALLOW_SQLITE_FALLBACK: bool = True
 
     # Brevo API Settings
     BREVO_API_KEY: str = ""

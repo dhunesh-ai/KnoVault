@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { notificationsApi, WorkspaceNotification } from '../api/notifications';
-import { getDB } from '../services/db';
+import { dbQueue } from '../services/db';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -74,19 +74,24 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       // 2. Fetch from local SQLite (scheduled reminder notifications)
       const localNotifs: (LocalNotificationRecord & { source: 'local'; type?: string; workspace_name?: string | null; message?: string })[] = [];
       try {
-        const db = getDB();
-        await db.runAsync(
-          `DELETE FROM NotificationHistory WHERE 
-           title LIKE '%Biometrics%' OR 
-           title LIKE '%Keychain%' OR 
-           title LIKE '%Session Secured%' OR 
-           title LIKE '%Fingerprint%' OR 
-           title LIKE '%Device authentication%' OR
-           title LIKE '%Keychain initialized%'`
-        );
-        const rows = await db.getAllAsync<any>(
-          'SELECT * FROM NotificationHistory ORDER BY created_at DESC LIMIT 50'
-        );
+        await dbQueue.write(async (db) => {
+          await db.runAsync(
+            `DELETE FROM NotificationHistory WHERE 
+             title LIKE '%Biometrics%' OR 
+             title LIKE '%Keychain%' OR 
+             title LIKE '%Session Secured%' OR 
+             title LIKE '%Fingerprint%' OR 
+             title LIKE '%Device authentication%' OR
+             title LIKE '%Keychain initialized%'`
+          );
+        });
+
+        const rows = await dbQueue.read(async (db) => {
+          return db.getAllAsync<any>(
+            'SELECT * FROM NotificationHistory ORDER BY created_at DESC LIMIT 50'
+          );
+        });
+
         rows.forEach((r) =>
           localNotifs.push({
             ...r,
@@ -147,8 +152,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       if (source === 'backend') {
         await notificationsApi.markRead(id);
       } else {
-        const db = getDB();
-        await db.runAsync('UPDATE NotificationHistory SET is_read = 1 WHERE id = ?', [id]);
+        await dbQueue.write(async (db) => {
+          await db.runAsync('UPDATE NotificationHistory SET is_read = 1 WHERE id = ?', [id]);
+        });
       }
       const updated = get().notifications.map((n) =>
         n.id === id && n.source === source ? { ...n, is_read: true } : n
@@ -167,8 +173,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       await notificationsApi.markAllRead().catch(() => {});
       // Mark local notifications
       try {
-        const db = getDB();
-        await db.runAsync('UPDATE NotificationHistory SET is_read = 1');
+        await dbQueue.write(async (db) => {
+          await db.runAsync('UPDATE NotificationHistory SET is_read = 1');
+        });
       } catch {}
 
       const updated = get().notifications.map((n) => ({ ...n, is_read: true }));
@@ -184,8 +191,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       if (source === 'backend') {
         await notificationsApi.deleteOne(id);
       } else {
-        const db = getDB();
-        await db.runAsync('DELETE FROM NotificationHistory WHERE id = ?', [id]);
+        await dbQueue.write(async (db) => {
+          await db.runAsync('DELETE FROM NotificationHistory WHERE id = ?', [id]);
+        });
       }
       const updated = get().notifications.filter(
         (n) => !(n.id === id && n.source === source)
@@ -202,8 +210,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     try {
       await notificationsApi.clearAll().catch(() => {});
       try {
-        const db = getDB();
-        await db.runAsync('DELETE FROM NotificationHistory');
+        await dbQueue.write(async (db) => {
+          await db.runAsync('DELETE FROM NotificationHistory');
+        });
       } catch {}
       set({ notifications: [], unreadCount: 0 });
       updateBadge(0);
@@ -214,7 +223,6 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 }));
 
 // ── Local Notification Logger ─────────────────────────────────────────
-// Kept for backward compatibility with local scheduled notification system.
 
 export const logNotificationToHistory = async (
   title: string,
@@ -223,14 +231,15 @@ export const logNotificationToHistory = async (
   payload?: any
 ) => {
   try {
-    const db = getDB();
-    await db.runAsync(
-      'INSERT INTO NotificationHistory (title, body, category, payload) VALUES (?, ?, ?, ?)',
-      title ?? 'Notification',
-      body ?? '',
-      category ?? 'system',
-      payload ? JSON.stringify(payload) : null
-    );
+    await dbQueue.write(async (db) => {
+      await db.runAsync(
+        'INSERT INTO NotificationHistory (title, body, category, payload) VALUES (?, ?, ?, ?)',
+        title ?? 'Notification',
+        body ?? '',
+        category ?? 'system',
+        payload ? JSON.stringify(payload) : null
+      );
+    });
     // Refresh store
     useNotificationStore.getState().fetchNotifications();
   } catch (error) {

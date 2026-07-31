@@ -57,7 +57,7 @@ const ScalePressable: React.FC<{
   children: React.ReactNode;
   onPress: () => void;
   style: any;
-}> = ({ children, onPress, style }) => {
+}> = React.memo(({ children, onPress, style }) => {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -78,7 +78,7 @@ const ScalePressable: React.FC<{
       </Animated.View>
     </Pressable>
   );
-};
+});
 
 export default function HomeScreen() {
   console.log('[HomeScreen] Rendering...');

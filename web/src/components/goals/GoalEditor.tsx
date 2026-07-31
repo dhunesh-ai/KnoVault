@@ -28,7 +28,7 @@ import { motion } from "framer-motion";
 
 const goalSchema = z.object({
   title: z.string().min(1, "Goal name is required"),
-  daily_target: z.number({ invalid_type_error: "Target value must be a number" }).min(1, "Target value must be at least 1"),
+  daily_target: z.number({ message: "Target value must be a number" }).min(1, "Target value must be at least 1"),
   target_unit: z.string().min(1, "Unit is required"),
   start_date: z.string().min(1, "Start date is required"),
   reminder_time: z.string().min(1, "Reminder time is required"),

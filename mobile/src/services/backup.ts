@@ -1,6 +1,6 @@
 import CryptoJS from 'crypto-js';
 import * as SecureStore from 'expo-secure-store';
-import { getDB, localInsert, clearDB } from './db';
+import { dbQueue, localInsert, clearDB } from './db';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
@@ -18,19 +18,20 @@ export const getEncryptionKey = async () => {
 };
 
 export const generateBackupPayload = async () => {
-    const db = getDB();
-    const notes = await db.getAllAsync('SELECT * FROM Notes');
-    const goals = await db.getAllAsync('SELECT * FROM Goals');
-    const reminders = await db.getAllAsync('SELECT * FROM Reminders');
-    const important_days = await db.getAllAsync('SELECT * FROM ImportantDays');
+    return dbQueue.read(async (db) => {
+        const notes = await db.getAllAsync('SELECT * FROM Notes');
+        const goals = await db.getAllAsync('SELECT * FROM Goals');
+        const reminders = await db.getAllAsync('SELECT * FROM Reminders');
+        const important_days = await db.getAllAsync('SELECT * FROM ImportantDays');
 
-    return JSON.stringify({
-        version: '1.0',
-        exported_at: new Date().toISOString(),
-        notes,
-        goals,
-        reminders,
-        important_days
+        return JSON.stringify({
+            version: '1.0',
+            exported_at: new Date().toISOString(),
+            notes,
+            goals,
+            reminders,
+            important_days
+        });
     });
 };
 

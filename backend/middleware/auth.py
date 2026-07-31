@@ -21,6 +21,20 @@ from utils.firebase import verify_firebase_token, is_firebase_ready
 security = HTTPBearer()
 
 
+def validate_user_status(user: User):
+    if getattr(user, "is_blocked", False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Account blocked: {user.block_reason or 'Policy violation'}",
+        )
+
+    if getattr(user, "is_deleted", False):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account has been deleted",
+        )
+
+
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db)
@@ -55,6 +69,7 @@ async def get_current_user(
                 detail="User not found",
             )
 
+        validate_user_status(user)
         return user
 
     # ── Strategy 2: Try Firebase JWT ──────────────────────────────────
@@ -78,6 +93,7 @@ async def get_current_user(
             user = result.scalar_one_or_none()
 
             if user:
+                validate_user_status(user)
                 return user
 
             # Try to find by email and auto-link firebase_uid
@@ -92,6 +108,7 @@ async def get_current_user(
                     # Auto-link Firebase UID to existing account
                     user.firebase_uid = firebase_uid
                     await db.flush()
+                    validate_user_status(user)
                     return user
 
             # Firebase user not found in our database
