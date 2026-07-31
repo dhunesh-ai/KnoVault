@@ -434,7 +434,7 @@ async def firebase_sync(data: FirebaseSyncRequest, db: AsyncSession = Depends(ge
     await db.flush()
     await db.refresh(user)
 
-    print(f"[Firebase Sync] ✅ New user created: {user.email} (Firebase UID: {firebase_uid})")
+    print(f"[Firebase Sync] [OK] New user created: {user.email} (Firebase UID: {firebase_uid})")
 
     access_token = create_access_token(data={"sub": str(user.id)})
     refresh_token = create_refresh_token(data={"sub": str(user.id)})
@@ -458,6 +458,6 @@ async def update_fcm_token(
     """
     current_user.fcm_token = data.fcm_token
     await db.flush()
-    print(f"[FCM] ✅ Token updated for user {current_user.id}: {data.fcm_token[:20]}...")
+    print(f"[FCM] [OK] Token updated for user {current_user.id}: {data.fcm_token[:20]}...")
     return {"message": "FCM token updated successfully"}
 

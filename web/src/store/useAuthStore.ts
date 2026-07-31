@@ -105,16 +105,31 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       console.log("[GOOGLE LOGIN] Step 3: Initiating Firebase OAuth Popup...");
       const result = await signInWithPopup(auth, provider);
-      console.log("[GOOGLE LOGIN] Step 4: Firebase OAuth success, user:", result.user.email);
+      console.log("[GOOGLE LOGIN] Step 4: Firebase OAuth success!");
+      console.log("[GOOGLE LOGIN] Firebase User Email:", result.user.email);
+      console.log("[GOOGLE LOGIN] Firebase User UID:", result.user.uid);
       const idToken = await result.user.getIdToken();
+      console.log("[GOOGLE LOGIN] Firebase ID Token generated successfully.");
+      console.log("[GOOGLE LOGIN] Firebase ID Token Length:", idToken.length);
+      console.log("[GOOGLE LOGIN] Firebase ID Token Preview:", idToken.slice(0, 30) + "...");
       
       const payload = { id_token: idToken };
       const headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
       
-      console.log("[GOOGLE LOGIN] Step 5: Dispatching Token Exchange Request");
-      console.log(`[GOOGLE LOGIN] Request URL: POST ${targetUrl}`);
-      console.log("[GOOGLE LOGIN] Headers:", headers);
-      console.log("[GOOGLE LOGIN] Request Body (preview):", { id_token: idToken.slice(0, 20) + "..." });
+      const isClient = typeof window !== 'undefined';
+      const hostname = isClient ? window.location.hostname : 'SSR';
+      const environment = process.env.NODE_ENV || 'unknown';
+
+      console.log("==========================================");
+      console.log("[GOOGLE LOGIN] Step 5: DISPATCHING TOKEN EXCHANGE REQUEST");
+      console.log("[GOOGLE LOGIN] Hostname:", hostname);
+      console.log("[GOOGLE LOGIN] Environment:", environment);
+      console.log("[GOOGLE LOGIN] API Base URL:", baseUrl);
+      console.log("[GOOGLE LOGIN] Final Request URL:", targetUrl);
+      console.log("[GOOGLE LOGIN] HTTP Method: POST");
+      console.log("[GOOGLE LOGIN] Request Headers:", headers);
+      console.log("[GOOGLE LOGIN] Request Payload (preview):", { id_token: idToken.slice(0, 30) + "..." });
+      console.log("==========================================");
       
       const response = await api.post('/api/auth/firebase-sync', payload);
       
@@ -141,14 +156,29 @@ export const useAuthStore = create<AuthState>((set) => ({
       console.error("Stack Trace:", error.stack);
       console.error("==========================================");
 
-      let errorDetail = error.response?.data?.detail;
+      let errorDetail = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : (error.response?.data?.detail ? JSON.stringify(error.response.data.detail) : null);
+
       if (!errorDetail) {
-        if (error.message === "Network Error") {
-          errorDetail = `Backend unreachable at ${baseUrl}. Please ensure FastAPI is running and CORS is allowed.`;
+        const isClient = typeof window !== 'undefined';
+        const currentHost = isClient ? window.location.hostname : 'SSR';
+        const env = process.env.NODE_ENV || 'unknown';
+        const statusCode = error.response?.status ? `${error.response.status}` : 'N/A (No Response)';
+        const responseBody = error.response?.data ? JSON.stringify(error.response.data) : 'None';
+
+        if (error.message === "Network Error" || error.code === "ERR_NETWORK") {
+          errorDetail = `Unable to connect to backend API [${targetUrl}]. Environment: ${env}, Host: ${currentHost}, Base URL: ${baseUrl}, Method: POST, Status: ${statusCode}, Error: Network/CORS Failure. Please verify backend server status and CORS rules.`;
+        } else if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+          errorDetail = `Backend API request timed out after 30s [${targetUrl}]. Environment: ${env}, Host: ${currentHost}, Base URL: ${baseUrl}.`;
         } else if (error.code === "auth/popup-closed-by-user") {
-          errorDetail = "Google sign-in popup was closed before completing.";
+          errorDetail = "Google sign-in popup was closed before completing. (Firebase Error Code: auth/popup-closed-by-user)";
+        } else if (error.code === "auth/cancelled-popup-request") {
+          errorDetail = "Google sign-in request was cancelled. (Firebase Error Code: auth/cancelled-popup-request)";
+        } else if (error.code && typeof error.code === 'string' && error.code.startsWith("auth/")) {
+          errorDetail = `Firebase Authentication Error [${error.code}]: ${error.message}`;
         } else {
-          errorDetail = error.message || "Google sign-in failed. Please try again.";
+          errorDetail = `Google sign-in failed: ${error.message || 'Unknown error'}. [Env: ${env}, Host: ${currentHost}, Base URL: ${baseUrl}, Request URL: ${targetUrl}, Method: POST, Status: ${statusCode}, Response: ${responseBody}]`;
         }
       }
       throw new Error(errorDetail);

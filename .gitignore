@@ -69,8 +69,10 @@ firebase-debug.log
 backend/.env
 mobile/.env
 
-# Database
+# Database & Logs
 *.sqlite3
+*.db
+*.log
 
 # Test Reports
 e2e_tests/reports/*.xlsx
