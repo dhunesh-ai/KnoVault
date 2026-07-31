@@ -66,6 +66,7 @@ default_origins = [
     "http://127.0.0.1:8000",
     "https://knovault-jbph.onrender.com",
     "https://knovault.app",
+    "https://kno-vault.vercel.app",
 ]
 configured_origins = [o.strip() for o in raw_origins if o.strip() and o.strip() != "*"]
 origins = list(set(default_origins + configured_origins))

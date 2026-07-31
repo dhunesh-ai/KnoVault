@@ -1,4 +1,6 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { getApiBaseUrl } from '../lib/axios';
+
+const getBaseUrl = () => getApiBaseUrl();
 
 function getAdminToken(): string | null {
   if (typeof window !== 'undefined') {
@@ -18,7 +20,7 @@ async function adminFetch(endpoint: string, options: RequestInit = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const res = await fetch(`${getBaseUrl()}${endpoint}`, {
     ...options,
     headers,
   });
