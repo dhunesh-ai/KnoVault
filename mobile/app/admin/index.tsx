@@ -87,6 +87,11 @@ export default function MobileAdminDashboard() {
           <Text style={styles.menuDesc}>Block, unblock, or soft-delete user accounts</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/storage')}>
+          <Text style={styles.menuTitle}>Storage Management</Text>
+          <Text style={styles.menuDesc}>Monitor user database storage consumption & quotas</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/admin/announcements')}>
           <Text style={styles.menuTitle}>Broadcast Push Announcement</Text>
           <Text style={styles.menuDesc}>Send updates & alerts to all mobile devices</Text>

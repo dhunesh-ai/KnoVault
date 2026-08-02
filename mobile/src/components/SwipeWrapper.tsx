@@ -14,7 +14,7 @@ import Animated, {
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 80;
 
-const TABS = ['index', 'notes', 'ai', 'goals', 'profile'];
+const TABS = ['index', 'notes', 'goals', 'workspaces', 'profile'];
 
 // Module-level variable to keep track of the last focused index across screen re-renders
 let lastActiveIndex = 0;

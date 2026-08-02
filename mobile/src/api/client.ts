@@ -38,7 +38,8 @@ export const checkHealth = async (): Promise<boolean> => {
 // ── Request Interceptor: Attach JWT & Log ───────────────────────────
 client.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    console.log(`[API Initialization] Requesting ${config.method?.toUpperCase()} ${config.url}`);
+    const fullUrl = `${config.baseURL || env.API_BASE_URL}${config.url}`;
+    console.log(`[API] ${config.method?.toUpperCase()} ${fullUrl}`);
     try {
       const token = await SecureStore.getItemAsync('user_token');
       if (token && config.headers) {

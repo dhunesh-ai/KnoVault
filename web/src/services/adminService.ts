@@ -74,6 +74,15 @@ export const adminService = {
     return adminFetch('/api/admin/dashboard/stats');
   },
 
+  // Storage Management
+  async getStorageStats(page: number = 1, limit: number = 20) {
+    return adminFetch(`/api/admin/storage?page=${page}&limit=${limit}`);
+  },
+
+  async getUserStorageDetail(userId: number) {
+    return adminFetch(`/api/admin/storage/${userId}`);
+  },
+
   // Users
   async getUsers(params: { search?: string; role?: string; status_filter?: string; platform?: string; page?: number; limit?: number }) {
     const query = new URLSearchParams();

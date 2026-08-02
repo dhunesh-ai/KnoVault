@@ -28,6 +28,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { env } from "@/config/env";
+
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Notes", href: "/notes", icon: StickyNote },
@@ -43,6 +45,8 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuthStore();
+
+  const visibleNavItems = navItems.filter((item) => item.href !== "/ai" || env.AI_CHAT_ENABLED);
 
   const handleLogout = async () => {
     await logout();
@@ -66,7 +70,7 @@ export function Sidebar() {
       </Link>
 
       <div className="flex-1 overflow-y-auto py-2 px-1 space-y-1.5 scrollbar-hide">
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const isActive = pathname.startsWith(item.href);
           
           return (

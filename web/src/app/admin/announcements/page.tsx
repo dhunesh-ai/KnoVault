@@ -52,46 +52,46 @@ export default function AnnouncementsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-xl font-bold tracking-tight">Announcement & Alert Center</h1>
-        <p className="text-xs text-slate-400 mt-1">
+        <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Announcement & Alert Center</h1>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
           Broadcast platform notifications, maintenance alerts, or emergency notices directly to Web and Mobile apps.
         </p>
       </div>
 
       {statusMsg && (
-        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
+        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs flex items-center gap-2 font-medium">
           <CheckCircle2 size={16} />
           <span>{statusMsg}</span>
         </div>
       )}
 
       {/* Broadcast Form */}
-      <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl space-y-4">
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-          <Megaphone size={18} className="text-indigo-400" />
-          <h2 className="text-sm font-bold text-slate-200">Compose Broadcast Notification</h2>
+      <div className="p-6 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-sm backdrop-blur-xl space-y-4">
+        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+          <Megaphone size={18} className="text-indigo-600 dark:text-indigo-400" />
+          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-200">Compose Broadcast Notification</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Announcement Title</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Announcement Title</label>
               <input
                 type="text"
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Scheduled System Maintenance Notice"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Category</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Category</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-100 focus:outline-none"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 focus:outline-none"
               >
                 <option value="app_update">App Update</option>
                 <option value="maintenance">Scheduled Maintenance</option>
@@ -102,7 +102,7 @@ export default function AnnouncementsPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Target Audience</label>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Target Audience</label>
             <div className="grid grid-cols-3 gap-3">
               {[
                 { id: 'everyone', label: 'Everyone (Web + Mobile)', icon: Bell },
@@ -118,8 +118,8 @@ export default function AnnouncementsPage() {
                     onClick={() => setTargetAudience(aud.id)}
                     className={`p-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
                       isSelected
-                        ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300 shadow-md shadow-indigo-600/10'
-                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                        ? 'bg-purple-100 dark:bg-indigo-600/20 border-indigo-500 text-indigo-700 dark:text-indigo-300 shadow-sm'
+                        : 'bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-400 hover:bg-slate-50 dark:hover:text-slate-200'
                     }`}
                   >
                     <Icon size={16} />
@@ -131,14 +131,14 @@ export default function AnnouncementsPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">Message Content</label>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Message Content</label>
             <textarea
               required
               rows={4}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Enter message text to broadcast to users..."
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500"
             />
           </div>
 
@@ -162,23 +162,23 @@ export default function AnnouncementsPage() {
       </div>
 
       {/* History */}
-      <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl space-y-4">
-        <h3 className="text-sm font-bold text-slate-200">Past Announcements Broadcast History</h3>
+      <div className="p-6 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-sm backdrop-blur-xl space-y-4">
+        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-200">Past Announcements Broadcast History</h3>
         <div className="space-y-3">
           {history.length === 0 ? (
-            <p className="text-xs text-slate-500 py-4 text-center">No announcements sent yet.</p>
+            <p className="text-xs text-slate-600 dark:text-slate-500 py-4 text-center">No announcements sent yet.</p>
           ) : (
             history.map((ann: any) => (
-              <div key={ann.id} className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex items-start justify-between gap-4">
+              <div key={ann.id} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-200 text-xs">{ann.title}</span>
-                    <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] uppercase font-mono">
+                    <span className="font-bold text-slate-900 dark:text-slate-200 text-xs">{ann.title}</span>
+                    <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 text-[10px] uppercase font-mono font-semibold border border-indigo-200 dark:border-indigo-500/30">
                       {ann.category}
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">Audience: {ann.target_audience}</span>
+                    <span className="text-[10px] text-slate-600 dark:text-slate-500 font-mono">Audience: {ann.target_audience}</span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-1">{ann.message}</p>
+                  <p className="text-xs text-slate-700 dark:text-slate-400 mt-1">{ann.message}</p>
                 </div>
                 <span className="text-[10px] text-slate-500 shrink-0 font-mono">
                   {new Date(ann.created_at).toLocaleString()}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { TabBar } from '../../src/components/navigation/TabBar';
+import { env } from '../../src/config/env';
 
 export default function TabLayout() {
   return (
@@ -13,8 +14,15 @@ export default function TabLayout() {
     >
       <Tabs.Screen name="index" options={{ title: 'Home' }} />
       <Tabs.Screen name="notes" options={{ title: 'Notes' }} />
+      <Tabs.Screen name="goals" options={{ title: 'Goals' }} />
       <Tabs.Screen name="workspaces" options={{ title: 'Workspaces' }} />
-      <Tabs.Screen name="ai" options={{ title: 'Assistant' }} />
+      <Tabs.Screen 
+        name="ai" 
+        options={{ 
+          title: 'Assistant',
+          href: env.AI_CHAT_ENABLED ? '/(tabs)/ai' : null
+        }} 
+      />
       <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
     </Tabs>
   );

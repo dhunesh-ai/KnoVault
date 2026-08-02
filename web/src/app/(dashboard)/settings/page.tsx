@@ -53,6 +53,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { AvatarPickerModal } from "@/components/profile/AvatarPickerModal";
 import { AboutKnoVaultModal } from "@/components/about/AboutKnoVaultModal";
+import { env } from "@/config/env";
 
 const ACCENT_COLORS: { name: AccentColor; hex: string; bg: string; ring: string }[] = [
   { name: "Purple", hex: "#7C4DFF", bg: "bg-purple-600", ring: "ring-purple-500" },
@@ -694,16 +695,18 @@ export default function SettingsPage() {
                 <p className="text-[10px] text-muted-foreground font-bold">Doses Tracked</p>
               </div>
 
-              <div className="p-4 rounded-[20px] bg-primary/10 border border-primary/20 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="p-2.5 rounded-xl bg-primary text-primary-foreground">
-                    <MessageSquare className="w-5 h-5" />
+              {env.AI_CHAT_ENABLED && (
+                <div className="p-4 rounded-[20px] bg-primary/10 border border-primary/20 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="p-2.5 rounded-xl bg-primary text-primary-foreground">
+                      <MessageSquare className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-black text-primary uppercase">AI Threads</span>
                   </div>
-                  <span className="text-[10px] font-black text-primary uppercase">AI Threads</span>
+                  <div className="text-2xl font-black text-foreground">{isLoadingStats ? "..." : stats.aiThreads}</div>
+                  <p className="text-[10px] text-muted-foreground font-bold">Discussions</p>
                 </div>
-                <div className="text-2xl font-black text-foreground">{isLoadingStats ? "..." : stats.aiThreads}</div>
-                <p className="text-[10px] text-muted-foreground font-bold">Discussions</p>
-              </div>
+              )}
             </div>
           </motion.div>
 

@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: str = "*"
     ALLOW_SQLITE_FALLBACK: bool = True
 
+    # Super Admin Bootstrap Settings
+    SUPER_ADMIN_EMAIL: str = "admin@knovault.app"
+    SUPER_ADMIN_PASSWORD: str = ""
+
     # Brevo API Settings
     BREVO_API_KEY: str = ""
     BREVO_SENDER_EMAIL: str = "thinkgood24hrs@gmail.com"

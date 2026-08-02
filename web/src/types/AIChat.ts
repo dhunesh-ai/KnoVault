@@ -31,6 +31,7 @@ export interface AIChatRequest {
   context?: string | null;
   system_prompt?: string | null;
   is_temporary?: boolean;
+  client_message_id?: string | null;
 }
 
 export interface AIChatResponse {

@@ -22,6 +22,7 @@ export default function AdminLayout() {
       <Stack.Screen name="login" options={{ title: 'Admin Login', headerShown: false }} />
       <Stack.Screen name="users" options={{ title: 'User Management' }} />
       <Stack.Screen name="user_detail" options={{ title: 'User Profile Metadata' }} />
+      <Stack.Screen name="storage" options={{ title: 'Storage Management' }} />
       <Stack.Screen name="announcements" options={{ title: 'Send Announcement' }} />
       <Stack.Screen name="analytics" options={{ title: 'Analytics Summary' }} />
     </Stack>

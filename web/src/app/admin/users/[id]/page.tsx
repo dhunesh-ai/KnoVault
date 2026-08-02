@@ -91,7 +91,7 @@ export default function UserDetailPage() {
       <div className="flex items-center justify-between">
         <button
           onClick={() => router.back()}
-          className="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 hover:text-white flex items-center gap-2"
+          className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold shadow-sm flex items-center gap-2"
         >
           <ArrowLeft size={15} />
           <span>Back to Users List</span>
@@ -100,14 +100,14 @@ export default function UserDetailPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => handleAction(() => adminService.exportUserData(userId), 'Metadata package exported.')}
-            className="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-slate-200 flex items-center gap-2"
+            className="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-sm flex items-center gap-2"
           >
             <Download size={15} />
             <span>Export User Metadata</span>
           </button>
           <button
             onClick={() => handleAction(() => adminService.forceLogoutUser(userId), 'User sessions revoked.')}
-            className="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-rose-400 flex items-center gap-2"
+            className="px-3.5 py-2 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 shadow-sm flex items-center gap-2"
           >
             <LogOut size={15} />
             <span>Force Logout</span>
@@ -135,26 +135,26 @@ export default function UserDetailPage() {
       </div>
 
       {/* USER PROFILE HEADER CARD */}
-      <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl flex flex-wrap items-center justify-between gap-6">
+      <div className="p-6 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-sm backdrop-blur-xl flex flex-wrap items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-bold text-white text-2xl shadow-xl shadow-indigo-600/30">
             {userDetail.full_name?.charAt(0) || 'U'}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-slate-100">{userDetail.full_name}</h2>
-              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase ${
-                userDetail.role === 'super_admin' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' :
-                userDetail.role === 'admin' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' :
-                'bg-slate-800 text-slate-400'
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{userDetail.full_name}</h2>
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase font-semibold ${
+                userDetail.role === 'super_admin' ? 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/30' :
+                userDetail.role === 'admin' ? 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30' :
+                'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
               }`}>
                 {userDetail.role}
               </span>
             </div>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">{userDetail.email} &bull; User ID: #{userDetail.id}</p>
-            <div className="flex items-center gap-4 mt-2 text-[11px] text-slate-500">
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-mono mt-0.5">{userDetail.email} &bull; User ID: #{userDetail.id}</p>
+            <div className="flex items-center gap-4 mt-2 text-[11px] text-slate-600 dark:text-slate-400">
               <span>Joined: {new Date(userDetail.created_at).toLocaleDateString()}</span>
-              <span>Last Platform: <strong className="text-slate-300 uppercase">{userDetail.last_platform || 'web'}</strong></span>
+              <span>Last Platform: <strong className="text-slate-900 dark:text-slate-300 uppercase">{userDetail.last_platform || 'web'}</strong></span>
               <span>Last Active: {userDetail.last_active_at ? new Date(userDetail.last_active_at).toLocaleString() : 'N/A'}</span>
             </div>
           </div>
@@ -163,15 +163,15 @@ export default function UserDetailPage() {
         {/* Status Badge & Primary Action */}
         <div className="flex items-center gap-3">
           {userDetail.is_blocked ? (
-            <span className="px-3 py-1 rounded-xl bg-rose-500/20 text-rose-300 text-xs font-bold border border-rose-500/30">
+            <span className="px-3 py-1 rounded-xl bg-rose-500/10 text-rose-700 dark:text-rose-300 text-xs font-bold border border-rose-500/30">
               Blocked ({userDetail.block_reason || 'Policy'})
             </span>
           ) : userDetail.is_deleted ? (
-            <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold border border-amber-500/30">
+            <span className="px-3 py-1 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs font-bold border border-amber-500/30">
               Soft-Deleted
             </span>
           ) : (
-            <span className="px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/20">
+            <span className="px-3 py-1 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-xs font-bold border border-emerald-500/30">
               Account Active
             </span>
           )}
@@ -180,7 +180,7 @@ export default function UserDetailPage() {
 
       {/* METADATA STATISTICS CARDS */}
       <div>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Resource Metadata Statistics</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400 mb-3">Resource Metadata Statistics</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <StatBox label="Total Notes" value={stats?.notes_count} icon={FileText} color="violet" />
           <StatBox label="Total Goals" value={stats?.goals_count} icon={Target} color="emerald" />
@@ -192,19 +192,19 @@ export default function UserDetailPage() {
       </div>
 
       {/* STORAGE BREAKDOWN */}
-      <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl space-y-4">
+      <div className="p-6 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-sm backdrop-blur-xl space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-slate-200 font-bold text-sm">
-            <HardDrive size={18} className="text-indigo-400" />
+          <div className="flex items-center gap-2 text-slate-900 dark:text-slate-200 font-bold text-sm">
+            <HardDrive size={18} className="text-indigo-600 dark:text-indigo-400" />
             <span>Account Storage Quota Usage</span>
           </div>
-          <span className="text-xs font-mono text-indigo-400 font-bold">
+          <span className="text-xs font-mono text-indigo-600 dark:text-indigo-400 font-bold">
             ~{Math.round((stats?.storage_used_bytes || 0) / 1024)} KB / 500 MB
           </span>
         </div>
-        <div className="w-full h-3 rounded-full bg-slate-950 overflow-hidden p-0.5 border border-slate-800">
+        <div className="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-950 overflow-hidden p-0.5 border border-slate-200 dark:border-slate-800">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500"
+            className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-violet-600"
             style={{ width: `${Math.min(((stats?.storage_used_bytes || 0) / (500 * 1024 * 1024)) * 100 + 1, 100)}%` }}
           ></div>
         </div>
@@ -215,12 +215,12 @@ export default function UserDetailPage() {
 
 function StatBox({ label, value, icon: Icon, color }: any) {
   return (
-    <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
+    <div className="p-4 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
       <div>
-        <span className="text-[11px] text-slate-400">{label}</span>
-        <p className="text-lg font-bold text-slate-100 mt-0.5">{value || 0}</p>
+        <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">{label}</span>
+        <p className="text-lg font-bold text-slate-900 dark:text-slate-100 mt-0.5">{value || 0}</p>
       </div>
-      <Icon size={18} className="text-slate-500" />
+      <Icon size={18} className="text-slate-400 dark:text-slate-500" />
     </div>
   );
 }

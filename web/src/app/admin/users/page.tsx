@@ -110,7 +110,23 @@ export default function AdminUsersPage() {
   };
 
   const handlePermanentDelete = async (user: any) => {
-    if (!confirm(`CRITICAL: Permanently delete ${user.email} and purge ALL associated data? This action CANNOT be undone.`)) return;
+    const currentAdmin = adminService.getStoredAdminUser();
+    if (currentAdmin && currentAdmin.id === user.id) {
+      alert("SECURITY ACTION DENIED: You cannot delete your own active administrator account.");
+      return;
+    }
+
+    const userInput = prompt(
+      `CRITICAL DELETION WARNING:\n\nType DELETE to confirm permanent deletion of account '${user.email}'.\nThis will purge all user records, notes, and goals irreversibly.`
+    );
+
+    if (userInput !== 'DELETE') {
+      if (userInput !== null) {
+        alert("Deletion cancelled. You must type 'DELETE' exactly to confirm.");
+      }
+      return;
+    }
+
     try {
       await adminService.permanentDeleteUser(user.id);
       setActionMessage(`User ${user.email} permanently purged.`);
@@ -125,44 +141,44 @@ export default function AdminUsersPage() {
       {/* Top Title */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold tracking-tight">User Management & Moderation</h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">User Management & Moderation</h1>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
             Search, moderate, block, soft-delete, or audit platform users. Total: {totalUsers}
           </p>
         </div>
       </div>
 
       {actionMessage && (
-        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center justify-between">
+        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs flex items-center justify-between font-medium">
           <span>{actionMessage}</span>
-          <button onClick={() => setActionMessage('')} className="text-slate-400 hover:text-white">
+          <button onClick={() => setActionMessage('')} className="text-slate-400 hover:text-slate-900 dark:hover:text-white">
             <X size={14} />
           </button>
         </div>
       )}
 
       {/* Filters Bar */}
-      <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl flex flex-wrap items-center gap-4">
+      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 shadow-sm backdrop-blur-xl flex flex-wrap items-center gap-4">
         {/* Search */}
         <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-3.5 top-2.5 text-slate-500" size={16} />
+          <Search className="absolute left-3.5 top-2.5 text-slate-400 dark:text-slate-500" size={16} />
           <input
             type="text"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder="Search by Email, Name, or User ID..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500"
           />
         </div>
 
         {/* Status Tabs */}
-        <div className="flex items-center p-1 rounded-xl bg-slate-950 border border-slate-800 text-xs font-semibold">
+        <div className="flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs font-semibold">
           {['all', 'active', 'blocked', 'deleted'].map((st) => (
             <button
               key={st}
               onClick={() => { setStatusFilter(st); setPage(1); }}
               className={`px-3 py-1.5 rounded-lg capitalize transition-all ${
-                statusFilter === st ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+                statusFilter === st ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               {st}
@@ -174,7 +190,7 @@ export default function AdminUsersPage() {
         <select
           value={roleFilter}
           onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 focus:outline-none"
+          className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-300 focus:outline-none"
         >
           <option value="">All Roles</option>
           <option value="user">Standard User</option>
@@ -188,7 +204,7 @@ export default function AdminUsersPage() {
         <select
           value={platformFilter}
           onChange={(e) => { setPlatformFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 focus:outline-none"
+          className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-300 focus:outline-none"
         >
           <option value="">All Platforms</option>
           <option value="web">Web</option>
@@ -197,10 +213,10 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Users Table */}
-      <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl overflow-hidden shadow-xl">
+      <div className="rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 backdrop-blur-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-950/80 border-b border-slate-800 text-slate-400 uppercase font-mono text-[10px] tracking-wider">
+            <thead className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 uppercase font-mono text-[10px] tracking-wider">
               <tr>
                 <th className="py-3.5 px-4">User</th>
                 <th className="py-3.5 px-4">Role</th>
@@ -211,7 +227,7 @@ export default function AdminUsersPage() {
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
               {loading ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-500">
@@ -226,26 +242,26 @@ export default function AdminUsersPage() {
                 </tr>
               ) : (
                 users.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-800/30 transition-colors">
+                  <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                     {/* User Info */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-bold text-white text-xs">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-bold text-white text-xs shadow-sm">
                           {u.full_name?.charAt(0) || 'U'}
                         </div>
                         <div>
-                          <p className="font-bold text-slate-200">{u.full_name}</p>
-                          <p className="text-[11px] text-slate-400 font-mono">{u.email} &bull; ID: #{u.id}</p>
+                          <p className="font-bold text-slate-900 dark:text-slate-100">{u.full_name}</p>
+                          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-mono">{u.email} &bull; ID: #{u.id}</p>
                         </div>
                       </div>
                     </td>
 
                     {/* Role */}
                     <td className="py-3.5 px-4">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono uppercase ${
-                        u.role === 'super_admin' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' :
-                        u.role === 'admin' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' :
-                        'bg-slate-800 text-slate-400'
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono uppercase font-semibold ${
+                        u.role === 'super_admin' ? 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/30' :
+                        u.role === 'admin' ? 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30' :
+                        'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
                       }`}>
                         {u.role}
                       </span>
@@ -254,39 +270,39 @@ export default function AdminUsersPage() {
                     {/* Status */}
                     <td className="py-3.5 px-4">
                       {u.is_blocked ? (
-                        <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-semibold border border-rose-500/30">
+                        <span className="px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-700 dark:text-rose-300 text-[10px] font-semibold border border-rose-500/30">
                           Blocked ({u.block_reason || 'Policy'})
                         </span>
                       ) : u.is_deleted ? (
-                        <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-semibold border border-amber-500/30">
+                        <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 text-[10px] font-semibold border border-amber-500/30">
                           Soft-Deleted
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-semibold border border-emerald-500/30">
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[10px] font-semibold border border-emerald-500/30">
                           Active
                         </span>
                       )}
                     </td>
 
                     {/* Platform */}
-                    <td className="py-3.5 px-4 font-mono text-[11px] text-slate-400 capitalize">
+                    <td className="py-3.5 px-4 font-mono text-[11px] text-slate-600 dark:text-slate-400 capitalize">
                       {u.last_platform || 'web'}
                     </td>
 
                     {/* Dates */}
-                    <td className="py-3.5 px-4 text-[11px] text-slate-400">
+                    <td className="py-3.5 px-4 text-[11px] text-slate-700 dark:text-slate-300">
                       <div>Joined: {new Date(u.created_at).toLocaleDateString()}</div>
-                      <div className="text-[10px] text-slate-500">
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400">
                         Active: {u.last_active_at ? new Date(u.last_active_at).toLocaleDateString() : 'N/A'}
                       </div>
                     </td>
 
                     {/* Metrics Metadata */}
                     <td className="py-3.5 px-4 text-[11px]">
-                      <div className="font-semibold text-slate-300">
+                      <div className="font-semibold text-slate-800 dark:text-slate-200">
                         {u.notes_count} notes &bull; {u.goals_count} goals &bull; {u.ai_chats_count} AI
                       </div>
-                      <div className="text-[10px] text-slate-500">
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400">
                         ~{Math.round(u.storage_used_bytes / 1024)} KB stored
                       </div>
                     </td>
@@ -296,7 +312,7 @@ export default function AdminUsersPage() {
                       <div className="flex items-center justify-end gap-1.5">
                         <Link
                           href={`/admin/users/${u.id}`}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"
+                          className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors"
                           title="View Profile Metadata"
                         >
                           <Eye size={15} />
@@ -305,7 +321,7 @@ export default function AdminUsersPage() {
                         {u.is_blocked ? (
                           <button
                             onClick={() => handleUnblock(u)}
-                            className="p-1.5 rounded-lg text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                            className="p-1.5 rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors"
                             title="Unblock User"
                           >
                             <UserCheck size={15} />
@@ -313,7 +329,7 @@ export default function AdminUsersPage() {
                         ) : (
                           <button
                             onClick={() => setSelectedUserForBlock(u)}
-                            className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/10 transition-colors"
+                            className="p-1.5 rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
                             title="Block User"
                           >
                             <UserX size={15} />
@@ -323,7 +339,7 @@ export default function AdminUsersPage() {
                         {u.is_deleted ? (
                           <button
                             onClick={() => handleRestore(u)}
-                            className="p-1.5 rounded-lg text-amber-400 hover:bg-amber-500/10 transition-colors"
+                            className="p-1.5 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors"
                             title="Restore Account"
                           >
                             <RotateCcw size={15} />
@@ -331,7 +347,7 @@ export default function AdminUsersPage() {
                         ) : (
                           <button
                             onClick={() => handleSoftDelete(u)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
+                            className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors"
                             title="Soft Delete User"
                           >
                             <UserMinus size={15} />
@@ -340,7 +356,7 @@ export default function AdminUsersPage() {
 
                         <button
                           onClick={() => handlePermanentDelete(u)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition-colors"
+                          className="p-1.5 rounded-lg text-slate-400 dark:text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
                           title="Permanently Purge Data"
                         >
                           <Trash2 size={15} />
@@ -355,22 +371,22 @@ export default function AdminUsersPage() {
         </div>
 
         {/* Pagination Bar */}
-        <div className="p-4 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between text-xs">
-          <span className="text-slate-400">
+        <div className="p-4 bg-slate-50 dark:bg-slate-950/80 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
+          <span className="text-slate-600 dark:text-slate-400">
             Page {page} of {totalPages} &bull; Showing {users.length} of {totalUsers} users
           </span>
           <div className="flex items-center gap-2">
             <button
               disabled={page <= 1}
               onClick={() => setPage(page - 1)}
-              className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 disabled:opacity-40"
+              className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 shadow-sm"
             >
               <ChevronLeft size={16} />
             </button>
             <button
               disabled={page >= totalPages}
               onClick={() => setPage(page + 1)}
-              className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 disabled:opacity-40"
+              className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-40 shadow-sm"
             >
               <ChevronRight size={16} />
             </button>
@@ -380,25 +396,25 @@ export default function AdminUsersPage() {
 
       {/* BLOCK MODAL */}
       {selectedUserForBlock && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2 text-rose-400 font-bold text-sm">
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold text-sm">
                 <AlertTriangle size={18} />
                 <span>Block User: {selectedUserForBlock.email}</span>
               </div>
-              <button onClick={() => setSelectedUserForBlock(null)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setSelectedUserForBlock(null)} className="text-slate-400 hover:text-slate-900 dark:hover:text-white">
                 <X size={16} />
               </button>
             </div>
 
             <form onSubmit={handleBlockSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Reason for Block</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Reason for Block</label>
                 <select
                   value={blockReason}
                   onChange={(e) => setBlockReason(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-100 focus:outline-none"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 focus:outline-none"
                 >
                   <option value="Spam">Spam Activity</option>
                   <option value="Abuse">Abusive Content / Harassment</option>
@@ -410,11 +426,11 @@ export default function AdminUsersPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Block Duration</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Block Duration</label>
                 <select
                   value={blockType}
                   onChange={(e) => setBlockType(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-100 focus:outline-none"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 focus:outline-none"
                 >
                   <option value="permanent">Permanent Block</option>
                   <option value="temporary">Temporary Block (30 Days)</option>
@@ -425,7 +441,7 @@ export default function AdminUsersPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedUserForBlock(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700"
+                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-slate-700"
                 >
                   Cancel
                 </button>

@@ -73,6 +73,8 @@ mobile/.env
 *.sqlite3
 *.db
 *.log
+scratch/
+backend/scratch/
 
 # Test Reports
 e2e_tests/reports/*.xlsx

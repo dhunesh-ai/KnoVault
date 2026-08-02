@@ -34,22 +34,22 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex items-center justify-center p-4 relative overflow-hidden transition-colors">
       {/* Dynamic Background Glows */}
-      <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-purple-500/10 dark:bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div className="w-full max-w-md bg-slate-900/80 border border-slate-800/80 rounded-2xl p-8 backdrop-blur-2xl shadow-2xl relative z-10">
+      <div className="w-full max-w-md bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-8 backdrop-blur-2xl shadow-xl relative z-10">
         <div className="flex flex-col items-center text-center mb-8">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/30 mb-3">
             <ShieldCheck size={26} />
           </div>
-          <h1 className="text-xl font-bold text-slate-100 tracking-tight">KnoVault Admin Login</h1>
-          <p className="text-xs text-slate-400 mt-1">Restricted Production Access Portal</p>
+          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">KnoVault Admin Login</h1>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Restricted Production Access Portal</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2.5">
+          <div className="mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-400 text-xs flex items-center gap-2.5 font-medium">
             <AlertCircle size={16} className="shrink-0" />
             <span>{error}</span>
           </div>
@@ -59,47 +59,47 @@ export default function AdminLoginPage() {
           {!requiresOtp ? (
             <>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Admin Email</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Admin Email</label>
                 <div className="relative">
-                  <Mail className="absolute left-3.5 top-3 text-slate-400" size={16} />
+                  <Mail className="absolute left-3.5 top-3 text-slate-400 dark:text-slate-500" size={16} />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin@knovault.app"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Password</label>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-3 text-slate-400" size={16} />
+                  <Lock className="absolute left-3.5 top-3 text-slate-400 dark:text-slate-500" size={16} />
                   <input
                     type="password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
                   />
                 </div>
               </div>
             </>
           ) : (
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">Two-Factor Authentication OTP</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Two-Factor Authentication OTP</label>
               <div className="relative">
-                <Key className="absolute left-3.5 top-3 text-slate-400" size={16} />
+                <Key className="absolute left-3.5 top-3 text-slate-400 dark:text-slate-500" size={16} />
                 <input
                   type="text"
                   required
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value)}
                   placeholder="Enter 6-digit OTP"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors tracking-widest font-mono text-center"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors tracking-widest font-mono text-center"
                 />
               </div>
             </div>
@@ -121,9 +121,9 @@ export default function AdminLoginPage() {
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-slate-800/60 text-center">
-          <p className="text-[11px] text-slate-500">
-            Default bootstrap credentials: <code className="text-indigo-400 font-mono">admin@knovault.app</code>
+        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800/60 text-center">
+          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            Default bootstrap credentials: <code className="text-indigo-600 dark:text-indigo-400 font-mono font-semibold">admin@knovault.app</code>
           </p>
         </div>
       </div>

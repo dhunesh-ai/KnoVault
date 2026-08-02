@@ -36,6 +36,13 @@ import {
   ShieldAlert,
   Sparkles
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
 import { isToday, format } from "date-fns";
 import { toast } from "sonner";
@@ -53,15 +60,22 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
+import { env } from "@/config/env";
 
 export default function AIPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!env.AI_CHAT_ENABLED) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
+
+  if (!env.AI_CHAT_ENABLED) {
+    return null;
+  }
+
   const {
     threads,
     activeThreadId,
@@ -248,8 +262,9 @@ export default function AIPage() {
     }
 
     try {
+      const clientMessageId = `web_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
       const response = await aiService.chat(
-        { conversation_id: isTempChat ? undefined : (activeThreadId || undefined), message: userQuery, context: contextStr, is_temporary: isTempChat },
+        { conversation_id: isTempChat ? undefined : (activeThreadId || undefined), message: userQuery, context: contextStr, is_temporary: isTempChat, client_message_id: clientMessageId },
         controller.signal
       );
       if (isTempChat) {
@@ -267,8 +282,7 @@ export default function AIPage() {
           response.conversation_id,
           response.title,
           userObj,
-          assistantObj,
-          response.response
+          assistantObj
         );
       }
       setMascotState("success");
@@ -363,8 +377,9 @@ export default function AIPage() {
             const isActive = t.id === activeThreadId && !isTempChat;
             const isEditing = editingThreadId === t.id;
             const lastMsg = t.messages[t.messages.length - 1];
-            const timestampStr = t.updatedAt
-              ? format(new Date(t.updatedAt), "MMM d")
+            const threadUpdatedAt = (t as any).updatedAt || (t as any).updated_at;
+            const timestampStr = threadUpdatedAt
+              ? format(new Date(threadUpdatedAt), "MMM d")
               : lastMsg?.timestamp
               ? format(new Date(lastMsg.timestamp), "MMM d")
               : "";

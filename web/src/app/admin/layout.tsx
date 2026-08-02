@@ -27,10 +27,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const [adminUser, setAdminUser] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    const savedTheme = typeof window !== 'undefined' ? localStorage.getItem('knovault_admin_theme') : null;
+    const initialDark = savedTheme === 'dark';
+    setIsDarkMode(initialDark);
+    if (initialDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
     if (pathname === '/admin/login') return;
 
     const user = adminService.getStoredAdminUser();
@@ -41,15 +50,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [pathname, router]);
 
+  const toggleTheme = () => {
+    const nextDark = !isDarkMode;
+    setIsDarkMode(nextDark);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('knovault_admin_theme', nextDark ? 'dark' : 'light');
+    }
+    if (nextDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   if (pathname === '/admin/login') {
     return <>{children}</>;
   }
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-300">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center text-slate-700 dark:text-slate-300">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
           <span className="text-sm font-medium tracking-wide">Loading KnoVault Enterprise Admin Portal...</span>
         </div>
       </div>
@@ -59,6 +81,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'User Management', href: '/admin/users', icon: Users },
+    { label: 'Storage Management', href: '/admin/storage', icon: Database },
     { label: 'AI Monitoring', href: '/admin/ai', icon: Cpu },
     { label: 'Announcements', href: '/admin/announcements', icon: Megaphone },
     { label: 'Feedback & Support', href: '/admin/feedback', icon: MessageSquare },
@@ -153,9 +176,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             {/* Dark/Light Toggle */}
             <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
+              onClick={toggleTheme}
               className={`p-2 rounded-xl border transition-colors ${
-                isDarkMode ? 'border-slate-800 text-slate-400 hover:text-amber-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:text-indigo-600 hover:bg-slate-100'
+                isDarkMode
+                  ? 'border-slate-800 text-slate-400 hover:text-amber-300 hover:bg-slate-800'
+                  : 'border-slate-200 text-slate-600 hover:text-indigo-600 hover:bg-slate-100'
               }`}
               title="Toggle Theme"
             >

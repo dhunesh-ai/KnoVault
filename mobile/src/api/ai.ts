@@ -84,7 +84,8 @@ export const aiApi = {
     context?: string,
     systemPrompt?: string,
     isTemporary?: boolean,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    clientMessageId?: string
   ): Promise<ChatResponse> => {
     const response = await client.post(
       '/api/ai/chat',
@@ -94,6 +95,7 @@ export const aiApi = {
         context,
         system_prompt: systemPrompt,
         is_temporary: isTemporary,
+        client_message_id: clientMessageId,
       },
       { signal }
     );

@@ -92,7 +92,21 @@ async def sync_websocket(
             except Exception:
                 pass
 
+    if user_id_int is not None:
+        result = await db.execute(
+            select(User).where(
+                User.id == user_id_int,
+                User.is_blocked == False,
+                User.is_deleted == False
+            )
+        )
+        existing_user = result.scalar_one_or_none()
+        if not existing_user:
+            print(f"[WS Backend] Policy violation: Token user ID #{user_id_int} does not exist in DB.")
+            user_id_int = None
+
     if user_id_int is None:
+        print("[WS Backend] Closing connection: Invalid or unauthenticated token.")
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 

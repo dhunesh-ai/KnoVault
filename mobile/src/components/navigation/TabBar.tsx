@@ -12,10 +12,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useTheme } from '../../hooks/useTheme';
 import { getThemedShadow } from '../ThemedComponents';
+import { env } from '../../config/env';
 
 const { width } = Dimensions.get('window');
 const TAB_BAR_WIDTH = width - 40;
-const TAB_WIDTH = TAB_BAR_WIDTH / 5;
 
 export const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
   const { colors, theme, isDark } = useTheme();
@@ -24,13 +24,24 @@ export const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) =>
 
   const { animationsEnabled } = useSettingsStore();
 
+  // Filter routes based on feature flag
+  const visibleRoutes = state.routes.filter(
+    (route) => route.name !== 'ai' || env.AI_CHAT_ENABLED
+  );
+  const tabCount = visibleRoutes.length || 1;
+  const tabWidth = TAB_BAR_WIDTH / tabCount;
+
+  // Find active visible index
+  const activeRoute = state.routes[state.index];
+  const activeVisibleIndex = Math.max(0, visibleRoutes.findIndex((r) => r.key === activeRoute?.key));
+
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: animationsEnabled ? withSpring(translateX.value, { damping: 15, stiffness: 120 }) : translateX.value }],
   }));
 
   useEffect(() => {
-    translateX.value = state.index * TAB_WIDTH;
-  }, [state.index]);
+    translateX.value = activeVisibleIndex * tabWidth;
+  }, [activeVisibleIndex, tabWidth]);
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -61,13 +72,13 @@ export const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) =>
         }
       ]}>
         {/* Animated Highlight */}
-        <Animated.View style={[styles.highlight, animatedStyle, { width: TAB_WIDTH }]}>
+        <Animated.View style={[styles.highlight, animatedStyle, { width: tabWidth }]}>
           <View style={[styles.highlightInner, { backgroundColor: `${theme.primary}18` }]} />
         </Animated.View>
 
-        {state.routes.map((route, index) => {
+        {visibleRoutes.map((route, index) => {
           const { options } = descriptors[route.key];
-          const isFocused = state.index === index;
+          const isFocused = state.routes[state.index]?.key === route.key;
 
           const onPress = () => {
             const event = navigation.emit({
@@ -94,6 +105,16 @@ export const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) =>
               );
             }
             
+            if (route.name === 'goals') {
+              return (
+                <MaterialCommunityIcons
+                  name="target"
+                  size={24}
+                  color={isFocused ? theme.primary : theme.textSecondary}
+                />
+              );
+            }
+
             let name;
             switch (route.name) {
               case 'index': name = isFocused ? 'home' : 'home-outline'; break;

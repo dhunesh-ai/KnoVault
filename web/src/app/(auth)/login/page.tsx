@@ -149,11 +149,19 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <div className="text-center text-sm text-muted-foreground pt-4">
-        Don&apos;t have an account?{" "}
-        <Link href="/register" className="text-primary hover:text-primary/80 transition-colors font-semibold">
-          Create an account
-        </Link>
+      <div className="text-center text-sm text-muted-foreground pt-4 space-y-2">
+        <div>
+          Don&apos;t have an account?{" "}
+          <Link href="/register" className="text-primary hover:text-primary/80 transition-colors font-semibold">
+            Create an account
+          </Link>
+        </div>
+        <div className="text-xs pt-2 border-t border-border/50">
+          Administrator?{" "}
+          <Link href="/admin/login" className="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">
+            Sign in to Admin Portal &rarr;
+          </Link>
+        </div>
       </div>
     </div>
   );

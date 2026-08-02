@@ -21,6 +21,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { router, useFocusEffect } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
 import { useTheme } from '../../src/hooks/useTheme';
+import { env } from '../../src/config/env';
 import { notesApi } from '../../src/api/notes';
 import { goalsApi } from '../../src/api/goals';
 import { projectsApi } from '../../src/api/projects';
@@ -87,6 +88,7 @@ export default function HomeScreen() {
   const { setSwipeEnabled } = useSwipe();
   
   const { notificationsEnabled } = useSettingsStore();
+  const queryClient = useQueryClient();
   
   const [securityVisible, setSecurityVisible] = React.useState(false);
   const [pendingNote, setPendingNote] = React.useState<any>(null);
@@ -184,7 +186,14 @@ export default function HomeScreen() {
     React.useCallback(() => {
       fetchNotifications();
       setCurrentDate(new Date());
-    }, [])
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      queryClient.invalidateQueries({ queryKey: ['goalStats'] });
+      queryClient.invalidateQueries({ queryKey: ['upcoming-reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['important-days'] });
+      queryClient.invalidateQueries({ queryKey: ['today-important-days'] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    }, [queryClient])
   );
 
   const badgeScale = useSharedValue(1);
@@ -230,7 +239,6 @@ export default function HomeScreen() {
     }, 100);
   };
   
-  const queryClient = useQueryClient();
   const { data: notes } = useQuery({ queryKey: ['notes'], queryFn: () => notesApi.getNotes() });
   const { data: goals } = useQuery({ 
     queryKey: ['goals'], 
@@ -1080,69 +1088,73 @@ export default function HomeScreen() {
                     <Text style={[ds.suggestedActionText, { color: '#F43F5E' }]}>Set exam reminder</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity 
-                    style={[ds.suggestedActionItem, { backgroundColor: isDark ? 'rgba(14, 165, 233, 0.12)' : '#E0F2FE', borderColor: isDark ? 'rgba(14, 165, 233, 0.25)' : '#BAE6FD' }]}
-                    onPress={() => router.push({ pathname: '/ai', params: { initialPrompt: 'Build a learning roadmap for my academic studies.' } })}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="map-outline" size={14} color="#0EA5E9" style={{ marginRight: 8 }} />
-                    <Text style={[ds.suggestedActionText, { color: '#0EA5E9' }]}>Build learning roadmap</Text>
-                  </TouchableOpacity>
+                  {env.AI_CHAT_ENABLED && (
+                    <TouchableOpacity 
+                      style={[ds.suggestedActionItem, { backgroundColor: isDark ? 'rgba(14, 165, 233, 0.12)' : '#E0F2FE', borderColor: isDark ? 'rgba(14, 165, 233, 0.25)' : '#BAE6FD' }]}
+                      onPress={() => router.push({ pathname: '/ai', params: { initialPrompt: 'Build a learning roadmap for my academic studies.' } })}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="map-outline" size={14} color="#0EA5E9" style={{ marginRight: 8 }} />
+                      <Text style={[ds.suggestedActionText, { color: '#0EA5E9' }]}>Build learning roadmap</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               </Animated.View>
             )}
 
             {/* AI Assistant Mascot & Chips (at bottom) */}
-            <Animated.View entering={getFadeInDown(300, 500)} style={[ds.aiWidgetCard, { borderColor: theme.border, marginTop: 15 }]}>
-              <LinearGradient
-                colors={isDark ? ['#1A103C', '#0A061C'] : ['#F3E8FF', '#E9D5FF']}
-                style={ds.aiWidgetGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <View style={ds.aiWidgetHeader}>
-                  <Animated.View style={[ds.aiMascotContainer, floatingMascotStyle]}>
-                    <Text style={ds.aiMascotEmoji}>🤖</Text>
-                  </Animated.View>
-                  <View style={ds.aiWidgetHeaderText}>
-                    <Text style={[ds.aiWidgetTitle, { color: theme.text }]}>KnoVault Intelligence</Text>
-                    <Text style={[ds.aiWidgetSubtitle, { color: theme.textSecondary }]}>
-                      {aiCardSubtitle}
-                    </Text>
-                  </View>
-                </View>
-
-                <Text style={[ds.aiSuggestionsTitle, { color: isDark ? '#C4B5FD' : '#7C3AED' }]}>Suggestions</Text>
-                <ScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={ds.aiSuggestionsScroll}
+            {env.AI_CHAT_ENABLED && (
+              <Animated.View entering={getFadeInDown(300, 500)} style={[ds.aiWidgetCard, { borderColor: theme.border, marginTop: 15 }]}>
+                <LinearGradient
+                  colors={isDark ? ['#1A103C', '#0A061C'] : ['#F3E8FF', '#E9D5FF']}
+                  style={ds.aiWidgetGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
                 >
-                  {dynamicAiSuggestions.map((chip, idx) => (
-                    <TouchableOpacity
-                      key={idx}
-                      style={[
-                        ds.aiSuggestionChip,
-                        {
-                          backgroundColor: isDark ? 'rgba(124, 77, 255, 0.15)' : '#FFFFFF',
-                          borderColor: isDark ? 'rgba(124, 77, 255, 0.3)' : 'rgba(124, 77, 255, 0.2)',
-                        }
-                      ]}
-                      onPress={() => {
-                        router.push({
-                          pathname: '/ai',
-                          params: { initialPrompt: chip.prompt }
-                        });
-                      }}
-                    >
-                      <Text style={[ds.aiSuggestionText, { color: isDark ? '#E9D5FF' : '#6B21A8' }]}>
-                        {chip.label}
+                  <View style={ds.aiWidgetHeader}>
+                    <Animated.View style={[ds.aiMascotContainer, floatingMascotStyle]}>
+                      <Text style={ds.aiMascotEmoji}>🤖</Text>
+                    </Animated.View>
+                    <View style={ds.aiWidgetHeaderText}>
+                      <Text style={[ds.aiWidgetTitle, { color: theme.text }]}>KnoVault Intelligence</Text>
+                      <Text style={[ds.aiWidgetSubtitle, { color: theme.textSecondary }]}>
+                        {aiCardSubtitle}
                       </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </LinearGradient>
-            </Animated.View>
+                    </View>
+                  </View>
+
+                  <Text style={[ds.aiSuggestionsTitle, { color: isDark ? '#C4B5FD' : '#7C3AED' }]}>Suggestions</Text>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={ds.aiSuggestionsScroll}
+                  >
+                    {dynamicAiSuggestions.map((chip, idx) => (
+                      <TouchableOpacity
+                        key={idx}
+                        style={[
+                          ds.aiSuggestionChip,
+                          {
+                            backgroundColor: isDark ? 'rgba(124, 77, 255, 0.15)' : '#FFFFFF',
+                            borderColor: isDark ? 'rgba(124, 77, 255, 0.3)' : 'rgba(124, 77, 255, 0.2)',
+                          }
+                        ]}
+                        onPress={() => {
+                          router.push({
+                            pathname: '/ai',
+                            params: { initialPrompt: chip.prompt }
+                          });
+                        }}
+                      >
+                        <Text style={[ds.aiSuggestionText, { color: isDark ? '#E9D5FF' : '#6B21A8' }]}>
+                          {chip.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </LinearGradient>
+              </Animated.View>
+            )}
             
           </View>
         </ScrollView>

@@ -57,6 +57,7 @@ import { useCalendarNotesStore } from "@/store/useCalendarNotesStore";
 import { CalendarNoteEditor } from "@/components/calendar-notes/CalendarNoteEditor";
 import { useChatThreadsStore } from "@/store/useChatThreadsStore";
 import { toast } from "sonner";
+import { env } from "@/config/env";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   format,
@@ -77,6 +78,7 @@ interface DashboardStats {
   activeReminders: number;
   medicinesToday: number;
   birthdaysToday: number;
+  totalBirthdays: number;
   upcomingSpecialDays: number;
   activeGoals: number;
   goalProgress: number;
@@ -178,6 +180,9 @@ export default function DashboardPage() {
       const birthdaysToday = specialDays.filter((sd: any) => 
         (sd.type || "").toLowerCase().includes("birthday") && isEventOnDate(sd, todayDateObj)
       ).length;
+      const totalBirthdays = specialDays.filter((sd: any) => 
+        (sd.type || "").toLowerCase().includes("birthday")
+      ).length;
 
       const activeProjects = projects.filter((p: any) => p.status === 'active' || p.status === 'in_progress');
       const totalGoalProgress = goals.reduce((acc: number, goal: any) => acc + (goal.progress || 0), 0);
@@ -189,6 +194,7 @@ export default function DashboardPage() {
         activeReminders: activeReminders.length,
         medicinesToday: medicinesToday.length,
         birthdaysToday: birthdaysToday,
+        totalBirthdays: totalBirthdays,
         upcomingSpecialDays: specialDays.length,
         activeGoals: activeProjects.length || goals.length,
         goalProgress: avgGoalProgress,
@@ -371,7 +377,7 @@ export default function DashboardPage() {
     { title: "Add Medicine", desc: "Dose tracking", icon: Pill, color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20", onClick: () => router.push("/medicine") },
     { title: "Add Special Day", desc: "Events & Wishes", icon: Gift, color: "text-pink-500 bg-pink-500/10 border-pink-500/20", onClick: () => router.push("/special-days/new") },
     { title: "Create Goal", desc: "Milestones & Progress", icon: Target, color: "text-purple-500 bg-purple-500/10 border-purple-500/20", onClick: () => router.push("/goals") },
-    { title: "Open AI Assistant", desc: "Chat & Summarize", icon: Sparkles, color: "text-violet-500 bg-violet-500/10 border-violet-500/20", onClick: () => router.push("/ai") },
+    ...(env.AI_CHAT_ENABLED ? [{ title: "Open AI Assistant", desc: "Chat & Summarize", icon: Sparkles, color: "text-violet-500 bg-violet-500/10 border-violet-500/20", onClick: () => router.push("/ai") }] : []),
     { title: "Voice Note", desc: "Instant audio log", icon: Mic, color: "text-sky-500 bg-sky-500/10 border-sky-500/20", onClick: () => setNoteEditorOpen(true) },
     { title: "Workspaces", desc: "Docs & Files", icon: Layers, color: "text-indigo-500 bg-indigo-500/10 border-indigo-500/20", onClick: () => router.push("/workspaces") },
   ];
@@ -381,10 +387,10 @@ export default function DashboardPage() {
     { title: "Today's Notes", value: stats?.totalNotes, icon: StickyNote, color: "text-blue-500", bg: "bg-blue-500/10", border: "border-blue-500/20", link: "/notes" },
     { title: "Active Reminders", value: stats?.activeReminders, icon: Bell, color: "text-amber-500", bg: "bg-amber-500/10", border: "border-amber-500/20", link: "/reminders" },
     { title: "Medicines Today", value: stats?.medicinesToday, icon: Pill, color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/20", link: "/medicine" },
-    { title: "Birthdays Today", value: stats?.birthdaysToday, icon: Gift, color: "text-pink-500", bg: "bg-pink-500/10", border: "border-pink-500/20", link: "/special-days" },
+    { title: "Birthdays", value: stats?.totalBirthdays, icon: Gift, color: "text-pink-500", bg: "bg-pink-500/10", border: "border-pink-500/20", link: "/special-days" },
     { title: "Special Events", value: stats?.upcomingSpecialDays, icon: Sparkles, color: "text-purple-500", bg: "bg-purple-500/10", border: "border-purple-500/20", link: "/special-days" },
     { title: "Active Goals", value: stats?.activeGoals, icon: Target, color: "text-violet-500", bg: "bg-violet-500/10", border: "border-violet-500/20", link: "/goals" },
-    { title: "AI Threads", value: threads.length, icon: MessageSquare, color: "text-sky-500", bg: "bg-sky-500/10", border: "border-sky-500/20", link: "/ai" },
+    ...(env.AI_CHAT_ENABLED ? [{ title: "AI Threads", value: threads.length, icon: MessageSquare, color: "text-sky-500", bg: "bg-sky-500/10", border: "border-sky-500/20", link: "/ai" }] : []),
     { title: "Tasks Completed", value: stats?.completedTasks, icon: CheckCircle2, color: "text-teal-500", bg: "bg-teal-500/10", border: "border-teal-500/20", link: "/reminders" },
   ];
 
@@ -437,10 +443,18 @@ export default function DashboardPage() {
               </h1>
               <p className="text-sm font-semibold text-muted-foreground mt-2 leading-relaxed">
                 You have{" "}
-                <strong className="text-purple-600 dark:text-purple-400 font-extrabold">{stats?.activeReminders || 0} Tasks</strong>,{" "}
-                <strong className="text-pink-600 dark:text-pink-400 font-extrabold">{stats?.birthdaysToday || 0} Birthday</strong>,{" "}
-                <strong className="text-blue-600 dark:text-blue-400 font-extrabold">{stats?.totalNotes || 0} Notes</strong> &{" "}
-                <strong className="text-emerald-600 dark:text-emerald-400 font-extrabold">{stats?.medicinesToday || 0} Medicines</strong> today.
+                <strong className="text-purple-600 dark:text-purple-400 font-extrabold">
+                  {stats?.activeReminders || 0} {(stats?.activeReminders || 0) === 1 ? "Task" : "Tasks"}
+                </strong>,{" "}
+                <strong className="text-pink-600 dark:text-pink-400 font-extrabold">
+                  {stats?.totalBirthdays || 0} {(stats?.totalBirthdays || 0) === 1 ? "Birthday" : "Birthdays"}
+                </strong>,{" "}
+                <strong className="text-blue-600 dark:text-blue-400 font-extrabold">
+                  {stats?.totalNotes || 0} {(stats?.totalNotes || 0) === 1 ? "Note" : "Notes"}
+                </strong> &{" "}
+                <strong className="text-emerald-600 dark:text-emerald-400 font-extrabold">
+                  {stats?.medicinesToday || 0} {(stats?.medicinesToday || 0) === 1 ? "Medicine" : "Medicines"}
+                </strong> in your vault.
               </p>
             </div>
 
@@ -466,12 +480,14 @@ export default function DashboardPage() {
             >
               <Bell className="w-4.5 h-4.5" /> + New Reminder
             </Button>
-            <Button
-              onClick={() => router.push("/ai")}
-              className="h-12 px-6 rounded-2xl bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-black shadow-lg shadow-purple-500/25 border-0 text-sm gap-2"
-            >
-              <Sparkles className="w-4.5 h-4.5" /> + Ask KnoVault AI
-            </Button>
+            {env.AI_CHAT_ENABLED && (
+              <Button
+                onClick={() => router.push("/ai")}
+                className="h-12 px-6 rounded-2xl bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-black shadow-lg shadow-purple-500/25 border-0 text-sm gap-2"
+              >
+                <Sparkles className="w-4.5 h-4.5" /> + Ask KnoVault AI
+              </Button>
+            )}
           </div>
         </div>
       </motion.div>
@@ -938,40 +954,42 @@ export default function DashboardPage() {
         <div className="lg:col-span-4 space-y-8">
 
           {/* AI ASSISTANT WIDGET */}
-          <motion.div variants={itemVariants}>
-            <Card className="bg-gradient-to-br from-purple-900/20 via-card to-card border border-purple-500/30 rounded-[24px] p-6 shadow-md space-y-5 relative overflow-hidden">
-              <div className="flex items-center justify-between border-b border-purple-500/20 pb-3">
-                <CardTitle className="text-sm font-black text-foreground flex items-center gap-2">
-                  <Sparkles className="w-4.5 h-4.5 text-purple-500" /> KnoVault AI Assistant
-                </CardTitle>
-                <Badge className="bg-purple-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">
-                  {threads.length} Chats
-                </Badge>
-              </div>
-
-              <div className="space-y-3">
-                <p className="text-xs text-muted-foreground font-semibold">Suggested Quick Prompts:</p>
-                <div className="grid grid-cols-2 gap-2 text-xs font-bold">
-                  <button onClick={() => router.push("/ai")} className="p-2.5 rounded-xl border border-purple-500/20 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-left truncate">
-                    ✨ Summarize Notes
-                  </button>
-                  <button onClick={() => router.push("/ai")} className="p-2.5 rounded-xl border border-purple-500/20 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-left truncate">
-                    📅 Plan My Day
-                  </button>
-                  <button onClick={() => router.push("/ai")} className="p-2.5 rounded-xl border border-purple-500/20 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-left truncate">
-                    🔍 Find Notes
-                  </button>
-                  <button onClick={() => router.push("/ai")} className="p-2.5 rounded-xl border border-purple-500/20 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-left truncate">
-                    🤖 Ask AI
-                  </button>
+          {env.AI_CHAT_ENABLED && (
+            <motion.div variants={itemVariants}>
+              <Card className="bg-gradient-to-br from-purple-900/20 via-card to-card border border-purple-500/30 rounded-[24px] p-6 shadow-md space-y-5 relative overflow-hidden">
+                <div className="flex items-center justify-between border-b border-purple-500/20 pb-3">
+                  <CardTitle className="text-sm font-black text-foreground flex items-center gap-2">
+                    <Sparkles className="w-4.5 h-4.5 text-purple-500" /> KnoVault AI Assistant
+                  </CardTitle>
+                  <Badge className="bg-purple-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">
+                    {threads.length} Chats
+                  </Badge>
                 </div>
-              </div>
 
-              <Button onClick={() => router.push("/ai")} className="w-full h-11 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs gap-2">
-                Open AI Chat <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Card>
-          </motion.div>
+                <div className="space-y-3">
+                  <p className="text-xs text-muted-foreground font-semibold">Suggested Quick Prompts:</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs font-bold">
+                    <button onClick={() => router.push("/ai")} className="p-2.5 rounded-xl border border-purple-500/20 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-left truncate">
+                      ✨ Summarize Notes
+                    </button>
+                    <button onClick={() => router.push("/ai")} className="p-2.5 rounded-xl border border-purple-500/20 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-left truncate">
+                      📅 Plan My Day
+                    </button>
+                    <button onClick={() => router.push("/ai")} className="p-2.5 rounded-xl border border-purple-500/20 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-left truncate">
+                      🔍 Find Notes
+                    </button>
+                    <button onClick={() => router.push("/ai")} className="p-2.5 rounded-xl border border-purple-500/20 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-left truncate">
+                      🤖 Ask AI
+                    </button>
+                  </div>
+                </div>
+
+                <Button onClick={() => router.push("/ai")} className="w-full h-11 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs gap-2">
+                  Open AI Chat <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Card>
+            </motion.div>
+          )}
 
           {/* PRODUCTIVITY INSIGHTS */}
           <motion.div variants={itemVariants}>

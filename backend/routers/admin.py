@@ -33,15 +33,21 @@ router = APIRouter(prefix="/api/admin", tags=["Admin Portal"])
 # ---------------------------------------------------------------------------
 
 async def bootstrap_super_admin_if_needed(db: AsyncSession):
-    """Ensure at least one Super Admin exists."""
+    """Ensure at least one Super Admin exists if configured in environment settings."""
     result = await db.execute(select(User).where(User.role == "super_admin"))
-    super_admin = result.scalar_one_or_none()
+    super_admin = result.scalars().first()
     if not super_admin:
-        print("[ADMIN BOOTSTRAP] Creating initial Super Admin (admin@knovault.app)...")
+        admin_email = (settings.SUPER_ADMIN_EMAIL or "admin@knovault.app").strip()
+        admin_password = settings.SUPER_ADMIN_PASSWORD.strip() if settings.SUPER_ADMIN_PASSWORD else ""
+        if not admin_password or admin_password == "CHANGE_ME_BEFORE_RUNNING":
+            # Do not create super admin if SUPER_ADMIN_PASSWORD is missing or placeholder
+            return
+
+        print(f"[ADMIN BOOTSTRAP] Creating initial Super Admin account ({admin_email})...")
         initial_admin = User(
-            email="admin@knovault.app",
+            email=admin_email,
             full_name="Super Administrator",
-            hashed_password=hash_password("Admin@KnoVault2026!"),
+            hashed_password=hash_password(admin_password),
             role="super_admin",
             is_verified=True
         )
@@ -62,10 +68,15 @@ async def admin_login(
     await bootstrap_super_admin_if_needed(db)
     
     clean_email = req.email.strip().lower()
+    pwd_len = len(req.password) if req.password else 0
+    client_ip = request.client.host if request.client else "unknown"
+    print(f"[ADMIN AUTH LOG] Request received | email='{clean_email}' | password_length={pwd_len} | origin='{request.headers.get('origin')}' | ip={client_ip}")
+
     result = await db.execute(select(User).where(func.lower(User.email) == clean_email))
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(req.password, user.hashed_password):
+        print(f"[ADMIN AUTH FAILURE] Credentials check failed for email='{clean_email}' | user_found={bool(user)}")
         await log_security_event(db, "admin_login_failed", user_email=clean_email, details="Invalid credentials", request=request)
         await db.commit()
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin credentials")
@@ -643,13 +654,137 @@ async def list_feedback(
 # ---------------------------------------------------------------------------
 # 9. Analytics & Time Series
 # ---------------------------------------------------------------------------
+# 9. Storage Management & Analytics
+# ---------------------------------------------------------------------------
 
-@router.get("/analytics/charts")
-async def get_analytics_charts(
+@router.get("/storage")
+async def get_admin_storage_overview(
+    request: Request,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
-    days = 7
+    """Calculates storage consumption across all users and system components."""
+    stmt = select(User).where(User.is_deleted == False).order_by(desc(User.created_at))
+    total_users_count = (await db.execute(select(func.count(User.id)).where(User.is_deleted == False))).scalar() or 0
+    
+    users_res = await db.execute(stmt.offset((page - 1) * limit).limit(limit))
+    users = users_res.scalars().all()
+
+    DEFAULT_LIMIT_BYTES = 5 * 1024 * 1024  # 5 MB default limit per user
+
+    user_storage_list = []
+    grand_total_bytes = 0
+
+    for u in users:
+        notes_cnt = (await db.execute(select(func.count(Note.id)).where(Note.user_id == u.id))).scalar() or 0
+        reminders_cnt = (await db.execute(select(func.count(Reminder.id)).where(Reminder.user_id == u.id))).scalar() or 0
+        goals_cnt = (await db.execute(select(func.count(Goal.id)).where(Goal.user_id == u.id))).scalar() or 0
+        special_days_cnt = (await db.execute(select(func.count(ImportantDay.id)).where(ImportantDay.user_id == u.id))).scalar() or 0
+        ai_cnt = (await db.execute(select(func.count(AIChat.id)).where(AIChat.user_id == u.id))).scalar() or 0
+        ws_cnt = (await db.execute(select(func.count(Workspace.id)).where(Workspace.owner_id == u.id))).scalar() or 0
+
+        notes_bytes = notes_cnt * 1500
+        reminders_bytes = reminders_cnt * 400
+        goals_bytes = goals_cnt * 600
+        special_days_bytes = special_days_cnt * 500
+        ai_bytes = ai_cnt * 800
+        ws_bytes = ws_cnt * 3000
+
+        total_u_bytes = notes_bytes + reminders_bytes + goals_bytes + special_days_bytes + ai_bytes + ws_bytes
+        grand_total_bytes += total_u_bytes
+
+        pct_used = min(100.0, round((total_u_bytes / DEFAULT_LIMIT_BYTES) * 100, 1))
+
+        user_storage_list.append({
+            "user_id": u.id,
+            "email": u.email,
+            "full_name": u.full_name,
+            "storage_used_bytes": total_u_bytes,
+            "limit_bytes": DEFAULT_LIMIT_BYTES,
+            "percent_used": pct_used,
+            "breakdown": {
+                "notes_bytes": notes_bytes,
+                "reminders_bytes": reminders_bytes,
+                "goals_bytes": goals_bytes,
+                "special_days_bytes": special_days_bytes,
+                "workspaces_bytes": ws_bytes,
+                "ai_bytes": ai_bytes,
+            }
+        })
+
+    user_storage_list.sort(key=lambda x: x["storage_used_bytes"], reverse=True)
+
+    await log_admin_action(db, admin, "STORAGE_VIEWED", "SYSTEM", details=f"Viewed storage overview page {page}", request=request)
+    await db.commit()
+
+    return {
+        "page": page,
+        "limit": limit,
+        "total_users": total_users_count,
+        "grand_total_bytes": grand_total_bytes,
+        "users": user_storage_list
+    }
+
+
+@router.get("/storage/{user_id}")
+async def get_user_storage_detail(
+    user_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    res = await db.execute(select(User).where(User.id == user_id))
+    u = res.scalar_one_or_none()
+
+    if not u:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    notes_cnt = (await db.execute(select(func.count(Note.id)).where(Note.user_id == u.id))).scalar() or 0
+    reminders_cnt = (await db.execute(select(func.count(Reminder.id)).where(Reminder.user_id == u.id))).scalar() or 0
+    goals_cnt = (await db.execute(select(func.count(Goal.id)).where(Goal.user_id == u.id))).scalar() or 0
+    special_days_cnt = (await db.execute(select(func.count(ImportantDay.id)).where(ImportantDay.user_id == u.id))).scalar() or 0
+    ai_cnt = (await db.execute(select(func.count(AIChat.id)).where(AIChat.user_id == u.id))).scalar() or 0
+    ws_cnt = (await db.execute(select(func.count(Workspace.id)).where(Workspace.owner_id == u.id))).scalar() or 0
+
+    notes_bytes = notes_cnt * 1500
+    reminders_bytes = reminders_cnt * 400
+    goals_bytes = goals_cnt * 600
+    special_days_bytes = special_days_cnt * 500
+    ai_bytes = ai_cnt * 800
+    ws_bytes = ws_cnt * 3000
+
+    total_u_bytes = notes_bytes + reminders_bytes + goals_bytes + special_days_bytes + ai_bytes + ws_bytes
+    DEFAULT_LIMIT_BYTES = 5 * 1024 * 1024
+
+    await log_admin_action(db, admin, "STORAGE_VIEWED", "USER", target_id=str(user_id), details=f"Viewed user storage breakdown", request=request)
+    await db.commit()
+
+    return {
+        "user_id": u.id,
+        "email": u.email,
+        "full_name": u.full_name,
+        "storage_used_bytes": total_u_bytes,
+        "limit_bytes": DEFAULT_LIMIT_BYTES,
+        "percent_used": min(100.0, round((total_u_bytes / DEFAULT_LIMIT_BYTES) * 100, 1)),
+        "breakdown": {
+            "notes": {"count": notes_cnt, "bytes": notes_bytes},
+            "reminders": {"count": reminders_cnt, "bytes": reminders_bytes},
+            "goals": {"count": goals_cnt, "bytes": goals_bytes},
+            "special_days": {"count": special_days_cnt, "bytes": special_days_bytes},
+            "workspaces": {"count": ws_cnt, "bytes": ws_bytes},
+            "ai_chats": {"count": ai_cnt, "bytes": ai_bytes},
+        }
+    }
+
+
+@router.get("/analytics/charts")
+async def get_analytics_charts(
+    days: int = Query(7, ge=1, le=365),
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
     now = datetime.now(timezone.utc)
     chart_data = []
 
@@ -660,15 +795,17 @@ async def get_analytics_charts(
 
         u_count = (await db.execute(select(func.count(User.id)).where(User.created_at >= d_start, User.created_at < d_end))).scalar() or 0
         ai_count = (await db.execute(select(func.count(AIChat.id)).where(AIChat.created_at >= d_start, AIChat.created_at < d_end))).scalar() or 0
+        notes_count = (await db.execute(select(func.count(Note.id)).where(Note.created_at >= d_start, Note.created_at < d_end))).scalar() or 0
 
         chart_data.append({
             "date": day_date.strftime("%b %d"),
             "new_users": u_count,
             "ai_requests": ai_count,
+            "new_notes": notes_count,
             "dau": max(u_count * 3, 1),
         })
 
-    return {"chart_data": chart_data}
+    return {"timeframe_days": days, "chart_data": chart_data}
 
 
 # ---------------------------------------------------------------------------

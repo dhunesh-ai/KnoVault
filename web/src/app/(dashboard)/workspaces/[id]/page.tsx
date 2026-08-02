@@ -56,7 +56,6 @@ const MODULES = [
   { id: "knowledge", label: "Knowledge", icon: BookOpen },
   { id: "brainstorm", label: "Brainstorm", icon: Lightbulb },
   { id: "meetings", label: "Meetings", icon: Users },
-  { id: "ai", label: "AI Assistant", icon: Sparkles },
   { id: "analytics", label: "Leaderboard", icon: BarChart3 },
   { id: "settings", label: "Settings", icon: Settings },
 ];
@@ -283,6 +282,10 @@ export default function WorkspaceDetailPage() {
 
   const loadModuleData = (mod: string) => {
     if (!workspaceId) return;
+    if (mod === "ai") {
+      setActiveModule("notes");
+      return;
+    }
     if (mod === "notes") fetchNotes(workspaceId);
     if (mod === "tasks") {
       fetchTasks(workspaceId);
@@ -817,14 +820,9 @@ export default function WorkspaceDetailPage() {
                   </Button>
                 )}
                 {activeModule === "calendar" && (
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={handleConflictCheck} className="border-border">
-                      <Brain className="w-4 h-4 mr-1 text-purple-400" /> Conflict Check
-                    </Button>
-                    <Button size="sm" onClick={() => { setEventOpen(true); }} className={activeBtn + " text-white"}>
-                      <Plus className="w-4 h-4 mr-1" /> Schedule Event
-                    </Button>
-                  </div>
+                  <Button size="sm" onClick={() => { setEventOpen(true); }} className={activeBtn + " text-white"}>
+                    <Plus className="w-4 h-4 mr-1" /> Schedule Event
+                  </Button>
                 )}
                 {activeModule === "discussions" && (
                   <Button size="sm" onClick={() => { setDiscOpen(true); }} className={activeBtn + " text-white"}>
@@ -832,24 +830,14 @@ export default function WorkspaceDetailPage() {
                   </Button>
                 )}
                 {activeModule === "knowledge" && (
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={handleOrganizeKnowledge} className="border-border">
-                      <Brain className="w-4 h-4 mr-1 text-purple-400" /> Auto Structure
-                    </Button>
-                    <Button size="sm" onClick={() => { setKnowOpen(true); }} className={activeBtn + " text-white"}>
-                      <Plus className="w-4 h-4 mr-1" /> Add Article
+                  <Button size="sm" onClick={() => { setKnowOpen(true); }} className={activeBtn + " text-white"}>
+                    <Plus className="w-4 h-4 mr-1" /> Add Article
                   </Button>
-                  </div>
                 )}
                 {activeModule === "brainstorm" && (
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={handleClusterIdeas} className="border-border">
-                      <Brain className="w-4 h-4 mr-1 text-purple-400" /> AI Group Summary
-                    </Button>
-                    <Button size="sm" onClick={() => { setIdeaOpen(true); }} className={activeBtn + " text-white"}>
-                      <Plus className="w-4 h-4 mr-1" /> Pin Idea
-                    </Button>
-                  </div>
+                  <Button size="sm" onClick={() => { setIdeaOpen(true); }} className={activeBtn + " text-white"}>
+                    <Plus className="w-4 h-4 mr-1" /> Pin Idea
+                  </Button>
                 )}
                 {activeModule === "meetings" && (
                   <Button size="sm" onClick={() => { setMeetOpen(true); }} className={activeBtn + " text-white"}>
@@ -1378,39 +1366,12 @@ export default function WorkspaceDetailPage() {
                 ))}
               </div>
 
-              {/* Quick AI category structure pane */}
-              {organizeReport && (
-                <div className="bg-card border border-border/80 rounded-xl p-5 space-y-3 h-fit">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1">
-                    <Brain className="w-3.5 h-3.5" /> Structured Catalog
-                  </span>
-                  <div className="text-xs text-muted-foreground whitespace-pre-wrap bg-accent/40 border border-border/40 p-3 rounded-lg max-h-[400px] overflow-y-auto">
-                    {organizeReport}
-                  </div>
-                  <Button size="sm" variant="ghost" onClick={() => setOrganizeReport("")} className="w-full text-xs">
-                    Clear Report
-                  </Button>
-                </div>
-              )}
             </div>
           )}
 
           {/* Brainstorm Board View */}
           {activeModule === "brainstorm" && (
             <div className="space-y-6">
-              {clusterReport && (
-                <div className="bg-purple-500/5 border border-purple-500/25 rounded-xl p-5 space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1">
-                    <Brain className="w-4 h-4" /> AI Clustering Grouping Summary
-                  </span>
-                  <div className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {clusterReport}
-                  </div>
-                  <Button size="sm" variant="ghost" onClick={() => setClusterReport("")} className="text-xs mt-2 text-primary">
-                    Dismiss Summary
-                  </Button>
-                </div>
-              )}
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {ideas.map((idea) => {

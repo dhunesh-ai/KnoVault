@@ -16,6 +16,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [checkAuth]);
 
   useEffect(() => {
+    if (pathname.startsWith('/admin')) {
+      return;
+    }
+
     if (!isLoading) {
       if (!isAuthenticated && !publicRoutes.includes(pathname)) {
         router.push("/login");
@@ -25,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, isLoading, pathname, router]);
 
-  if (isLoading) {
+  if (isLoading && !pathname.startsWith('/admin')) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>

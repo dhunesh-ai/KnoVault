@@ -14,6 +14,11 @@ export const getApiBaseUrl = (): string => {
       console.warn(`[API URL GUARD] Overriding invalid localhost env var ('${envUrl}') on production host '${hostname}' -> using https://knovault-jbph.onrender.com`);
       return 'https://knovault-jbph.onrender.com';
     }
+    // LOCAL DEV GUARD: Never route local dev localhost:3000 to remote render backend unless explicitly running in production
+    if (isClient && isLocalHost && envUrl.includes('onrender.com')) {
+      console.warn(`[API URL GUARD] Overriding remote production env var ('${envUrl}') on local dev host '${hostname}' -> using http://127.0.0.1:8000`);
+      return 'http://127.0.0.1:8000';
+    }
     // Windows Dual-Stack Guard: Normalize localhost:8000 to 127.0.0.1:8000 to prevent IPv6 [::1] connection refusal
     if (isClient && isLocalHost && envUrl.includes('localhost:8000')) {
       return envUrl.replace('localhost:8000', '127.0.0.1:8000');

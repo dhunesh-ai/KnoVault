@@ -12,6 +12,7 @@ import { authApi } from '../api/auth';
 import { signInWithGoogle, signOutFirebase, getFirebaseIdToken } from '../utils/firebase';
 import { syncFCMToken, requestNotificationPermission } from '../utils/notifications';
 import { env } from '../config/env';
+import { queryClient } from '../config/queryClient';
 import type { User } from '../types';
 
 const TOKEN_KEY = 'user_token';
@@ -78,6 +79,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         console.log('[Auth Restore] Token found, fetching profile in background...');
         set({ token, isAuthenticated: true, isAuthenticating: false, error: null, authProvider: provider });
         
+        // Invalidate all query caches to pull fresh data from server
+        queryClient.invalidateQueries().catch(console.warn);
+
         // Fetch profile in the background, don't block app initialization
         get().fetchUser().catch(console.warn);
 
@@ -105,13 +109,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await SecureStore.setItemAsync(AUTH_PROVIDER_KEY, 'email');
       set({ token: access_token, isAuthenticated: true, isAuthenticating: false, authProvider: 'email' });
 
+      // Invalidate queries so fresh user data is fetched immediately
+      queryClient.invalidateQueries().catch(console.warn);
+
       // Fetch user profile after login
       await get().fetchUser();
       
       // Sync FCM in background
       get().syncNotifications().catch(console.warn);
-
-
       
       return true;
     } catch (err: any) {
@@ -158,9 +163,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       console.log('[AuthStore] Firebase ID token obtained, length:', idToken.length);
 
       // Step 3: Sync with KnoVault backend (exchange Firebase token for KnoVault JWT)
-      console.log('[AuthStore] Sending firebase-sync to:', env.API_BASE_URL);
+      console.log('[AUTH] Firebase authentication successful');
+      console.log(`[AUTH] firebase-sync target = ${env.API_BASE_URL}/api/auth/firebase-sync`);
       const { access_token, refresh_token, user } = await authApi.firebaseSync(idToken);
-      console.log('[AuthStore] Backend sync success, user:', user.email);
+      console.log('[AUTH] firebase-sync status = success', user.email);
 
       // Step 4: Store KnoVault tokens
       await SecureStore.setItemAsync(TOKEN_KEY, access_token);
@@ -177,15 +183,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       console.log('[AuthStore] Google Sign-In complete:', user.email);
 
+      // Invalidate queries so fresh user data is fetched immediately
+      queryClient.invalidateQueries().catch(console.warn);
+
       // Sync FCM in background
       get().syncNotifications().catch(console.warn);
-
-
 
       return true;
     } catch (err: any) {
       const isNetworkError = err?.message === 'Network Error' || err?.code === 'ECONNABORTED';
-      console.error('[AuthStore] Google Sign-In failed:', {
+      console.error('[AUTH] firebase-sync status = failed', {
         status: err?.response?.status,
         data: err?.response?.data,
         message: err?.message,
@@ -196,7 +203,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       
       let message: string;
       if (isNetworkError) {
-        message = `Cannot reach backend at ${env.API_BASE_URL}. Make sure backend is running and phone is on same network.`;
+        message = `Cannot reach backend at ${env.API_BASE_URL}. Please check your network connection.`;
       } else {
         const detail = err?.response?.data?.detail;
         if (typeof detail === 'string') {
@@ -297,6 +304,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       } catch {
         // Ignore Firebase sign-out errors
       }
+    }
+
+    // Clear all query cache to prevent user data leakage between sessions
+    try {
+      queryClient.clear();
+    } catch {
+      // Ignore cleanup errors
     }
 
     set({ token: null, user: null, isAuthenticated: false, error: null, authProvider: null });

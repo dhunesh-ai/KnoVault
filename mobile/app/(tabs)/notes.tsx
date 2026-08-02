@@ -30,6 +30,7 @@ import { NoteCard } from '../../src/components/NoteCard';
 import { Note } from '../../src/types/notes';
 import { SecurityOverlay } from '../../src/components/SecurityOverlay';
 import { useTheme } from '../../src/hooks/useTheme';
+import { env } from '../../src/config/env';
 import { getThemedShadow } from '../../src/components/ThemedComponents';
 import { typography, spacing, borderRadius } from '../../src/theme';
 import { useSettingsStore } from '../../src/store/settingsStore';
@@ -204,22 +205,24 @@ export default function NotesScreen() {
               onChangeText={setSearchQuery}
             />
           </View>
-          <Pressable
-            onPress={handleAiPress}
-            onPressIn={handleAiPressIn}
-            onPressOut={handleAiPressOut}
-            accessibilityLabel="Open KnoVault AI"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Animated.View style={[styles.aiButton, aiAnimatedStyle]}>
-              <LinearGradient
-                colors={['#7C4DFF', '#6A5CFF']}
-                style={styles.aiButtonGradient}
-              >
-                <Sparkles size={20} color="#FFFFFF" />
-              </LinearGradient>
-            </Animated.View>
-          </Pressable>
+          {env.AI_CHAT_ENABLED && (
+            <Pressable
+              onPress={handleAiPress}
+              onPressIn={handleAiPressIn}
+              onPressOut={handleAiPressOut}
+              accessibilityLabel="Open KnoVault AI"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Animated.View style={[styles.aiButton, aiAnimatedStyle]}>
+                <LinearGradient
+                  colors={['#7C4DFF', '#6A5CFF']}
+                  style={styles.aiButtonGradient}
+                >
+                  <Sparkles size={20} color="#FFFFFF" />
+                </LinearGradient>
+              </Animated.View>
+            </Pressable>
+          )}
         </View>
       </View>
 

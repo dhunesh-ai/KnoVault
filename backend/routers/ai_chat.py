@@ -1,7 +1,7 @@
 import uuid
 import time
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_, delete
@@ -210,7 +210,13 @@ async def chat(
 ):
     platform = request.headers.get("user-agent", "Unknown Platform")
     now_ts = time.time()
-    cache_key = (current_user.id, data.conversation_id or "temp", data.message.strip())
+    dedup_identifier = f"client_id:{data.client_message_id}" if data.client_message_id else data.message.strip()
+    cache_key = (current_user.id, data.conversation_id or "temp", dedup_identifier)
+
+    print(
+        f"[BACKEND CHAT REQUEST] user_id={current_user.id} conversation_id={data.conversation_id} "
+        f"client_message_id={data.client_message_id} platform='{platform[:30]}' message='{data.message[:30]}'"
+    )
 
     async with recent_chat_lock:
         # Clean up stale cache entries (>10 seconds)
@@ -220,8 +226,8 @@ async def chat(
 
         if cache_key in recent_chat_requests:
             cached_ts, cached_val = recent_chat_requests[cache_key]
-            if now_ts - cached_ts < 3.0:
-                print(f"[AI_DEDUP] Duplicate request suppressed for User ID: {current_user.id} | Conv: {data.conversation_id}")
+            if now_ts - cached_ts < 5.0:
+                print(f"[AI_DEDUP] Idempotent request suppressed for User ID: {current_user.id} | client_message_id: {data.client_message_id}")
                 if isinstance(cached_val, AIChatResponse):
                     return cached_val
                 elif isinstance(cached_val, asyncio.Task):
@@ -380,11 +386,13 @@ async def chat(
             user_id=current_user.id,
             role="assistant",
             content=ai_response,
-            created_at=now_dt,
+            created_at=now_dt + timedelta(milliseconds=10),
         )
 
         db.add(user_msg_obj)
         db.add(assistant_msg_obj)
+        print(f"[DATABASE INSERT USER MESSAGE] id={user_msg_obj.id} conv_id={conversation.id} user_id={current_user.id} content='{user_msg_obj.content[:30]}'")
+        print(f"[DATABASE INSERT AI MESSAGE] id={assistant_msg_obj.id} conv_id={conversation.id} user_id={current_user.id}")
 
         # Auto-name conversation if title is default
         if conversation.title in ["New Conversation", "First Conversation", "Untitled Chat"]:

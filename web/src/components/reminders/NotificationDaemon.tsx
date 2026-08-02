@@ -3,16 +3,20 @@
 import { useEffect, useRef } from "react";
 import { useRemindersStore } from "@/store/useRemindersStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { notificationsService } from "@/services/notifications";
 import { toast } from "sonner";
-import { format, isPast, differenceInMinutes } from "date-fns";
+import { isPast, differenceInMinutes } from "date-fns";
 import Cookies from "js-cookie";
-import { API_BASE_URL } from "@/lib/axios";
+import { getApiBaseUrl } from "@/lib/axios";
 
 export function NotificationDaemon() {
   const { reminders, fetchReminders } = useRemindersStore();
   const { notificationsEnabled, setNotificationsEnabled } = useSettingsStore();
+  const { user, isAuthenticated, isLoading } = useAuthStore();
   const initializedRef = useRef(false);
+  const isWsConnectedRef = useRef(false);
+  const socketRef = useRef<WebSocket | null>(null);
 
   // 1. Initial Permission Request Banner/Toast on Mount
   useEffect(() => {
@@ -94,7 +98,6 @@ export function NotificationDaemon() {
           }
 
           // Trigger browser notification
-          // Use unique key combination of reminder.id + reminder_date to support recurrences/series uniquely
           const notificationKey = `${reminder.id}-${reminder.reminder_date}`;
           notificationsService.showNotification(notificationKey, title, {
             body,
@@ -104,18 +107,16 @@ export function NotificationDaemon() {
       });
     };
 
-    // Run check immediately, then schedule interval
     checkReminders();
     const interval = setInterval(checkReminders, 30000);
 
     return () => clearInterval(interval);
   }, [reminders, notificationsEnabled]);
 
-  // 3. WebSocket Real-Time Synchronization
-  const isWsConnectedRef = useRef(false);
-
-  // Background Polling Fallback (Runs every 20 seconds only when WebSocket is offline)
+  // 3. Background Polling Fallback (Runs every 20 seconds only when WebSocket is offline and user is authenticated)
   useEffect(() => {
+    if (!isAuthenticated || !user) return;
+
     const pollInterval = setInterval(() => {
       if (!isWsConnectedRef.current) {
         console.log("[WS Web Client] Polling fallback: WebSocket offline, fetching reminders...");
@@ -124,12 +125,25 @@ export function NotificationDaemon() {
     }, 20000);
 
     return () => clearInterval(pollInterval);
-  }, [fetchReminders]);
+  }, [fetchReminders, isAuthenticated, user]);
 
+  // 4. Real-Time WebSocket Connection Lifecycle
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    let socket: WebSocket | null = null;
+    // Do NOT connect if auth check is loading, user is not authenticated, or no user object exists
+    if (isLoading || !isAuthenticated || !user) {
+      if (socketRef.current) {
+        console.log("[WS Web Client] User unauthenticated or logged out. Closing WS connection.");
+        socketRef.current.onclose = null;
+        socketRef.current.onerror = null;
+        socketRef.current.close();
+        socketRef.current = null;
+      }
+      isWsConnectedRef.current = false;
+      return;
+    }
+
     let reconnectTimeout: NodeJS.Timeout | null = null;
     let reconnectDelay = 2000;
     const maxReconnectDelay = 30000;
@@ -137,52 +151,71 @@ export function NotificationDaemon() {
     const connectWS = () => {
       const token = Cookies.get("user_token");
       if (!token) {
-        console.warn("[WS Web Client] No user_token cookie found. Skipping WS connection.");
+        console.log("[WS Web Client] No active user_token cookie found. Skipping WS connection.");
         isWsConnectedRef.current = false;
         return;
       }
 
-      const wsUrl = API_BASE_URL.replace(/^http/, "ws") + `/api/sync/ws?token=${encodeURIComponent(token)}`;
-      console.log("[WS Web Client] Connecting to sync stream...");
+      // Prevent duplicate connection attempts if already open or connecting
+      if (socketRef.current && (socketRef.current.readyState === WebSocket.CONNECTING || socketRef.current.readyState === WebSocket.OPEN)) {
+        return;
+      }
 
-      socket = new WebSocket(wsUrl);
+      const baseUrl = getApiBaseUrl();
+      const wsUrl = baseUrl.replace(/^http/, "ws") + `/api/sync/ws?token=${encodeURIComponent(token)}`;
+      console.log(`[WS Web Client] Connecting to sync stream: ${wsUrl}`);
 
-      socket.onopen = () => {
-        console.log("[WS Web Client] Connection established.");
-        isWsConnectedRef.current = true;
-        reconnectDelay = 2000;
-      };
+      try {
+        const socket = new WebSocket(wsUrl);
+        socketRef.current = socket;
 
-      socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          console.log("[WS Web Client] Message received:", data);
-          if (data.event === "reminders_changed") {
-            toast.info("Reminders updated on another device. Syncing...", {
-              duration: 2000
-            });
-            fetchReminders();
+        socket.onopen = () => {
+          console.log(`[WS Web Client] Connection established for User #${user.id} (${user.email}).`);
+          isWsConnectedRef.current = true;
+          reconnectDelay = 2000;
+        };
+
+        socket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            console.log("[WS Web Client] Sync message received:", data);
+            if (data.event === "reminders_changed") {
+              toast.info("Reminders updated on another device. Syncing...", { duration: 2000 });
+              fetchReminders();
+            }
+          } catch (err) {
+            console.warn("[WS Web Client] Error parsing sync event data:", err);
           }
-        } catch (err) {
-          console.error("[WS Web Client] Error parsing event data:", err);
-        }
-      };
+        };
 
-      socket.onclose = (event) => {
-        console.log(`[WS Web Client] Connection closed (code: ${event.code}). Reconnecting...`);
-        isWsConnectedRef.current = false;
-        scheduleReconnect();
-      };
+        socket.onclose = (event) => {
+          isWsConnectedRef.current = false;
+          socketRef.current = null;
 
-      socket.onerror = (err) => {
-        console.error("[WS Web Client] Error detected:", err);
+          // If closed due to policy/authentication failure (1008 / 4001 / 1003), DO NOT reconnect
+          if (event.code === 1008 || event.code === 4001 || event.code === 1003) {
+            console.log(`[WS Web Client] Connection closed by server due to authentication policy violation (code: ${event.code}). Stopping reconnect attempts.`);
+            return;
+          }
+
+          console.log(`[WS Web Client] Connection closed (code: ${event.code}). Scheduling reconnect...`);
+          scheduleReconnect();
+        };
+
+        socket.onerror = (err) => {
+          console.warn("[WS Web Client] WebSocket state notice/warning:", err);
+          isWsConnectedRef.current = false;
+        };
+      } catch (err) {
+        console.warn("[WS Web Client] Exception creating WebSocket instance:", err);
         isWsConnectedRef.current = false;
-      };
+      }
     };
 
     const scheduleReconnect = () => {
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
       reconnectTimeout = setTimeout(() => {
+        if (!isAuthenticated || !user) return;
         console.log(`[WS Web Client] Reconnecting attempt after ${reconnectDelay}ms...`);
         connectWS();
         reconnectDelay = Math.min(reconnectDelay * 2, maxReconnectDelay);
@@ -192,9 +225,9 @@ export function NotificationDaemon() {
     connectWS();
 
     const handleOnline = () => {
-      console.log("[WS Web Client] Browser is back online. Syncing reminders & reconnecting WS...");
+      console.log("[WS Web Client] Network online. Refreshing reminders and verifying WS...");
       fetchReminders();
-      if (!socket || socket.readyState !== WebSocket.OPEN) {
+      if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
         connectWS();
       }
     };
@@ -203,13 +236,16 @@ export function NotificationDaemon() {
 
     return () => {
       window.removeEventListener("online", handleOnline);
-      if (socket) {
-        socket.onclose = null;
-        socket.close();
-      }
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      if (socketRef.current) {
+        socketRef.current.onclose = null;
+        socketRef.current.onerror = null;
+        socketRef.current.close();
+        socketRef.current = null;
+      }
+      isWsConnectedRef.current = false;
     };
-  }, [fetchReminders]);
+  }, [fetchReminders, isAuthenticated, user, isLoading]);
 
   return null;
 }

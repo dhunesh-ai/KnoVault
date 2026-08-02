@@ -50,6 +50,18 @@ interface ChatState {
   clearTemporaryMessages: () => void;
 }
 
+export function sortMessagesChronologically(messages: Message[]): Message[] {
+  return [...messages].sort((a, b) => {
+    const tA = new Date(a.timestamp).getTime();
+    const tB = new Date(b.timestamp).getTime();
+    if (tA !== tB) return tA - tB;
+    if (a.sender !== b.sender) {
+      return a.sender === 'user' ? -1 : 1;
+    }
+    return a.id.localeCompare(b.id);
+  });
+}
+
 const FILE_PATH = `${(FileSystem as any).documentDirectory || ''}knovault_chat_threads.json`;
 
 const saveThreadsToFile = async (threads: ChatThread[]) => {
@@ -94,7 +106,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
       const updatedThreads: ChatThread[] = summaries.map((s) => {
         const existing = localThreads.find((t) => t.id === s.id);
-        const msgs = s.id === activeId && activeMsgs.length > 0 ? activeMsgs : (existing ? existing.messages : []);
+        let msgs = existing ? existing.messages : [];
+        if (s.id === activeId && activeMsgs.length > 0) {
+          const serverIds = new Set(activeMsgs.map((m) => m.id));
+          const pendingTemp = msgs.filter((m) => m.id.startsWith('temp_') && !serverIds.has(m.id));
+          const combined = [...activeMsgs, ...pendingTemp];
+          const seen = new Set<string>();
+          msgs = [];
+          for (const m of combined) {
+            if (!seen.has(m.id)) {
+              seen.add(m.id);
+              msgs.push(m);
+            }
+          }
+          msgs = sortMessagesChronologically(msgs);
+        }
         return {
           id: s.id,
           title: s.title,
@@ -261,12 +287,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     try {
       const fullConv = await aiApi.getConversation(threadId);
-      const loadedMsgs: Message[] = fullConv.messages.map((m) => ({
+      const rawMsgs: Message[] = fullConv.messages.map((m) => ({
         id: m.id,
         sender: m.role === 'user' ? 'user' : 'assistant',
         content: m.content,
         timestamp: m.created_at,
       }));
+      const loadedMsgs = sortMessagesChronologically(rawMsgs);
 
       const updatedThreads = get().threads.map((t) =>
         t.id === threadId
@@ -319,32 +346,47 @@ export const useChatStore = create<ChatState>((set, get) => ({
         found = true;
         const cleanMsgs = t.messages.filter((m) => !m.id.startsWith('temp_'));
         if (userMsg) {
-          cleanMsgs.push({
-            id: userMsg.id,
-            sender: 'user',
-            content: userMsg.content,
-            timestamp: userMsg.created_at,
-          });
+          if (!cleanMsgs.some((m) => m.id === userMsg.id)) {
+            cleanMsgs.push({
+              id: userMsg.id,
+              sender: 'user',
+              content: userMsg.content,
+              timestamp: userMsg.created_at,
+            });
+          }
         }
         if (assistantMsg) {
-          cleanMsgs.push({
-            id: assistantMsg.id,
-            sender: 'assistant',
-            content: assistantMsg.content,
-            timestamp: assistantMsg.created_at,
-          });
+          if (!cleanMsgs.some((m) => m.id === assistantMsg.id)) {
+            cleanMsgs.push({
+              id: assistantMsg.id,
+              sender: 'assistant',
+              content: assistantMsg.content,
+              timestamp: assistantMsg.created_at,
+            });
+          }
         }
+
+        const seenIds = new Set<string>();
+        const deduped: Message[] = [];
+        for (const m of cleanMsgs) {
+          if (!seenIds.has(m.id)) {
+            seenIds.add(m.id);
+            deduped.push(m);
+          }
+        }
+        const sorted = sortMessagesChronologically(deduped);
+
         return {
           ...t,
           title: title || t.title,
-          messages: cleanMsgs,
+          messages: sorted,
         };
       }
       return t;
     });
 
     if (!found) {
-      const newMsgs: Message[] = [];
+      let newMsgs: Message[] = [];
       if (userMsg) {
         newMsgs.push({
           id: userMsg.id,
@@ -361,6 +403,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
           timestamp: assistantMsg.created_at,
         });
       }
+      newMsgs = sortMessagesChronologically(newMsgs);
+
       updated.unshift({
         id: conversationId,
         title: title || 'New Conversation',

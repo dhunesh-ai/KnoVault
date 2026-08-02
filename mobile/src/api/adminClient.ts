@@ -54,6 +54,16 @@ export const adminClient = {
     return res.data;
   },
 
+  async getStorageStats() {
+    const res = await adminAxios.get('/api/admin/storage');
+    return res.data;
+  },
+
+  async getUserStorageDetail(userId: number) {
+    const res = await adminAxios.get(`/api/admin/storage/${userId}`);
+    return res.data;
+  },
+
   async getUsers(search?: string, status_filter?: string) {
     const params = new URLSearchParams();
     if (search) params.append('search', search);

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { env } from "@/config/env";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -85,7 +86,11 @@ export function AboutKnoVaultModal({
 
   const handleOpenAI = () => {
     onOpenChange(false);
-    router.push("/ai");
+    if (env.AI_CHAT_ENABLED) {
+      router.push("/ai");
+    } else {
+      router.push("/dashboard");
+    }
   };
 
   const handleShareApp = async () => {

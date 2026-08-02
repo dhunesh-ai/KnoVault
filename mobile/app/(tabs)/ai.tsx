@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   KeyboardAvoidingView, Platform, FlatList, ActivityIndicator,
   Keyboard, Dimensions, Alert, Modal, ScrollView, Share,
-  LayoutAnimation, StatusBar, NativeSyntheticEvent, NativeScrollEvent
+  LayoutAnimation, StatusBar, NativeSyntheticEvent, NativeScrollEvent, AppState
 } from 'react-native';
 import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -12,7 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Markdown from 'react-native-markdown-display';
 import { Clipboard } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, Redirect } from 'expo-router';
 import Animated, {
   useAnimatedStyle,
   withRepeat,
@@ -38,6 +38,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useSettingsStore } from '../../src/store/settingsStore';
 import { showMicAccessDisabledAlert } from '../../src/utils/micAccessAlert';
 import { syncManager } from '../../src/services/syncManager';
+import { env } from '../../src/config/env';
 
 // APIs & Context Helpers
 import { aiApi } from '../../src/api/ai';
@@ -276,7 +277,6 @@ const ChatMessageItem = React.memo(({
     </View>
   );
 });
-
 // ── MAIN SCREEN ──────────────────────────────────────────────────────
 const DEFAULT_QUICK_ACTIONS = [
   { label: "Pending Works", icon: "clipboard-outline", prompt: "Show my pending works" },
@@ -288,6 +288,10 @@ const DEFAULT_QUICK_ACTIONS = [
 ];
 
 function AIScreen() {
+  if (!env.AI_CHAT_ENABLED) {
+    return <Redirect href="/(tabs)" />;
+  }
+
   const { colors, theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
@@ -395,6 +399,38 @@ function AIScreen() {
     loadThreads();
     loadMemories();
   }, []);
+
+  // Live polling for cross-device chat sync (WEB -> MOBILE live updates while screen focused)
+  useEffect(() => {
+    let pollingInterval: any = null;
+
+    if (isFocused && !isTemporaryChat) {
+      pollingInterval = setInterval(() => {
+        if (!isGenerating && !isSendingRef.current) {
+          console.log('[MOBILE QUERY REFETCH] Polling active chat messages from server...');
+          loadThreads();
+        }
+      }, 3000);
+    }
+
+    return () => {
+      if (pollingInterval) clearInterval(pollingInterval);
+    };
+  }, [isFocused, isTemporaryChat, isGenerating]);
+
+  // AppState listener to immediately refetch when returning to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active' && isFocused && !isTemporaryChat) {
+        console.log('[MOBILE QUERY REFETCH] App returned to foreground - refetching live chat');
+        loadThreads();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isFocused, isTemporaryChat]);
 
   // Update syncManager AI Chat active state on focus/generation changes
   useEffect(() => {
@@ -552,6 +588,8 @@ function AIScreen() {
 
   const sendMessage = async (textOverride?: string) => {
     const now = Date.now();
+    console.log('[MOBILE SEND CLICK] User initiated send action. textOverride:', textOverride || 'none');
+
     // ═══ DEBOUNCE & SINGLE REQUEST LOCK ═══
     if (isSendingRef.current || isGenerating || (now - lastSendTimeRef.current < 500)) {
       console.log('[AI CHAT] Request locked or debounced. Suppressing duplicate invocation.');
@@ -561,6 +599,9 @@ function AIScreen() {
     const rawText = textOverride || inputText;
     const textToSend = rawText.trim();
     if (!textToSend) return;
+
+    const clientMsgId = `client_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    console.log(`[MOBILE SEND FUNCTION] Executing sendMessage() for content: '${textToSend.substring(0, 30)}...' | client_message_id: ${clientMsgId}`);
 
     // User is explicitly sending a new message: force scroll to bottom
     isNearBottomRef.current = true;
@@ -582,15 +623,15 @@ function AIScreen() {
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    // Setup Messages with optimistic UI
-    const userMsgId = `user-${Date.now()}`;
+    // Setup Messages with optimistic UI using temp_ prefix
+    const userMsgId = `temp_user_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
     const userMsg: Omit<Message, 'timestamp'> = {
       id: userMsgId,
       sender: 'user',
       content: textToSend,
     };
 
-    const aiMsgId = `ai-${Date.now()}`;
+    const aiMsgId = `temp_ai_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
     const placeholderMsg: Omit<Message, 'timestamp'> = {
       id: aiMsgId,
       sender: 'assistant',
@@ -721,18 +762,23 @@ function AIScreen() {
       }
 
       // ═══ PHASE 6: Call AI Backend ═══
+      console.log(`[MOBILE API REQUEST] Sending to /api/ai/chat | conversation_id: ${currentThreadId} | client_message_id: ${clientMsgId}`);
       const res = await aiApi.chat(
         textToSend,
         isTemporaryChat ? undefined : activeThreadId,
         fullContext,
         systemPrompt,
         isTemporaryChat,
-        controller.signal
+        controller.signal,
+        clientMsgId
       );
+
+      console.log(`[MOBILE API RESPONSE] Received response | conv_id: ${res.conversation_id} | user_msg_id: ${res.user_message?.id} | ai_msg_id: ${res.assistant_message?.id}`);
 
       if (statusTimerRef.current) clearTimeout(statusTimerRef.current);
 
       if (!isTemporaryChat) {
+        console.log(`[MOBILE STATE UPDATE] Reconciling server response into chatStore for conv_id: ${res.conversation_id}`);
         await syncResponse(
           res.conversation_id,
           res.title,

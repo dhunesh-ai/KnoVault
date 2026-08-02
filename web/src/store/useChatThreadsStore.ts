@@ -35,6 +35,18 @@ interface ChatThreadsState {
   exportThreadToMarkdown: (threadId: string) => string;
 }
 
+export function sortMessagesChronologically(messages: Message[]): Message[] {
+  return [...messages].sort((a, b) => {
+    const tA = new Date(a.timestamp).getTime();
+    const tB = new Date(b.timestamp).getTime();
+    if (tA !== tB) return tA - tB;
+    if (a.role !== b.role) {
+      return a.role === 'user' ? -1 : 1;
+    }
+    return a.id.localeCompare(b.id);
+  });
+}
+
 export const useChatThreadsStore = create<ChatThreadsState>((set, get) => ({
   threads: [],
   activeThreadId: null,
@@ -51,12 +63,12 @@ export const useChatThreadsStore = create<ChatThreadsState>((set, get) => ({
       if (activeId) {
         try {
           const activeConv = await aiService.getConversation(activeId);
-          activeMsgs = activeConv.messages.map((m: any) => ({
+          activeMsgs = sortMessagesChronologically(activeConv.messages.map((m: any) => ({
             id: m.id,
             role: m.role as "user" | "assistant",
             content: m.content ?? m.response ?? m.text ?? "",
             timestamp: m.created_at || m.timestamp || new Date().toISOString(),
-          }));
+          })));
         } catch (e) {
           console.warn("[useChatThreadsStore] Error fetching active thread messages:", e);
         }
@@ -183,12 +195,12 @@ export const useChatThreadsStore = create<ChatThreadsState>((set, get) => ({
 
     try {
       const fullConv = await aiService.getConversation(id);
-      const loadedMessages: Message[] = fullConv.messages.map((m: any) => ({
+      const loadedMessages: Message[] = sortMessagesChronologically(fullConv.messages.map((m: any) => ({
         id: m.id,
         role: m.role as "user" | "assistant",
         content: m.content ?? m.response ?? m.text ?? "",
         timestamp: m.created_at || m.timestamp || new Date().toISOString(),
-      }));
+      })));
 
       set((state) => ({
         threads: state.threads.map((t) =>
@@ -252,7 +264,7 @@ export const useChatThreadsStore = create<ChatThreadsState>((set, get) => ({
           return {
             ...t,
             title: title || t.title,
-            messages: cleanMsgs,
+            messages: sortMessagesChronologically(cleanMsgs),
           };
         }
         return t;
@@ -260,7 +272,7 @@ export const useChatThreadsStore = create<ChatThreadsState>((set, get) => ({
 
       if (!found) {
         // Conversation was newly created by server
-        const newMsgs: Message[] = [];
+        let newMsgs: Message[] = [];
         if (userMsg) {
           newMsgs.push({
             id: userMsg.id || `user_${Date.now()}`,
@@ -278,6 +290,7 @@ export const useChatThreadsStore = create<ChatThreadsState>((set, get) => ({
             timestamp: assistantMsg?.created_at || assistantMsg?.timestamp || new Date().toISOString(),
           });
         }
+        newMsgs = sortMessagesChronologically(newMsgs);
         updated.unshift({
           id: conversationId,
           title: title || "New Conversation",

@@ -55,6 +55,7 @@ class AIChatRequest(BaseModel):
     context: str | None = None
     system_prompt: str | None = None
     is_temporary: bool = False
+    client_message_id: str | None = None
 
 
 class AIChatResponse(BaseModel):

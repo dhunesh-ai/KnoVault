@@ -63,7 +63,6 @@ const MODULES = [
   { id: 'knowledge', label: 'Knowledge', icon: 'book' },
   { id: 'brainstorm', label: 'Brainstorm', icon: 'bulb' },
   { id: 'meetings', label: 'Meetings', icon: 'people' },
-  { id: 'ai', label: 'AI Assistant', icon: 'sparkles' },
   { id: 'analytics', label: 'Leaderboard', icon: 'stats-chart' },
   { id: 'settings', label: 'Settings', icon: 'settings' },
 ];
@@ -90,7 +89,7 @@ export default function WorkspaceDetailScreen() {
 
   useEffect(() => {
     if (module) {
-      setActiveModule(module);
+      setActiveModule(module === 'ai' ? 'notes' : module);
     }
   }, [module]);
 
@@ -1969,47 +1968,15 @@ export default function WorkspaceDetailScreen() {
             <View>
               <View style={styles.moduleHeaderRow}>
                 <Text style={[styles.moduleTitle, { color: theme.text }]}>Workspace Schedule</Text>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
+                {currentUserRole !== 'Viewer' && (
                   <TouchableOpacity
-                    style={[styles.aiBtnHeader, { backgroundColor: isDark ? '#312E81' : '#EEF2FF', borderColor: isDark ? '#4338CA' : '#E0E7FF' }]}
-                    onPress={runConflictCheck}
-                    disabled={checkingConflict}
+                    style={[styles.addBtn, { backgroundColor: accentColor }]}
+                    onPress={() => setEventModalVisible(true)}
                   >
-                    {checkingConflict ? (
-                      <ActivityIndicator size="small" color="#6366F1" />
-                    ) : (
-                      <>
-                        <Ionicons name="sparkles" size={14} color="#6366F1" style={{ marginRight: 4 }} />
-                        <Text style={[styles.aiBtnTextHeader, { color: isDark ? '#C7D2FE' : '#4338CA' }]}>Conflict Check</Text>
-                      </>
-                    )}
+                    <Ionicons name="add" size={18} color="#FFFFFF" />
                   </TouchableOpacity>
-
-                  {currentUserRole !== 'Viewer' && (
-                    <TouchableOpacity
-                      style={[styles.addBtn, { backgroundColor: accentColor }]}
-                      onPress={() => setEventModalVisible(true)}
-                    >
-                      <Ionicons name="add" size={18} color="#FFFFFF" />
-                    </TouchableOpacity>
-                  )}
-                </View>
+                )}
               </View>
-
-              {conflictReport && (
-                <View style={[styles.conflictAlertCard, { backgroundColor: isDark ? '#182235' : '#F0F9FF', borderColor: isDark ? '#1E3A8A' : '#BAE6FD' }]}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Ionicons name="alert-circle" size={18} color="#0284C7" style={{ marginRight: 6 }} />
-                      <Text style={{ fontWeight: 'bold', color: isDark ? '#E0F2FE' : '#0369A1' }}>AI Conflict Report</Text>
-                    </View>
-                    <TouchableOpacity onPress={() => setConflictReport(null)}>
-                      <Ionicons name="close" size={16} color={colors.text.tertiary} />
-                    </TouchableOpacity>
-                  </View>
-                  <Text style={{ fontSize: 13, lineHeight: 18, color: isDark ? '#BAE6FD' : '#0284C7' }}>{conflictReport}</Text>
-                </View>
-              )}
 
               {!events || events.length === 0 ? (
                 <Text style={[styles.noItemsText, { color: colors.text.tertiary }]}>No scheduled activities found.</Text>
@@ -2129,46 +2096,15 @@ export default function WorkspaceDetailScreen() {
             <View>
               <View style={styles.moduleHeaderRow}>
                 <Text style={[styles.moduleTitle, { color: theme.text }]}>Knowledge Wall</Text>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
+                {currentUserRole !== 'Viewer' && (
                   <TouchableOpacity
-                    style={[styles.aiBtnHeader, { backgroundColor: isDark ? '#312E81' : '#EEF2FF', borderColor: isDark ? '#4338CA' : '#E0E7FF' }]}
-                    onPress={runKnowledgeOrganize}
-                    disabled={organizingWall}
+                    style={[styles.addBtn, { backgroundColor: accentColor }]}
+                    onPress={() => setKnowModalVisible(true)}
                   >
-                    {organizingWall ? (
-                      <ActivityIndicator size="small" color="#6366F1" />
-                    ) : (
-                      <>
-                        <Ionicons name="sparkles" size={14} color="#6366F1" style={{ marginRight: 4 }} />
-                        <Text style={[styles.aiBtnTextHeader, { color: isDark ? '#C7D2FE' : '#4338CA' }]}>AI Organize</Text>
-                      </>
-                    )}
+                    <Ionicons name="add" size={18} color="#FFFFFF" />
                   </TouchableOpacity>
-
-                  {currentUserRole !== 'Viewer' && (
-                    <TouchableOpacity
-                      style={[styles.addBtn, { backgroundColor: accentColor }]}
-                      onPress={() => setKnowModalVisible(true)}
-                    >
-                      <Ionicons name="add" size={18} color="#FFFFFF" />
-                    </TouchableOpacity>
-                  )}
-                </View>
+                )}
               </View>
-
-              {organizedTree && (
-                <View style={[styles.treeOutputCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                    <Text style={{ fontWeight: 'bold', color: theme.text }}>AI Organized Taxonomy</Text>
-                    <TouchableOpacity onPress={() => setOrganizedTree(null)}>
-                      <Ionicons name="close" size={18} color={colors.text.tertiary} />
-                    </TouchableOpacity>
-                  </View>
-                  <Text style={{ fontSize: 13, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace', color: theme.textSecondary }}>
-                    {organizedTree}
-                  </Text>
-                </View>
-              )}
 
               {!knowledge || knowledge.length === 0 ? (
                 <Text style={[styles.noItemsText, { color: colors.text.tertiary }]}>Knowledge wall is currently empty. Add learnings!</Text>
@@ -2212,44 +2148,15 @@ export default function WorkspaceDetailScreen() {
             <View>
               <View style={styles.moduleHeaderRow}>
                 <Text style={[styles.moduleTitle, { color: theme.text }]}>Sticky Ideas</Text>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
+                {currentUserRole !== 'Viewer' && (
                   <TouchableOpacity
-                    style={[styles.aiBtnHeader, { backgroundColor: isDark ? '#312E81' : '#EEF2FF', borderColor: isDark ? '#4338CA' : '#E0E7FF' }]}
-                    onPress={runIdeaClustering}
-                    disabled={clusteringIdeas}
+                    style={[styles.addBtn, { backgroundColor: accentColor }]}
+                    onPress={() => setIdeaModalVisible(true)}
                   >
-                    {clusteringIdeas ? (
-                      <ActivityIndicator size="small" color="#6366F1" />
-                    ) : (
-                      <>
-                        <Ionicons name="sparkles" size={14} color="#6366F1" style={{ marginRight: 4 }} />
-                        <Text style={[styles.aiBtnTextHeader, { color: isDark ? '#C7D2FE' : '#4338CA' }]}>AI Cluster</Text>
-                      </>
-                    )}
+                    <Ionicons name="add" size={18} color="#FFFFFF" />
                   </TouchableOpacity>
-
-                  {currentUserRole !== 'Viewer' && (
-                    <TouchableOpacity
-                      style={[styles.addBtn, { backgroundColor: accentColor }]}
-                      onPress={() => setIdeaModalVisible(true)}
-                    >
-                      <Ionicons name="add" size={18} color="#FFFFFF" />
-                    </TouchableOpacity>
-                  )}
-                </View>
+                )}
               </View>
-
-              {clusteredReport && (
-                <View style={[styles.treeOutputCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                    <Text style={{ fontWeight: 'bold', color: theme.text }}>AI Concept Clusters</Text>
-                    <TouchableOpacity onPress={() => setClusteredReport(null)}>
-                      <Ionicons name="close" size={18} color={colors.text.tertiary} />
-                    </TouchableOpacity>
-                  </View>
-                  <Text style={{ fontSize: 13, lineHeight: 18, color: theme.textSecondary }}>{clusteredReport}</Text>
-                </View>
-              )}
 
               <View style={styles.stickiesGrid}>
                 {!ideas || ideas.length === 0 ? (
