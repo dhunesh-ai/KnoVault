@@ -346,6 +346,7 @@ class DatabaseService {
       await targetDb.execAsync(`
         CREATE TABLE IF NOT EXISTS NotificationHistory (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER,
           title TEXT NOT NULL,
           body TEXT,
           category TEXT,
@@ -354,6 +355,12 @@ class DatabaseService {
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
       `);
+
+      try {
+        await targetDb.execAsync("ALTER TABLE NotificationHistory ADD COLUMN user_id INTEGER;");
+      } catch {
+        // Ignore if user_id column already exists
+      }
 
       // Create GoogleDriveSync table
       await targetDb.execAsync(`

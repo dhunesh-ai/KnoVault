@@ -24,7 +24,7 @@ import * as TaskManager from 'expo-task-manager';
 import * as Notifications from 'expo-notifications';
 import { syncWorkspace } from '../src/services/sync';
 import { initDB } from '../src/services/db';
-import { setupNotificationChannelsAndCategories, scheduleDailyPlanner, scheduleSpecialDaysReminders, syncWorkspaceNotifications } from '../src/utils/localNotifications';
+import { setupNotificationChannelsAndCategories, scheduleDailyPlanner, scheduleSpecialDaysReminders, syncWorkspaceNotifications, scheduleTrackedNotification } from '../src/utils/localNotifications';
 import NetInfo from '@react-native-community/netinfo';
 import { useAppStore } from '../src/store/appStore';
 
@@ -71,7 +71,7 @@ TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error }) => 
         
         const content = notification.request.content;
         
-        await Notifications.scheduleNotificationAsync({
+        await scheduleTrackedNotification({
           content: {
             title: content.title,
             body: content.body,
@@ -84,7 +84,7 @@ TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error }) => 
             date: newTime,
             channelId: notification.request.trigger.channelId,
           } as any,
-        });
+        }, 'TaskManager_snooze');
         
         await Notifications.dismissNotificationAsync(notification.request.identifier);
       }
@@ -135,9 +135,10 @@ function RootLayoutContent() {
         // Background sync task registration (Stage 5 priority)
         registerBackgroundSync().catch(e => console.warn('Background sync init failed', e));
 
-        // Schedule local alarms
-        scheduleDailyPlanner().catch(e => console.warn('Daily planner schedule failed', e));
-        scheduleSpecialDaysReminders().catch(e => console.warn('Special days schedule failed', e));
+        try {
+          const { dumpScheduledNotifications } = require('../src/utils/localNotifications');
+          dumpScheduledNotifications('App_Boot');
+        } catch {}
 
         // Stage 2: UI Ready
         if (isMounted) setIsAppReady(true);
@@ -208,7 +209,7 @@ function RootLayoutContent() {
         
         const content = response.notification.request.content;
         
-        await Notifications.scheduleNotificationAsync({
+        await scheduleTrackedNotification({
           content: {
             title: content.title,
             body: content.body,
@@ -221,7 +222,7 @@ function RootLayoutContent() {
             date: newTime,
             channelId: (response.notification.request.trigger as any).channelId,
           } as any,
-        });
+        }, 'Foreground_snooze');
         await Notifications.dismissNotificationAsync(response.notification.request.identifier);
       }
       
@@ -267,11 +268,13 @@ function RootLayoutContent() {
         syncManager.scheduleTask('workspace_sync_bg', TaskPriority.BACKGROUND_SYNC, syncWorkspace).catch((e: any) => console.warn('Background sync failed', e));
       }, 600);
 
-      // Stage 5: Workspace Notifications via SyncManager
+      // Stage 5: Workspace & Local Notifications via SyncManager
       const stage5Timer = setTimeout(() => {
-        console.log('[RootLayout Stage 5] Scheduling workspace notifications via SyncManager...');
+        console.log('[RootLayout Stage 5] Scheduling workspace and local notifications via SyncManager...');
         const { syncManager, TaskPriority } = require('../src/services/syncManager');
         syncManager.scheduleTask('workspace_notifs_sync', TaskPriority.NOTIFICATIONS, syncWorkspaceNotifications).catch((e: any) => console.warn('Workspace notifications sync failed', e));
+        scheduleDailyPlanner().catch(e => console.warn('Daily planner schedule failed', e));
+        scheduleSpecialDaysReminders().catch(e => console.warn('Special days schedule failed', e));
       }, 2500);
 
       // Stage 6: WebSocket Connection

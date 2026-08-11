@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useNotesStore } from "@/store/useNotesStore";
 import { NoteCard } from "@/components/notes/NoteCard";
 import { NoteEditor } from "@/components/notes/NoteEditor";
@@ -42,6 +43,7 @@ const isNoteEncrypted = (note: Note): boolean => {
 };
 
 export default function NotesPage() {
+  const router = useRouter();
   const {
     notes,
     categories,
@@ -115,8 +117,7 @@ export default function NotesPage() {
   }, [notes, selectedCategory]);
 
   const handleCreate = () => {
-    setEditingNote(null);
-    setEditorOpen(true);
+    router.push("/notes/editor");
   };
 
   const handleEdit = async (note: Note) => {
@@ -126,8 +127,7 @@ export default function NotesPage() {
       setIsSecureDialogOpen(true);
     } else {
       const decrypted = (viewingNote && viewingNote.id === note.id) ? viewingNote : note;
-      setEditingNote(decrypted);
-      setEditorOpen(true);
+      router.push(`/notes/editor?id=${decrypted.id}`);
     }
   };
 
@@ -154,8 +154,7 @@ export default function NotesPage() {
         setViewingNote(fullNote);
         setViewerOpen(true);
       } else if (secureActionType === "edit") {
-        setEditingNote(fullNote);
-        setEditorOpen(true);
+        router.push(`/notes/editor?id=${fullNote.id}`);
       }
     } catch (e: any) {
       toast.error(e.response?.data?.detail || "Failed to decrypt note");

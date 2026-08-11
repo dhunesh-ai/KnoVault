@@ -285,6 +285,8 @@ export default function NotificationsScreen() {
     useCallback(() => {
       checkNotificationPermission();
       fetchNotifications();
+      const { dumpScheduledNotifications } = require('../src/utils/localNotifications');
+      dumpScheduledNotifications('NotificationScreen_Open');
     }, [fetchNotifications])
   );
 
@@ -507,6 +509,12 @@ export default function NotificationsScreen() {
             )}
           </View>
         </View>
+
+        {/* Debug Panel Shortcut */}
+        <TouchableOpacity onPress={() => router.push('/debug-notifications' as any)} style={[ds.headerActionBtn, { backgroundColor: '#3B82F618', marginRight: 6 }]}>
+          <Ionicons name="bug-outline" size={16} color="#3B82F6" />
+          <Text style={[ds.headerActionText, { color: '#3B82F6', fontWeight: 'bold' }]}>Debug</Text>
+        </TouchableOpacity>
 
         {notifications.length > 0 && notificationPermissionGranted && (
           hasUnread ? (

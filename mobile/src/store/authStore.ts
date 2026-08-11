@@ -87,9 +87,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
         // Sync FCM token in background (don't block init)
         get().syncNotifications().catch(console.warn);
+
+        try {
+          const { dumpScheduledNotifications } = require('../utils/localNotifications');
+          dumpScheduledNotifications('AuthStore_Init_Authenticated');
+        } catch {}
       } else {
-        console.log('[Auth Restore] No token found');
+        console.log('[Auth Restore] No token found. Purging leftover local notifications...');
         set({ isAuthenticated: false, isAuthenticating: false, error: null });
+        try {
+          const Notifications = require('expo-notifications');
+          await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
+          const { dbQueue } = require('../services/db');
+          await dbQueue.write(async (db: any) => {
+            await db.runAsync('DELETE FROM NotificationHistory');
+          }).catch(() => {});
+          const { useNotificationStore } = require('./notificationStore');
+          useNotificationStore.setState({ notifications: [], unreadCount: 0, isLoading: false });
+
+          const { dumpScheduledNotifications } = require('../utils/localNotifications');
+          dumpScheduledNotifications('AuthStore_Init_Unauthenticated');
+        } catch (cleanErr) {
+          console.warn('[AuthStore] Error purging unauthenticated notifications:', cleanErr);
+        }
       }
       console.log('[Auth Restore] Initialization sequence complete');
     } catch (err) {
@@ -311,6 +331,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       queryClient.clear();
     } catch {
       // Ignore cleanup errors
+    }
+
+    // Cancel all scheduled local device notifications, wipe local SQLite user tables (clearDB), and reset notificationStore
+    try {
+      const Notifications = require('expo-notifications');
+      await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
+      const { clearDB } = require('../services/db');
+      await clearDB().catch(() => {});
+      const { useNotificationStore } = require('./notificationStore');
+      useNotificationStore.setState({ notifications: [], unreadCount: 0, isLoading: false });
+
+      const { dumpScheduledNotifications } = require('../utils/localNotifications');
+      await dumpScheduledNotifications('AuthStore_Logout');
+    } catch (cleanErr) {
+      console.warn('[AuthStore] Failed to clear local notification cache on logout:', cleanErr);
     }
 
     set({ token: null, user: null, isAuthenticated: false, error: null, authProvider: null });

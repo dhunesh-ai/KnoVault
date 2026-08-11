@@ -21,6 +21,28 @@ Notifications.setNotificationHandler({
   },
 });
 
+export const dumpScheduledNotifications = async (triggerPoint: string) => {
+  try {
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    const formatted = scheduled.map(n => ({
+      id: n.identifier,
+      title: n.content.title,
+      body: n.content.body,
+      trigger: n.trigger,
+      data: n.content.data
+    }));
+    console.log('[DEVICE_EXPO_SCHEDULED_DUMP]', {
+      triggerPoint,
+      count: scheduled.length,
+      scheduled: formatted
+    });
+    return formatted;
+  } catch (err) {
+    console.error(`[DEVICE_EXPO_SCHEDULED_DUMP_ERROR] Failed at ${triggerPoint}:`, err);
+    return [];
+  }
+};
+
 export const requestLocalNotificationPermissions = async (request: boolean = false) => {
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
@@ -123,20 +145,69 @@ export const setupNotificationChannelsAndCategories = async () => {
   ]);
 };
 
+/**
+ * Tracked wrapper around Notifications.scheduleNotificationAsync.
+ * Prints diagnostic log details (user, source, content, stack trace)
+ * and verifies current user authentication before scheduling.
+ */
+export const scheduleTrackedNotification = async (
+  request: Notifications.NotificationRequestInput,
+  source: string = 'unknown'
+): Promise<string> => {
+  try {
+    const { useAuthStore } = require('../store/authStore');
+    const authState = useAuthStore.getState();
+    const currentUser = authState.user;
+    const userId = currentUser?.id ?? null;
+    const email = currentUser?.email ?? 'unauthenticated';
+
+    const content = request.content || {};
+    const data = (content.data || {}) as any;
+    const title = content.title || 'Untitled';
+    const body = content.body || '';
+    const workspaceId = data.workspaceId || data.workspace_id || null;
+    const reminderId = data.reminderId || data.reminder_id || data.id || null;
+    const eventId = data.eventId || data.event_id || null;
+    const stackTrace = new Error().stack;
+
+    console.log('[NOTIFICATION_CREATED]', {
+      userId,
+      email,
+      title,
+      body,
+      source,
+      workspaceId,
+      reminderId,
+      eventId,
+      stackTrace,
+    });
+
+    if (!authState.isAuthenticated || !userId) {
+      console.warn(`[NOTIFICATION_BLOCKED] Unauthenticated schedule attempt blocked: source=${source} title='${title}'`);
+      return '';
+    }
+
+    return await Notifications.scheduleNotificationAsync(request);
+  } catch (err) {
+    console.error(`[NOTIFICATION_TRACKER_ERROR] Failed in source=${source}:`, err);
+    return '';
+  }
+};
+
 export const scheduleLocalReminder = async (
-  title: string, 
-  body: string, 
-  triggerDate: Date, 
-  data: Record<string, any> = {},
+  title: string,
+  body: string,
+  triggerDate: Date,
+  data?: any,
   channelId: string = 'reminders',
   categoryIdentifier: string = 'REMINDER_ACTION',
   repeatingMode?: 'daily' | 'weekly' | 'yearly' | 'monthly'
-) => {
-  const { notificationsEnabled, notificationReminders, notificationGoals } = useSettingsStore.getState();
-  
-  if (!notificationsEnabled) return null;
-  if (channelId === 'reminders' && !notificationReminders) return null;
-  if (channelId === 'goals' && !notificationGoals) return null;
+): Promise<string | null> => {
+  const { notificationsEnabled, notificationReminders } = useSettingsStore.getState();
+  if (!notificationsEnabled || !notificationReminders) {
+    console.warn('[LocalNotifications] Notifications or reminders disabled in settings');
+    return null;
+  }
 
   const hasPermission = await requestLocalNotificationPermissions();
   if (!hasPermission) {
@@ -153,7 +224,7 @@ export const scheduleLocalReminder = async (
   logNotificationToHistory(title, body, channelId, data);
 
   try {
-    const id = await Notifications.scheduleNotificationAsync({
+    const id = await scheduleTrackedNotification({
       content: {
         title,
         body,
@@ -200,6 +271,13 @@ export const scheduleLocalReminder = async (
 };
 
 export const scheduleDailyPlanner = async () => {
+  const { useAuthStore } = require('../store/authStore');
+  const authUser = useAuthStore.getState().user;
+  if (!useAuthStore.getState().isAuthenticated || !authUser?.id) {
+    console.log('[LocalNotifications] scheduleDailyPlanner skipped: Unauthenticated user.');
+    return;
+  }
+
   const { notificationsEnabled, notificationDailySummary } = useSettingsStore.getState();
   if (!notificationsEnabled || !notificationDailySummary) return;
 
@@ -214,13 +292,15 @@ export const scheduleDailyPlanner = async () => {
       return; // Already scheduled
     }
 
-    await Notifications.scheduleNotificationAsync({
+    console.log(`[DIAGNOSTIC EXPO SCHEDULED] user_id=${authUser.id} email=${authUser.email} source=daily_planner identifier=daily-planner title='🌅 Good Morning' timestamp=${new Date().toISOString()}`);
+
+    await scheduleTrackedNotification({
       identifier: 'daily-planner', // Ensure single identity
       content: {
         title: '🌅 Good Morning',
         body: 'Check your Daily Planner for upcoming reminders and goals today!',
         sound: true,
-        data: { type: 'daily_planner' }
+        data: { type: 'daily_planner', userId: authUser.id }
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DAILY,
@@ -228,13 +308,21 @@ export const scheduleDailyPlanner = async () => {
         minute: 0,
         channelId: 'system',
       } as any,
-    });
+    }, 'scheduleDailyPlanner');
   } catch (error) {
     console.error('[LocalNotifications] Error scheduling daily planner:', error);
   }
 };
 
 export const scheduleSpecialDaysReminders = async () => {
+  const { useAuthStore } = require('../store/authStore');
+  const authUser = useAuthStore.getState().user;
+  if (!useAuthStore.getState().isAuthenticated || !authUser?.id) {
+    console.log('[LocalNotifications] scheduleSpecialDaysReminders skipped: Unauthenticated user.');
+    await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
+    return;
+  }
+
   const { notificationsEnabled, notificationReminders } = useSettingsStore.getState();
   if (!notificationsEnabled || !notificationReminders) return;
 
@@ -312,7 +400,7 @@ export const scheduleSpecialDaysReminders = async () => {
       
       if (triggerDate.getTime() > Date.now() && triggerDate.getTime() < Date.now() + 365 * 24 * 60 * 60 * 1000) {
         try {
-          const id = await Notifications.scheduleNotificationAsync({
+          const id = await scheduleTrackedNotification({
             content: {
               title: notifTitle,
               body: notifBody,
@@ -324,7 +412,7 @@ export const scheduleSpecialDaysReminders = async () => {
               date: triggerDate,
               channelId: 'special-days',
             } as any,
-          });
+          }, 'scheduleSpecialDaysReminders');
           console.log("[REMINDER DEBUG] SCHEDULED ID", id);
         } catch (scheduleErr) {
           console.error(`[REMINDER DEBUG] ERROR: Failed to schedule for ${event.title}:`, scheduleErr);
@@ -363,7 +451,7 @@ export const scheduleWorkspaceMeetingNotifications = async (meeting: WorkspaceMe
   const startTime = date;
 
   if (reminderTime.getTime() > nowMs) {
-    await Notifications.scheduleNotificationAsync({
+    await scheduleTrackedNotification({
       identifier: `workspace_meeting_5m_${meeting.id}`,
       content: {
         title: '📹 Meeting Reminder',
@@ -383,12 +471,12 @@ export const scheduleWorkspaceMeetingNotifications = async (meeting: WorkspaceMe
         date: reminderTime,
         channelId: 'workspace-alerts',
       } as any,
-    });
+    }, 'scheduleWorkspaceMeetingNotifications_5m');
     console.log(`[LocalNotifications] Scheduled 5m reminder for meeting ${meeting.id} at ${reminderTime}`);
   }
 
   if (startTime.getTime() > nowMs) {
-    await Notifications.scheduleNotificationAsync({
+    await scheduleTrackedNotification({
       identifier: `workspace_meeting_start_${meeting.id}`,
       content: {
         title: '📹 Meeting Started',
@@ -408,7 +496,7 @@ export const scheduleWorkspaceMeetingNotifications = async (meeting: WorkspaceMe
         date: startTime,
         channelId: 'workspace-alerts',
       } as any,
-    });
+    }, 'scheduleWorkspaceMeetingNotifications_start');
     console.log(`[LocalNotifications] Scheduled start notification for meeting ${meeting.id} at ${startTime}`);
   }
 };
@@ -420,7 +508,7 @@ export const scheduleWorkspaceEventNotifications = async (event: WorkspaceEvent,
   const startTime = date;
 
   if (reminderTime.getTime() > nowMs) {
-    await Notifications.scheduleNotificationAsync({
+    await scheduleTrackedNotification({
       identifier: `workspace_event_5m_${event.id}`,
       content: {
         title: '📅 Event Reminder',
@@ -440,12 +528,12 @@ export const scheduleWorkspaceEventNotifications = async (event: WorkspaceEvent,
         date: reminderTime,
         channelId: 'workspace-alerts',
       } as any,
-    });
+    }, 'scheduleWorkspaceEventNotifications_5m');
     console.log(`[LocalNotifications] Scheduled 5m reminder for event ${event.id} at ${reminderTime}`);
   }
 
   if (startTime.getTime() > nowMs) {
-    await Notifications.scheduleNotificationAsync({
+    await scheduleTrackedNotification({
       identifier: `workspace_event_start_${event.id}`,
       content: {
         title: '📅 Event Started',
@@ -465,14 +553,22 @@ export const scheduleWorkspaceEventNotifications = async (event: WorkspaceEvent,
         date: startTime,
         channelId: 'workspace-alerts',
       } as any,
-    });
+    }, 'scheduleWorkspaceEventNotifications_start');
     console.log(`[LocalNotifications] Scheduled start notification for event ${event.id} at ${startTime}`);
   }
 };
 
 export const syncWorkspaceNotifications = async () => {
   try {
-    console.log('[SyncWorkspaceNotifications] Starting local notification synchronization...');
+    const { useAuthStore } = require('../store/authStore');
+    const authUser = useAuthStore.getState().user;
+    if (!useAuthStore.getState().isAuthenticated || !authUser?.id) {
+      console.log('[SyncWorkspaceNotifications] Skipped: Unauthenticated user.');
+      await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
+      return;
+    }
+
+    console.log(`[SyncWorkspaceNotifications] Starting local notification synchronization for user_id=${authUser.id} (${authUser.email})...`);
     const workspaces = await workspacesApi.getWorkspaces();
     
     const upcomingMeetingIds = new Set<number>();
@@ -552,7 +648,7 @@ export const syncWorkspaceNotifications = async () => {
         const existing = scheduled.find(n => n.identifier === identifier);
         const shouldSchedule = !existing || existing.content.data?.date !== meeting.date || existing.content.body?.indexOf(meeting.title) === -1;
         if (shouldSchedule) {
-          await Notifications.scheduleNotificationAsync({
+          await scheduleTrackedNotification({
             identifier,
             content: {
               title: '📹 Meeting Reminder',
@@ -572,7 +668,7 @@ export const syncWorkspaceNotifications = async () => {
               date: reminderTime,
               channelId: 'workspace-alerts',
             } as any,
-          });
+          }, 'syncWorkspaceNotifications_meeting_5m');
         }
       }
 
@@ -582,7 +678,7 @@ export const syncWorkspaceNotifications = async () => {
         const existing = scheduled.find(n => n.identifier === identifier);
         const shouldSchedule = !existing || existing.content.data?.date !== meeting.date || existing.content.body?.indexOf(meeting.title) === -1;
         if (shouldSchedule) {
-          await Notifications.scheduleNotificationAsync({
+          await scheduleTrackedNotification({
             identifier,
             content: {
               title: '📹 Meeting Started',
@@ -602,7 +698,7 @@ export const syncWorkspaceNotifications = async () => {
               date: startTime,
               channelId: 'workspace-alerts',
             } as any,
-          });
+          }, 'syncWorkspaceNotifications_meeting_start');
         }
       }
     }
@@ -619,7 +715,7 @@ export const syncWorkspaceNotifications = async () => {
         const existing = scheduled.find(n => n.identifier === identifier);
         const shouldSchedule = !existing || existing.content.data?.date !== event.date || existing.content.body?.indexOf(event.title) === -1;
         if (shouldSchedule) {
-          await Notifications.scheduleNotificationAsync({
+          await scheduleTrackedNotification({
             identifier,
             content: {
               title: '📅 Event Reminder',
@@ -639,7 +735,7 @@ export const syncWorkspaceNotifications = async () => {
               date: reminderTime,
               channelId: 'workspace-alerts',
             } as any,
-          });
+          }, 'syncWorkspaceNotifications_event_5m');
         }
       }
 
@@ -649,7 +745,7 @@ export const syncWorkspaceNotifications = async () => {
         const existing = scheduled.find(n => n.identifier === identifier);
         const shouldSchedule = !existing || existing.content.data?.date !== event.date || existing.content.body?.indexOf(event.title) === -1;
         if (shouldSchedule) {
-          await Notifications.scheduleNotificationAsync({
+          await scheduleTrackedNotification({
             identifier,
             content: {
               title: '📅 Event Started',
@@ -669,7 +765,7 @@ export const syncWorkspaceNotifications = async () => {
               date: startTime,
               channelId: 'workspace-alerts',
             } as any,
-          });
+          }, 'syncWorkspaceNotifications_event_start');
         }
       }
     }

@@ -372,13 +372,13 @@ export default function DashboardPage() {
 
   // Quick Action Buttons Data
   const QUICK_ACTIONS = [
-    { title: "Create Note", desc: "Markdown & Voice", icon: StickyNote, color: "text-blue-500 bg-blue-500/10 border-blue-500/20", onClick: () => setNoteEditorOpen(true) },
+    { title: "Create Note", desc: "Markdown & Voice", icon: StickyNote, color: "text-blue-500 bg-blue-500/10 border-blue-500/20", onClick: () => router.push("/notes/editor") },
     { title: "Create Reminder", desc: "Tasks & Schedule", icon: Bell, color: "text-amber-500 bg-amber-500/10 border-amber-500/20", onClick: () => router.push("/reminders") },
     { title: "Add Medicine", desc: "Dose tracking", icon: Pill, color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20", onClick: () => router.push("/medicine") },
     { title: "Add Special Day", desc: "Events & Wishes", icon: Gift, color: "text-pink-500 bg-pink-500/10 border-pink-500/20", onClick: () => router.push("/special-days/new") },
     { title: "Create Goal", desc: "Milestones & Progress", icon: Target, color: "text-purple-500 bg-purple-500/10 border-purple-500/20", onClick: () => router.push("/goals") },
     ...(env.AI_CHAT_ENABLED ? [{ title: "Open AI Assistant", desc: "Chat & Summarize", icon: Sparkles, color: "text-violet-500 bg-violet-500/10 border-violet-500/20", onClick: () => router.push("/ai") }] : []),
-    { title: "Voice Note", desc: "Instant audio log", icon: Mic, color: "text-sky-500 bg-sky-500/10 border-sky-500/20", onClick: () => setNoteEditorOpen(true) },
+    { title: "Voice Note", desc: "Instant audio log", icon: Mic, color: "text-sky-500 bg-sky-500/10 border-sky-500/20", onClick: () => router.push("/notes/editor") },
     { title: "Workspaces", desc: "Docs & Files", icon: Layers, color: "text-indigo-500 bg-indigo-500/10 border-indigo-500/20", onClick: () => router.push("/workspaces") },
   ];
 
@@ -469,7 +469,7 @@ export default function DashboardPage() {
           {/* Right Action Buttons */}
           <div className="flex flex-col sm:flex-row lg:flex-col gap-3.5 shrink-0">
             <Button
-              onClick={() => setNoteEditorOpen(true)}
+              onClick={() => router.push("/notes/editor")}
               className="h-12 px-6 rounded-2xl bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white font-black shadow-lg shadow-purple-500/25 border-0 text-sm gap-2"
             >
               <Plus className="w-4.5 h-4.5" /> + New Note
@@ -770,7 +770,7 @@ export default function DashboardPage() {
                       Nothing set for {format(selectedCalendarDate, "MMM d")}. Enjoy your free day!
                     </p>
                     <Button
-                      onClick={() => setNoteEditorOpen(true)}
+                      onClick={() => router.push("/notes/editor")}
                       className="h-9 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs"
                     >
                       + Add Event
@@ -835,7 +835,7 @@ export default function DashboardPage() {
                 <CardTitle className="text-base font-black text-foreground flex items-center gap-2">
                   <Clock className="w-4.5 h-4.5 text-purple-500" /> Today's Schedule & Timeline
                 </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setNoteEditorOpen(true)} className="text-xs font-bold text-purple-600 hover:bg-purple-500/10 rounded-xl">
+                <Button variant="ghost" size="sm" onClick={() => router.push("/notes/editor")} className="text-xs font-bold text-purple-600 hover:bg-purple-500/10 rounded-xl">
                   + Add Item
                 </Button>
               </div>
@@ -941,7 +941,7 @@ export default function DashboardPage() {
                 <p className="text-xs text-muted-foreground font-semibold max-w-xs mx-auto">
                   Start capturing your ideas, meeting logs, and markdown notes.
                 </p>
-                <Button onClick={() => setNoteEditorOpen(true)} className="h-10 px-5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs">
+                <Button onClick={() => router.push("/notes/editor")} className="h-10 px-5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs">
                   + Create First Note
                 </Button>
               </div>

@@ -211,6 +211,10 @@ async def get_user_notifications(
     await db.execute(stmt_del)
     await db.commit()
     
+    import logging
+    logger = logging.getLogger("NotificationsAPI")
+    logger.info(f"[NOTIFICATIONS GET] Fetching notifications for user_id={current_user.id} ({current_user.email})")
+
     stmt = (
         select(Notification, Workspace.name.label("workspace_name"))
         .outerjoin(Workspace, Notification.workspace_id == Workspace.id)
@@ -221,6 +225,9 @@ async def get_user_notifications(
     notifications_data = []
     for row in res.all():
         notif, ws_name = row[0], row[1]
+        if notif.user_id != current_user.id:
+            logger.error(f"[SECURITY ALERT] Notification user_id mismatch! Expected {current_user.id}, got {notif.user_id}")
+            continue
         notifications_data.append(NotificationResponse(
             id=notif.id,
             user_id=notif.user_id,
@@ -233,6 +240,7 @@ async def get_user_notifications(
             is_read=notif.is_read,
             created_at=notif.created_at
         ))
+    logger.info(f"[NOTIFICATIONS GET] Returned {len(notifications_data)} notifications strictly for user_id={current_user.id}")
     return notifications_data
 
 

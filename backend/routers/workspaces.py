@@ -88,14 +88,13 @@ async def list_workspaces(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Get all workspaces where user is owner or member, or that are public
+    # Get all workspaces where user is owner or member
     stmt = (
         select(Workspace)
         .outerjoin(WorkspaceMember, WorkspaceMember.workspace_id == Workspace.id)
         .where(
             (Workspace.owner_id == current_user.id) |
-            (WorkspaceMember.user_id == current_user.id) |
-            (Workspace.privacy_level == "Public")
+            (WorkspaceMember.user_id == current_user.id)
         )
         .distinct()
     )

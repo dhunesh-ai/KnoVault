@@ -43,14 +43,14 @@ else:
     _connect_args["ssl"] = _ssl_ctx
     _connect_args["statement_cache_size"] = 0
     _connect_args["prepared_statement_name_func"] = lambda: None
-    _connect_args["timeout"] = 30
-    _connect_args["command_timeout"] = 30
+    _connect_args["timeout"] = 5
+    _connect_args["command_timeout"] = 5
     engine = create_async_engine(
         _db_url,
         echo=False,
         pool_size=10,
         max_overflow=20,
-        pool_timeout=30,
+        pool_timeout=5,
         pool_recycle=300,
         pool_pre_ping=True,
         connect_args=_connect_args,

@@ -40,7 +40,12 @@ interface NotificationState {
 
 // ── Badge Helper ─────────────────────────────────────────────────────
 
-const updateBadge = async (count: number) => {
+const updateBadge = async (count: number, source: string = 'notificationStore') => {
+  console.log('[BADGE_UPDATED]', {
+    unreadCount: count,
+    notificationCount: useNotificationStore.getState()?.notifications?.length ?? 0,
+    source
+  });
   try {
     const { setBadgeCountAsync } = require('expo-notifications');
     await setBadgeCountAsync(count);
@@ -62,6 +67,18 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   fetchNotifications: async () => {
     set({ isLoading: true });
     try {
+      // Get current authenticated user
+      const { useAuthStore } = require('./authStore');
+      const currentUser = useAuthStore.getState().user;
+      const currentUserId = currentUser?.id;
+
+      if (!currentUserId) {
+        console.log('[NotificationStore] No authenticated user found, resetting notifications.');
+        set({ notifications: [], unreadCount: 0, isLoading: false });
+        updateBadge(0, 'fetchNotifications_unauthenticated');
+        return;
+      }
+
       // 1. Fetch from backend (workspace notifications)
       const backendNotifs: (WorkspaceNotification & { source: 'backend' })[] = [];
       try {
@@ -71,7 +88,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         console.warn('[NotificationStore] Backend fetch failed (offline?):', err);
       }
 
-      // 2. Fetch from local SQLite (scheduled reminder notifications)
+      // 2. Fetch from local SQLite (scheduled reminder notifications filtered strictly by user_id)
       const localNotifs: (LocalNotificationRecord & { source: 'local'; type?: string; workspace_name?: string | null; message?: string })[] = [];
       try {
         await dbQueue.write(async (db) => {
@@ -88,7 +105,8 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
         const rows = await dbQueue.read(async (db) => {
           return db.getAllAsync<any>(
-            'SELECT * FROM NotificationHistory ORDER BY created_at DESC LIMIT 50'
+            'SELECT * FROM NotificationHistory WHERE user_id = ? ORDER BY created_at DESC LIMIT 50',
+            [currentUserId]
           );
         });
 
@@ -140,7 +158,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
       const unreadCount = merged.filter((n) => !n.is_read).length;
       set({ notifications: merged, unreadCount, isLoading: false });
-      updateBadge(unreadCount);
+      updateBadge(unreadCount, 'fetchNotifications');
     } catch (error) {
       console.error('[NotificationStore] Failed to fetch notifications:', error);
       set({ isLoading: false });
@@ -161,7 +179,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       );
       const unreadCount = updated.filter((n) => !n.is_read).length;
       set({ notifications: updated, unreadCount });
-      updateBadge(unreadCount);
+      updateBadge(unreadCount, 'markAsRead');
     } catch (error) {
       console.error('[NotificationStore] Failed to mark as read:', error);
     }
@@ -180,7 +198,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
       const updated = get().notifications.map((n) => ({ ...n, is_read: true }));
       set({ notifications: updated, unreadCount: 0 });
-      updateBadge(0);
+      updateBadge(0, 'markAllAsRead');
     } catch (error) {
       console.error('[NotificationStore] Failed to mark all as read:', error);
     }
@@ -200,7 +218,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       );
       const unreadCount = updated.filter((n) => !n.is_read).length;
       set({ notifications: updated, unreadCount });
-      updateBadge(unreadCount);
+      updateBadge(unreadCount, 'deleteNotification');
     } catch (error) {
       console.error('[NotificationStore] Failed to delete notification:', error);
     }
@@ -215,7 +233,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         });
       } catch {}
       set({ notifications: [], unreadCount: 0 });
-      updateBadge(0);
+      updateBadge(0, 'clearAll');
     } catch (error) {
       console.error('[NotificationStore] Failed to clear all:', error);
     }
@@ -228,12 +246,34 @@ export const logNotificationToHistory = async (
   title: string,
   body: string,
   category: string,
-  payload?: any
+  payload?: any,
+  userId?: number,
+  source: string = 'localNotification'
 ) => {
   try {
+    const { useAuthStore } = require('./authStore');
+    const authState = useAuthStore.getState();
+    const currentUser = authState.user;
+    const currentUserId = userId ?? currentUser?.id ?? null;
+    const userEmail = currentUser?.email ?? 'unknown';
+
+    console.log('[NOTIFICATION_HISTORY_INSERT]', {
+      title,
+      body,
+      userId: currentUserId,
+      email: userEmail,
+      source
+    });
+
+    if (!currentUserId) {
+      console.warn(`[NOTIFICATION_HISTORY_BLOCKED] Attempted to insert history without user_id: title='${title}'`);
+      return;
+    }
+
     await dbQueue.write(async (db) => {
       await db.runAsync(
-        'INSERT INTO NotificationHistory (title, body, category, payload) VALUES (?, ?, ?, ?)',
+        'INSERT INTO NotificationHistory (user_id, title, body, category, payload) VALUES (?, ?, ?, ?, ?)',
+        currentUserId,
         title ?? 'Notification',
         body ?? '',
         category ?? 'system',
